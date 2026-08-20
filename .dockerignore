@@ -1,14 +1,16 @@
-# Applies to builds using the repo root as context (ai-service). Services that
-# build from their own directory read their local .dockerignore instead.
+# Every service builds with the repo root as context, so this is the only
+# .dockerignore that applies.
 
 .git/
 .github/
+.claude/
 
 node_modules/
 **/node_modules/
 **/.next/
 **/dist/
 **/build/
+coverage/
 
 **/.venv/
 **/__pycache__/
@@ -17,12 +19,19 @@ node_modules/
 **/tests/
 **/requirements-dev.txt
 
+# Never build a secret into an image. .env.example is the only one that ships.
 .env
 .env.*
 !.env.example
 
+kubernetes/
+terraform/
+docs/
+
 **/.DS_Store
 *.log
-docs/
 *.md
+!README.md
+# The RAG corpus is markdown and ai-service copies it into the image. Without
+# this the image builds fine and answers nothing.
 !rag/knowledge-base/**/*.md
