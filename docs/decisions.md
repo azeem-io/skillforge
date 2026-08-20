@@ -94,3 +94,26 @@ Retention Lab schedules a flashcard. We schedule a *skill*: proficiency decays
 and must be re-earned, so "mastered" still means something a month later. No
 other team will have spaced repetition, and it maps to SDG 4 more credibly than
 a generated roadmap does.
+
+## Readiness: a prerequisite counts at half the level the role asks
+
+`locked` used to mean "a prerequisite has no evidence at all", so any level
+above zero unlocked everything downstream. That produced Pandas flagged as a
+startable gap while NumPy — its only prerequisite — sat at 1 of 4, next to
+dashboard copy promising "every prerequisite is already met". The state and the
+copy contradicted each other, and the copy was the part that was false.
+
+Requiring the full level instead was measured, not assumed: it moves the demo
+student from 5 startable skills to 2, and locks Unit Testing behind
+Object-Oriented Programming going 3 → 4, which nobody would call a real
+blocker. Half the required level keeps Unit Testing startable and drops Pandas,
+which is the behaviour a student would expect from both.
+
+The rule lives in `roleSkillGraph()` in `packages/db` and in
+`SkillGapCalculator._is_foundation()` in `python-analyzer`. **Both must change
+together** — this is the duplication `docs/status.md` flags as a drift risk, and
+`tests/test_analyzer.py` pins the boundary at 1 (blocks) and 2 (unblocks) for a
+requirement of 3.
+
+Per-edge strengths would be the better lever, but all 144 seeded prerequisite
+edges are `hard`, so `skillPrerequisites.strength` carries no signal today.

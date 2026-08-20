@@ -120,14 +120,20 @@ export async function roleSkillGraph(
     };
   });
 
-  // locked means no foundation at all in a prerequisite, matching
-  // SkillGapCalculator.identify_gaps() in python-analyzer. Requiring full
-  // mastery of every prerequisite would mark almost everything locked.
-  const started = new Set(rows.filter((r) => r.level > 0).map((r) => r.id));
+  // A prerequisite counts as a foundation at half the level the role asks of
+  // it. Any evidence at all is too weak — NumPy at 1 of 4 is no basis for
+  // starting Pandas — and the full level is too strict, since OOP at 3 of 4 is
+  // plainly enough to start writing unit tests. Mirrored by
+  // SkillGapCalculator.identify_gaps() in python-analyzer; change both.
+  const foundation = new Set(
+    rows
+      .filter((r) => r.level >= Math.ceil(r.requiredLevel / 2))
+      .map((r) => r.id),
+  );
   for (const r of rows) {
     if (r.level >= r.requiredLevel) r.mastery = "mastered";
     else if (r.level > 0) r.mastery = "progress";
-    else if (r.prerequisites.every((p) => started.has(p))) r.mastery = "gap";
+    else if (r.prerequisites.every((p) => foundation.has(p))) r.mastery = "gap";
     else r.mastery = "locked";
   }
 

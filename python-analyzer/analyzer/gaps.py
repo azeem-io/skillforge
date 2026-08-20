@@ -26,6 +26,20 @@ class SkillGapCalculator:
     def level_of(self, slug: str) -> int:
         return self._demonstrated.get(slug, 0)
 
+    def _is_foundation(self, slug: str) -> bool:
+        """
+        Whether a prerequisite is solid enough to start what depends on it.
+
+        Half the level the role asks of it. Any evidence at all is too weak —
+        NumPy at 1 of 4 is no basis for starting Pandas — and the full level is
+        too strict, since OOP at 3 of 4 is plainly enough to start writing unit
+        tests. Mirrored by roleSkillGraph() in packages/db; change both.
+        """
+        required = next(
+            (r.required_level for r in self._requirements if r.skill == slug), 2
+        )
+        return self.level_of(slug) >= (required + 1) // 2
+
     def identify_gaps(self) -> list[Gap]:
         """Every requirement not yet met, worst first."""
         gaps: list[Gap] = []
@@ -45,7 +59,7 @@ class SkillGapCalculator:
             blocked_by = [
                 p
                 for p in self._graph.prerequisites_of(req.skill)
-                if p not in met and self.level_of(p) == 0
+                if p not in met and not self._is_foundation(p)
             ]
 
             gaps.append(
