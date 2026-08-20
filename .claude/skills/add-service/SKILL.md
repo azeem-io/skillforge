@@ -10,15 +10,18 @@ Every service must be a real container that actually runs, reachable through
 the gateway, and present in all four places below. A service missing from any
 one of them is worse than not having it.
 
-## The five services
+## The six services
+
+Names match the requirements PDF diagram exactly. Do not rename.
 
 | Service | Language | Owns |
 |---|---|---|
-| `api-gateway` | Node | Routing, JWT verification, forwarding user context |
+| `api-gateway` | Node | Routing, session verification, forwarding identity |
 | `auth-service` | Node | Better Auth, argon2id, users/sessions/roles |
-| `core-service` | Node | Skills, assessments, progress, roadmaps |
-| `python-service` | FastAPI | SkillGraph, SkillGapCalculator, RoadmapGenerator |
+| `profile-api` | Node | Student profile, projects, certifications, uploads |
+| `skill-service` | Node | Taxonomy, graph, assessments, progress, roadmaps |
 | `ai-service` | FastAPI | DeepSeek calls, RAG retrieval, the agent and its tools |
+| `python-analyzer` | FastAPI | SkillAnalyzer, SkillGapCalculator, RoadmapGenerator |
 
 ## Checklist — all four, or it does not count
 
@@ -37,7 +40,7 @@ one of them is worse than not having it.
 - The gateway verifies the session once and forwards identity as headers.
   Downstream services trust those headers and do not re-verify the JWT, but
   **do** re-check authorization at the data layer.
-- Path prefixes: `/api/auth/*`, `/api/skills/*`, `/api/analysis/*`, `/api/ai/*`.
+- Path prefixes: `/api/auth/*`, `/api/profile/*`, `/api/skills/*`, `/api/analysis/*`, `/api/ai/*`.
 - Every service exposes `GET /health` returning 200 and nothing sensitive.
 
 ## Python services

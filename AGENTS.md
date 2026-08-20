@@ -33,17 +33,53 @@ AI-powered student skills and career development platform. Hackathon project,
 
 ## Architecture
 
+Service names match the diagram in the requirements PDF exactly. Judges compare
+against it — do not rename.
+
+```
+React (frontend/)
+   ↓
+api-gateway
+   ↓
+auth-service  ·  profile-api  ·  ai-service
+   ↓
+python-analyzer  ·  skill-service
+```
+
 ```
 frontend/          Next.js — UI only, calls the gateway
 backend/
-  api-gateway/     Routes to services, verifies JWT once, forwards user context
+  api-gateway/     Routes to services, verifies session once, forwards identity
   auth-service/    Better Auth, argon2id, users/sessions/roles
-  core-service/    Skills, assessments, progress, roadmaps
-python-service/    SkillGraph, SkillGapCalculator, RoadmapGenerator
+  profile-api/     Student profile, projects, certifications, uploads
+  skill-service/   Taxonomy, prerequisite graph, assessments, progress, roadmaps
 ai-service/        DeepSeek generation, RAG retrieval, the agent and its tools
-packages/db/       Drizzle schema + migrations, shared by auth and core
+python-analyzer/   SkillAnalyzer, SkillGapCalculator, RoadmapGenerator
+packages/db/       Drizzle schema + migrations
 rag/knowledge-base/  Markdown corpus, a submission deliverable
 ```
+
+## Domain scope: technology careers
+
+The problem statement is explicit — "students who want a career in technology".
+The seed taxonomy is tech only. The six assessment areas the PDF names are the
+seed subcategories: **Python, Web Development, Git, DevOps, AI, Database.**
+
+Do not broaden into marketing, HR or media. The graph is more convincing dense
+and narrow than sparse and wide.
+
+## Roadmap pipeline
+
+The PDF's required pipeline, and where each stage comes from:
+
+| Stage | Source |
+|---|---|
+| Current Level | `studentSkills` + assessment attempts |
+| Skill Gap | `SkillGapCalculator.identify_gaps()` |
+| Recommended Topics | topological layering of the gap subgraph |
+| Projects | `resources` rows with `type = 'project'` |
+| Resources | `resources` rows for each phase's skills |
+| Target Role | `targetRoles` + `roleRequirements` |
 
 ## The data model in one paragraph
 

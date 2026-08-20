@@ -13,6 +13,7 @@
     "@skillforge/db": "*",
     "@xyflow/react": "^12.9.1",
     "better-auth": "^1.4.6",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3-hierarchy": "^3.1.2",
     "d3-scale-chromatic": "^3.1.0",
@@ -21,9 +22,12 @@
     "dagre": "^0.8.5",
     "lucide-react": "^0.556.0",
     "next": "16.3.1",
+    "radix-ui": "^1.6.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "shadcn": "^4.18.0",
     "tailwind-merge": "^3.4.1",
+    "tw-animate-css": "^1.4.0",
     "zod": "^4.1.13"
   },
   "devDependencies": {
