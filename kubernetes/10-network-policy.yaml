@@ -1,0 +1,44 @@
+# The gateway is the only way in. Without this, any pod in the namespace can
+# reach profile-api directly, and the identity headers it would then have to
+# forge are the only thing standing between it and another student's profile.
+#
+# The GATEWAY_SECRET check in packages/service-kit is the second layer; this is
+# the first. Requires a CNI that enforces NetworkPolicy (Calico, Cilium) —
+# without one it is applied and silently ignored.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-services-from-gateway-only
+  namespace: skillforge
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [auth-service, profile-api, skill-service]
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-from-backend-only
+  namespace: skillforge
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [auth-service, profile-api, skill-service, frontend, migrate]
+      ports:
+        - port: 5432

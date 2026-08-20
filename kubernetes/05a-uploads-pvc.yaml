@@ -1,0 +1,14 @@
+# Uploaded CVs and certificates. ReadWriteMany because profile-api runs more
+# than one replica and any of them may serve a download — on a cluster whose
+# storage class cannot do RWX, drop profile-api to one replica or move uploads
+# to object storage.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uploads
+  namespace: skillforge
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 5Gi
