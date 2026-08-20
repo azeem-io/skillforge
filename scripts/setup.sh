@@ -42,6 +42,7 @@ if [ ! -f .env ]; then
       -e "s|^BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=${auth_secret}|" \
       -e "s|^GATEWAY_SECRET=.*|GATEWAY_SECRET=${gateway_secret}|" \
       -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${postgres_password}|" \
+      -e "s|^DATABASE_URL=postgres://\([^:]*\):[^@]*@|DATABASE_URL=postgres://\1:${postgres_password}@|" \
       .env
     rm -f .env.bak
     ok ".env created with generated secrets"
@@ -70,6 +71,15 @@ if [ "$MODE" = "--local" ]; then
   ok "dependencies installed"
 
   bold "Starting Postgres"
+  # DATABASE_URL is the source of truth for local dev (bun scripts read it
+  # directly, not the POSTGRES_* parts) — derive the port and password from
+  # it so the container we start or reuse actually matches what migrate/seed
+  # will connect to.
+  db_url=$(grep -E '^DATABASE_URL=' .env | cut -d= -f2-)
+  pg_port=$(printf '%s' "$db_url" | sed -E 's#.*:([0-9]+)/[^/]*$#\1#')
+  pg_port=${pg_port:-5432}
+  pg_password=$(grep -E '^POSTGRES_PASSWORD=' .env | cut -d= -f2-)
+
   if [ -z "$(docker ps -q -f name=^skillforge-postgres$)" ]; then
     if [ -n "$(docker ps -aq -f name=^skillforge-postgres$)" ]; then
       docker start skillforge-postgres >/dev/null
@@ -77,14 +87,24 @@ if [ "$MODE" = "--local" ]; then
     else
       docker run -d --name skillforge-postgres \
         -e POSTGRES_USER=skillforge \
-        -e POSTGRES_PASSWORD=dev \
+        -e POSTGRES_PASSWORD="${pg_password:-dev}" \
         -e POSTGRES_DB=skillforge \
-        -p 5432:5432 \
+        -p "${pg_port}:5432" \
         pgvector/pgvector:pg17 >/dev/null
-      ok "skillforge-postgres started on :5432"
+      ok "skillforge-postgres started on :${pg_port}"
     fi
   else
     ok "skillforge-postgres already running"
+  fi
+
+  # A container left over from an earlier run (or a manual workaround for a
+  # port clash with something unrelated on this host) can be bound to a
+  # different host port than DATABASE_URL expects. That mismatch otherwise
+  # surfaces three steps later as an opaque 28P01 from whatever else is
+  # squatting on the expected port, instead of from this database at all.
+  actual_port=$(docker port skillforge-postgres 5432/tcp 2>/dev/null | sed -E 's/.*:([0-9]+)$/\1/' | head -1)
+  if [ -n "$actual_port" ] && [ "$actual_port" != "$pg_port" ]; then
+    die "skillforge-postgres is published on :${actual_port} but DATABASE_URL in .env points at :${pg_port}. Update DATABASE_URL's port in .env (and frontend/.env.local) to ${actual_port}, or 'docker rm -f skillforge-postgres' and re-run to recreate it on :${pg_port}."
   fi
 
   printf '  waiting for Postgres'
