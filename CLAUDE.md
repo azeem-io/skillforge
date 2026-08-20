@@ -100,9 +100,9 @@ topological sort. Three views, one table.
 |---|---|
 | Graph views, roadmap UI, skill tree | Azeem |
 | `python-analyzer`, `ai-service`, RAG, agent | Azeem |
-| `auth-service`, `profile-api`, `skill-service`, `api-gateway` | Partner |
-| Assessment flow, FSRS progress | Partner |
-| Docker, Compose, Kubernetes, Terraform, Coolify | Partner |
+| `auth-service`, `profile-api`, `skill-service`, `api-gateway` | Awaim |
+| Assessment flow, FSRS progress | Awaim |
+| Docker, Compose, Kubernetes, Terraform, Coolify | Awaim |
 | `packages/db` schema | Either — announce before changing |
 
 Adjust by agreement, not silently. Both must be able to explain the whole
@@ -127,7 +127,8 @@ system — judges ask.
 | `ui-component` | Building any UI |
 | `add-service` | Adding or wiring a backend service |
 
-## Decisions
+## Decisions and status
 
-`docs/decisions.md` records what was settled and why. Read it before
-re-proposing something that was already rejected.
+`docs/status.md` — what is built, what is next, who owns it. **Check here first.**
+`docs/decisions.md` — settled calls and why. Read before re-proposing something
+that was already rejected.
