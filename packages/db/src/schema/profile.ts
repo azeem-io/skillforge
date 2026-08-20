@@ -13,8 +13,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { users } from "./auth";
-import { skills, targetRoles } from "./skills";
+import { users } from "./auth.ts";
+import { skills, targetRoles } from "./skills.ts";
 
 export const experienceLevel = pgEnum("experience_level", [
   "beginner",

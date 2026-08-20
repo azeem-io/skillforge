@@ -13,7 +13,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { users } from "./auth";
+import { users } from "./auth.ts";
 
 // Named altitude, not level — `level` already means proficiency in
 // studentSkills and roleRequirements.

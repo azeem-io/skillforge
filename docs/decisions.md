@@ -66,16 +66,21 @@ generic. Python computes the ordering; the model only writes the rationale.
 Layout is dagre, not ELK. Keystone needed ELK tuning at 1,464 nodes and 3,635
 edges; we have ~120 nodes.
 
-## Skill data: harvest names, do not ship files
+## Skill data: written from scratch, not harvested
 
-Keystone's `skills.json` is 7,081 records — 41 categories, 527 subcategories,
-6,513 skills. The skill and subcategory layers are clean industry taxonomy
-(only 2.9% show anonymisation artifacts) but all 878 roles are scrambled client
-names, and `programs` is a client catalogue.
+Keystone's `skills.json` was evaluated and **not used**. Its 41 categories are
+an occupational taxonomy built for one company — Loan Processing, Risk
+Policies, Transportation and Supply Chain, plus two categories corrupted by the
+anonymisation pass. Nothing in it maps to a student learning to code, and the
+878 roles are scrambled client job titles.
 
-Take: the `altitude` schema shape, ~8 category names, ~120 skill names. Leave:
-the files themselves, `roles`, `programs`. The dataset has **no prerequisite
-edges** — the DAG is authored by hand regardless.
+The seed taxonomy is authored directly: three categories over the six
+assessment areas the PDF names, ~116 standard industry skill names. The only
+thing taken from Keystone is the `altitude` schema shape (CATEGORY /
+SUBCATEGORY / SKILL as one table), which is structural and stands on its own.
+
+The prerequisite edges were always going to be hand-written — no public skills
+dataset carries them, and they are the substance the roadmap computes over.
 
 ## FSRS keyed on skills, not cards
 
