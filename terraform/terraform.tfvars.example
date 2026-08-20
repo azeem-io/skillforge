@@ -1,0 +1,19 @@
+# Copy to terraform.tfvars and fill in. That file is gitignored.
+# Credentials are better set in the environment than written here:
+#   export CNTB_OAUTH2_CLIENT_ID=... CNTB_OAUTH2_CLIENT_SECRET=...
+#   export CNTB_OAUTH2_USER=...      CNTB_OAUTH2_PASS=...
+
+# Adopt the VPS that already runs Coolify instead of ordering another.
+# Find the id with: cntb get instances
+existing_instance_id = null
+
+display_name   = "skillforge"
+product_id     = "V45"
+region         = "EU"
+site_address   = "skillforge.example.com"
+
+ssh_public_key = "ssh-ed25519 AAAA... you@example.com"
+root_password  = "generate-one-do-not-reuse"
+
+# Narrow this to your own address. The default is the whole internet.
+admin_cidrs = ["0.0.0.0/0"]

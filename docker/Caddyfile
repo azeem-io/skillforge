@@ -1,0 +1,22 @@
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	# The split that makes the gateway the only way in to the backend. It has
+	# to come first: `handle` blocks are evaluated in order, and the catch-all
+	# below would otherwise send /api/* to Next.
+	handle /api/* {
+		reverse_proxy api-gateway:8080
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+
+	# Without this, a cookie set over HTTPS is still visible to a downgrade on
+	# the first plaintext request of a later visit.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}

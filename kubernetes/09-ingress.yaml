@@ -1,0 +1,33 @@
+# The same split Caddy does in compose: /api/* to the gateway, everything else
+# to Next. Path order matters — the more specific rule is listed first, and
+# `Prefix` matching means /api/anything reaches the gateway.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: skillforge
+  namespace: skillforge
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: ["skillforge.example.com"]
+      secretName: skillforge-tls
+  rules:
+    - host: skillforge.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000

@@ -1,0 +1,41 @@
+# Non-secret configuration. Everything here is safe to read; anything that
+# would not be goes in the Secret below.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: skillforge-config
+  namespace: skillforge
+data:
+  # Services address each other by Service name, which resolves inside the
+  # namespace. Same shape as the compose network, different DNS.
+  AUTH_SERVICE_URL: "http://auth-service:8081"
+  PROFILE_API_URL: "http://profile-api:8082"
+  SKILL_SERVICE_URL: "http://skill-service:8083"
+  AI_SERVICE_URL: "http://ai-service:8084"
+  PYTHON_ANALYZER_URL: "http://python-analyzer:8085"
+  GATEWAY_URL: "http://api-gateway:8080"
+  BETTER_AUTH_URL: "https://skillforge.example.com"
+  # The pod network, so Better Auth trusts the ingress controller's
+  # X-Forwarded-For rather than collapsing every client into one rate-limit
+  # bucket. Narrow this to the controller's own range on a real cluster.
+  TRUSTED_PROXIES: "10.0.0.0/8"
+  UPLOAD_DIR: "/data/uploads"
+  SEED_ON_START: "true"
+---
+# Placeholder values only — `stringData` so the manifest stays readable, and
+# committed with obvious non-secrets. On a real cluster this comes from a
+# sealed secret or an external secrets operator, never from this file.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: skillforge-secrets
+  namespace: skillforge
+type: Opaque
+stringData:
+  POSTGRES_USER: "skillforge"
+  POSTGRES_PASSWORD: "replace-me"
+  POSTGRES_DB: "skillforge"
+  DATABASE_URL: "postgres://skillforge:replace-me@postgres:5432/skillforge"
+  BETTER_AUTH_SECRET: "replace-me-openssl-rand-base64-32-gives-44-chars"
+  GATEWAY_SECRET: "replace-me-openssl-rand-hex-32"
+  DEEPSEEK_API_KEY: ""

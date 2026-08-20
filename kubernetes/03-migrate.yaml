@@ -1,0 +1,29 @@
+# Runs to completion before the services are useful, exactly like the compose
+# `migrate` service. A Job, not an initContainer on each Deployment: four
+# replicas racing to migrate the same database is the failure this avoids.
+#
+# Apply it, wait for completion, then apply the services:
+#   kubectl -n skillforge wait --for=condition=complete job/migrate --timeout=180s
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+  namespace: skillforge
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: migrate
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: skillforge/migrate:local
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef: { name: skillforge-config }
+            - secretRef: { name: skillforge-secrets }
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 512Mi }

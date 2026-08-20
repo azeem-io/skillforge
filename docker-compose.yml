@@ -1,0 +1,224 @@
+# The whole system, and the same file in local dev and in production. Caddy is
+# the only container that publishes ports; everything else is reachable on the
+# compose network and nowhere else.
+#
+# Secrets come from a .env file beside this one, which is gitignored;
+# .env.example lists every key. Nothing here has a usable default for a
+# credential — an unset variable fails the container rather than silently
+# starting with a well-known password.
+#
+# python-analyzer and ai-service are absent because they are not written yet
+# (Azeem owns both). The gateway still routes /api/analysis/* and /api/ai/* at
+# them and answers 502 until they exist; skill-service falls back to its local
+# layering for the roadmap. Adding them is a service block plus their URLs.
+
+name: skillforge
+
+services:
+  postgres:
+    # pgvector, not plain postgres: the ai-service stores embeddings here.
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    # Deliberately no `ports:`. Publishing 5432 on a VPS exposes the database to
+    # the internet, and a firewall rule is a second thing to get right when
+    # simply not publishing the port is the first.
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Runs to completion before anything else starts, and exits. `restart: "no"`
+  # is load-bearing: a restart policy on a one-shot job turns a failed migration
+  # into a crash loop that never surfaces as a failed deploy.
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/migrate.Dockerfile
+    image: ${IMAGE_PREFIX:-skillforge}/migrate:${IMAGE_TAG:-local}
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      SEED_ON_START: ${SEED_ON_START:-true}
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: backend/auth-service/Dockerfile
+    image: ${IMAGE_PREFIX:-skillforge}/auth-service:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      # Addressed by service name, not localhost — the containers share a
+      # network, not a loopback interface.
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      GATEWAY_SECRET: ${GATEWAY_SECRET:?set GATEWAY_SECRET in .env}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
+      # The origin the browser sees, which is Caddy's.
+      BETTER_AUTH_URL: https://${SITE_ADDRESS:-localhost}
+      TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-}
+      # Caddy and the gateway are the only hops in front of this container, so
+      # they are the only ones allowed to set X-Forwarded-For. Without naming
+      # them, Better Auth cannot tell which hop is real and collapses every
+      # client into one rate-limit bucket. This is the compose network's default
+      # subnet; override in .env if you have changed it.
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-172.16.0.0/12}
+      PORT: 8081
+    healthcheck:
+      test: ["CMD", "bun", "-e", "process.exit((await fetch('http://localhost:8081/health')).ok ? 0 : 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  profile-api:
+    build:
+      context: .
+      dockerfile: backend/profile-api/Dockerfile
+    image: ${IMAGE_PREFIX:-skillforge}/profile-api:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      GATEWAY_SECRET: ${GATEWAY_SECRET:?set GATEWAY_SECRET in .env}
+      UPLOAD_DIR: /data/uploads
+      PORT: 8082
+    volumes:
+      - uploads:/data/uploads
+    healthcheck:
+      test: ["CMD", "bun", "-e", "process.exit((await fetch('http://localhost:8082/health')).ok ? 0 : 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  skill-service:
+    build:
+      context: .
+      dockerfile: backend/skill-service/Dockerfile
+    image: ${IMAGE_PREFIX:-skillforge}/skill-service:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      GATEWAY_SECRET: ${GATEWAY_SECRET:?set GATEWAY_SECRET in .env}
+      # Unset until python-analyzer exists; the roadmap falls back to the local
+      # layering rather than failing.
+      PYTHON_ANALYZER_URL: ${PYTHON_ANALYZER_URL:-}
+      PORT: 8083
+    healthcheck:
+      test: ["CMD", "bun", "-e", "process.exit((await fetch('http://localhost:8083/health')).ok ? 0 : 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: backend/api-gateway/Dockerfile
+    image: ${IMAGE_PREFIX:-skillforge}/api-gateway:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      profile-api:
+        condition: service_healthy
+      skill-service:
+        condition: service_healthy
+    environment:
+      # No DATABASE_URL on purpose: the gateway routes and verifies, and a
+      # router holding database credentials is a router that will eventually
+      # start querying.
+      GATEWAY_SECRET: ${GATEWAY_SECRET:?set GATEWAY_SECRET in .env}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      PROFILE_API_URL: http://profile-api:8082
+      SKILL_SERVICE_URL: http://skill-service:8083
+      # Not running yet. The route exists so adding the service is a one-line
+      # change here rather than a change to the gateway.
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://ai-service:8084}
+      PYTHON_ANALYZER_URL: ${PYTHON_ANALYZER_URL:-http://python-analyzer:8085}
+      PORT: 8080
+    healthcheck:
+      test: ["CMD", "bun", "-e", "process.exit((await fetch('http://localhost:8080/health')).ok ? 0 : 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: ${IMAGE_PREFIX:-skillforge}/frontend:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    environment:
+      # Server Components fetch through the gateway by service name. Caddy
+      # answers the browser's /api/* requests before they reach Next, so the
+      # rewrite in next.config.ts is only exercised in local dev.
+      GATEWAY_URL: http://api-gateway:8080
+      # frontend/lib/db.ts still reads a few pages directly; those reads move
+      # behind skill-service as the graph views are wired up.
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/dashboard').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - api-gateway
+    ports:
+      - "80:80"
+      - "443:443"
+      # HTTP/3 — the same port number as 443/tcp but a different protocol, so
+      # it needs its own mapping.
+      - "443:443/udp"
+    environment:
+      # `localhost` is a real value, not a placeholder: for localhost and IP
+      # addresses Caddy issues from its own internal CA instead of going to
+      # Let's Encrypt, so a clean clone gets working HTTPS with no DNS and no
+      # internet. Point it at a domain for a real deploy.
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates and ACME account keys. Losing this volume means re-issuing
+      # on every restart, which hits Let's Encrypt rate limits fast.
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  pgdata:
+  uploads:
+  caddy-data:
+  caddy-config:

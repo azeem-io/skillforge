@@ -16,6 +16,11 @@
     "db:migrate": "bun run --filter @skillforge/db migrate",
     "db:seed": "bun run --filter @skillforge/db seed",
     "db:studio": "bun run --filter @skillforge/db studio",
-    "typecheck": "bun run --filter '*' typecheck"
+    "typecheck": "bun run --filter '*' typecheck",
+    "dev:services": "bun run --filter '@skillforge/auth-service' --filter '@skillforge/api-gateway' --filter '@skillforge/profile-api' --filter '@skillforge/skill-service' dev",
+    "dev:all": "bun run --filter '*' dev",
+    "setup": "./scripts/setup.sh",
+    "up": "docker compose up -d",
+    "down": "docker compose down"
   }
 }
