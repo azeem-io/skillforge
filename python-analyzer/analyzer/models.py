@@ -59,6 +59,50 @@ class Roadmap(BaseModel):
     phases: list[Phase]
 
 
+class ServiceSkill(BaseModel):
+    """One row of skill-service's SkillRow, which is camelCase and carries ids."""
+
+    model_config = {"populate_by_name": True}
+
+    id: str
+    slug: str
+    name: str
+    subcategory: str = ""
+    category: str = ""
+    level: int = 0
+    required_level: int = Field(default=2, alias="requiredLevel")
+    weight: int = 3
+    # Ids, not slugs — resolved against the ids in this same payload.
+    prerequisites: list[str] = Field(default_factory=list)
+
+
+class PlanRequest(BaseModel):
+    role: dict[str, str] = Field(default_factory=dict)
+    skills: list[ServiceSkill]
+
+
+class PlanSkill(BaseModel):
+    slug: str
+    ordinal: int
+    gapScore: int
+
+
+class PlanPhase(BaseModel):
+    phase: int
+    title: str
+    rationale: str | None = None
+    estimatedWeeks: int
+    skills: list[PlanSkill]
+
+
+class PlanResponse(BaseModel):
+    """Field names are camelCase to match skill-service's AnalyzerRoadmap."""
+
+    phases: list[PlanPhase]
+    readinessScore: int
+    narration: str | None = None
+
+
 class RoleRequirements(BaseModel):
     slug: str
     name: str

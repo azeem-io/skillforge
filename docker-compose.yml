@@ -7,10 +7,9 @@
 # credential — an unset variable fails the container rather than silently
 # starting with a well-known password.
 #
-# python-analyzer and ai-service are absent because they are not written yet
-# (Azeem owns both). The gateway still routes /api/analysis/* and /api/ai/* at
-# them and answers 502 until they exist; skill-service falls back to its local
-# layering for the roadmap. Adding them is a service block plus their URLs.
+# python-analyzer and ai-service are the two Python services. ai-service is the
+# slowest to start: it embeds the knowledge base at boot so the first question
+# does not pay for it, which is why its start_period is generous.
 
 name: skillforge
 
@@ -124,9 +123,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       GATEWAY_SECRET: ${GATEWAY_SECRET:?set GATEWAY_SECRET in .env}
-      # Unset until python-analyzer exists; the roadmap falls back to the local
-      # layering rather than failing.
-      PYTHON_ANALYZER_URL: ${PYTHON_ANALYZER_URL:-}
+      PYTHON_ANALYZER_URL: ${PYTHON_ANALYZER_URL:-http://python-analyzer:8085}
       PORT: 8083
     healthcheck:
       test: ["CMD", "bun", "-e", "process.exit((await fetch('http://localhost:8083/health')).ok ? 0 : 1)"]
@@ -134,6 +131,41 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  python-analyzer:
+    build:
+      context: .
+      dockerfile: python-analyzer/Dockerfile
+    image: ${IMAGE_PREFIX:-skillforge}/python-analyzer:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8085/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: ai-service/Dockerfile
+    image: ${IMAGE_PREFIX:-skillforge}/ai-service:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    depends_on:
+      python-analyzer:
+        condition: service_healthy
+    environment:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:?set DEEPSEEK_API_KEY in .env}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+      PYTHON_ANALYZER_URL: http://python-analyzer:8085
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8084/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      # Embedding the corpus at boot takes about 15s on a warm image.
+      start_period: 60s
 
   api-gateway:
     build:
@@ -185,6 +217,9 @@ services:
       # frontend/lib/db.ts still reads a few pages directly; those reads move
       # behind skill-service as the graph views are wired up.
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # app/api/ai/* proxies the wand and the assistant straight to ai-service;
+      # without this it defaults to localhost and finds nothing in a container.
+      AI_SERVICE_URL: http://ai-service:8084
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/dashboard').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 15s
