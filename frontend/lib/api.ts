@@ -18,9 +18,15 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    options?: { cause?: unknown },
   ) {
-    super(message);
+    super(message, options);
     this.name = "ApiError";
+  }
+
+  /** The gateway could not be reached at all, as opposed to refusing. */
+  get isUnreachable(): boolean {
+    return this.status === 503;
   }
 }
 
@@ -38,16 +44,33 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
     .map((entry) => `${entry.name}=${entry.value}`)
     .join("; ");
 
-  const response = await fetch(`${GATEWAY}${path}`, {
-    method: options.method ?? "GET",
-    headers: {
-      ...(options.body ? { "content-type": "application/json" } : {}),
-      ...(cookie ? { cookie } : {}),
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-    cache: options.revalidate === undefined ? "no-store" : undefined,
-    next: options.revalidate === undefined ? undefined : { revalidate: options.revalidate },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${GATEWAY}${path}`, {
+      method: options.method ?? "GET",
+      headers: {
+        ...(options.body ? { "content-type": "application/json" } : {}),
+        ...(cookie ? { cookie } : {}),
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      cache: options.revalidate === undefined ? "no-store" : undefined,
+      next:
+        options.revalidate === undefined
+          ? undefined
+          : { revalidate: options.revalidate },
+    });
+  } catch (cause) {
+    // An unreachable gateway arrives as a bare `TypeError: fetch failed`, which
+    // says nothing about which URL failed or why. Nearly always it is the
+    // frontend running on the host while the services are only inside compose.
+    throw new ApiError(
+      503,
+      `Could not reach the API gateway at ${GATEWAY}. Start the backend with ` +
+        "`bun run dev:services`, or run the whole stack with `bun run up` and " +
+        "use https://localhost.",
+      { cause },
+    );
+  }
 
   if (!response.ok) {
     // The services all answer with `{ error }`; a proxy failure in between may

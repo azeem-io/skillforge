@@ -10,8 +10,8 @@
     "backend/*"
   ],
   "scripts": {
-    "dev": "bun run --filter @skillforge/frontend dev",
-    "build": "bun run --filter @skillforge/frontend build",
+    "dev": "node init && bun run --filter @skillforge/frontend dev",
+    "build": "node init && bun run --filter @skillforge/frontend build",
     "db:generate": "bun run --filter @skillforge/db generate",
     "db:migrate": "bun run --filter @skillforge/db migrate",
     "db:seed": "bun run --filter @skillforge/db seed",
