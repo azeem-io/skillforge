@@ -44,18 +44,21 @@ Last updated: 2026-08-21, after the Bun switch.
 - [x] `rag/knowledge-base/careers/` — four role guides
 - [x] `rag/knowledge-base/roadmaps/sequencing-principles.md`
 - [x] `rag/knowledge-base/projects/project-selection.md`
-- [ ] Per-skill descriptions (`skills/`) — in progress
+- [x] `rag/knowledge-base/skills/foundations.md`
+- [x] `rag/knowledge-base/roadmaps/common-questions.md`
 
 ## Next — Azeem
 
-- [ ] **ai-service** — the 30-point block
-  - [ ] DeepSeek client (OpenAI-compatible, `base_url` swapped)
-  - [ ] RAG: chunk + embed the knowledge base with fastembed, store in pgvector,
-        cosine top-k retrieval
-  - [ ] Career Planning Agent, 4 tools: analyze skills, search resources,
-        generate gap, create roadmap
-  - [ ] Wire the expand wand to real generation
+- [x] **ai-service** — built, 30 tests passing
+  - [x] DeepSeek client (OpenAI-compatible, `base_url` swapped)
+  - [x] RAG: heading-aware chunking, fastembed embeddings, in-memory cosine
+        search. *Not* pgvector — the corpus is a few dozen chunks, so a linear
+        scan beats a round trip. Revisit if it grows.
+  - [x] Career Planning Agent, 4 tools, `/agent` endpoint
+  - [x] `/expand` endpoint for the wand — returns structured sub-skills
+  - [ ] Call `/expand` from the graph UI (endpoint is ready, button still fakes it)
   - [ ] Roadmap narration + phase rationales (prose only — never ordering)
+  - [ ] Verify against the live DeepSeek API — needs `DEEPSEEK_API_KEY`
 - [ ] **Skill Tree** (`/tree`) — d3 circle packing, student at root
 - [ ] Replace the frontend's duplicated gap/phase logic with calls to
       python-analyzer *(needs compose running — see blocker below)*

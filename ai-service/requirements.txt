@@ -1,0 +1,6 @@
+fastapi==0.121.2
+uvicorn[standard]==0.39.0
+pydantic==2.12.4
+openai==2.9.0
+httpx==0.28.1
+fastembed==0.7.4
