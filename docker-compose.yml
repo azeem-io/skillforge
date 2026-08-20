@@ -83,6 +83,14 @@ services:
       # client into one rate-limit bucket. This is the compose network's default
       # subnet; override in .env if you have changed it.
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-172.16.0.0/12}
+      # Sign-in throttling. Defaults are set in auth.ts and are deliberately
+      # loose while every client still shares the `no-trusted-ip` bucket.
+      AUTH_RATE_WINDOW: ${AUTH_RATE_WINDOW:-60}
+      AUTH_RATE_MAX: ${AUTH_RATE_MAX:-120}
+      AUTH_SIGNIN_WINDOW: ${AUTH_SIGNIN_WINDOW:-300}
+      AUTH_SIGNIN_MAX: ${AUTH_SIGNIN_MAX:-30}
+      AUTH_SIGNUP_WINDOW: ${AUTH_SIGNUP_WINDOW:-900}
+      AUTH_SIGNUP_MAX: ${AUTH_SIGNUP_MAX:-20}
       PORT: 8081
     healthcheck:
       test: ["CMD", "bun", "-e", "process.exit((await fetch('http://localhost:8081/health')).ok ? 0 : 1)"]

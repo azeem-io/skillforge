@@ -9,6 +9,12 @@ export const env = authEnv(8081);
 
 const db = createDb(env.databaseUrl);
 
+/** A positive integer from env, or the default. A typo must not disable a limit. */
+function limit(name: string, fallback: number): number {
+  const raw = Number(process.env[name]);
+  return Number.isInteger(raw) && raw > 0 ? raw : fallback;
+}
+
 export const auth = betterAuth({
   secret: env.betterAuthSecret,
   baseURL: env.betterAuthUrl,
@@ -42,14 +48,25 @@ export const auth = betterAuth({
     // Not the production-only default — on unconditionally, so a
     // misconfiguration surfaces in development too.
     enabled: true,
-    window: 60,
-    max: 60,
+    window: limit("AUTH_RATE_WINDOW", 60),
+    max: limit("AUTH_RATE_MAX", 120),
     storage: "database",
     // No `modelName` here — see the comment on `rateLimits` in
     // packages/db/src/schema/auth.ts for why setting one breaks resolution.
+    //
+    // These are deliberately looser than a per-IP limiter would need. When
+    // `trustedProxies` cannot resolve a client IP every request lands in one
+    // shared `no-trusted-ip` bucket, so a limit tuned for one person locks out
+    // a whole room. Tighten via env once real client IPs are resolving.
     customRules: {
-      "/sign-in/email": { window: 900, max: 5 },
-      "/sign-up/email": { window: 900, max: 5 },
+      "/sign-in/email": {
+        window: limit("AUTH_SIGNIN_WINDOW", 300),
+        max: limit("AUTH_SIGNIN_MAX", 30),
+      },
+      "/sign-up/email": {
+        window: limit("AUTH_SIGNUP_WINDOW", 900),
+        max: limit("AUTH_SIGNUP_MAX", 20),
+      },
     },
   },
   advanced: {
