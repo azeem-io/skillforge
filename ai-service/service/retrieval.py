@@ -75,6 +75,10 @@ class Retriever:
     def size(self) -> int:
         return len(self._chunks)
 
+    @property
+    def indexed(self) -> bool:
+        return self._vectors is not None
+
 
 def build_context(results: list[tuple[Chunk, float]]) -> str:
     """Retrieved chunks formatted for the prompt, each labelled for citation."""

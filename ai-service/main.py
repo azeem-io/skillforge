@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -16,17 +18,31 @@ from service.retrieval import FastEmbedder, Retriever, build_context
 from service.tools import ToolBox
 
 KB_PATH = Path(os.environ.get("KNOWLEDGE_BASE_PATH", "/app/knowledge-base"))
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Embedding the corpus at boot, not on first search: the model load alone is
+    # ~10s and would otherwise be paid by whoever asks the first question.
+    # Non-fatal, because /expand and /agent do not need retrieval.
+    try:
+        await asyncio.to_thread(retriever().index)
+    except Exception as exc:
+        print(f"[warm-up] retrieval unavailable, will retry per request: {exc}")
+    yield
+
 
 app = FastAPI(
     title="SkillForge AI",
     description="Generation, retrieval and the career planning agent.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 
 @lru_cache(maxsize=1)
 def retriever() -> Retriever:
-    return Retriever(load_chunks(KB_PATH), FastEmbedder())
+    return Retriever(load_chunks(KB_PATH), FastEmbedder(EMBEDDING_MODEL))
 
 
 @lru_cache(maxsize=1)
@@ -68,6 +84,7 @@ def health() -> dict[str, Any]:
         "status": "ok",
         "llm_configured": client().configured,
         "chunks": retriever().size,
+        "embeddings_ready": retriever().indexed,
     }
 
 

@@ -1,0 +1,28 @@
+# Applies to builds using the repo root as context (ai-service). Services that
+# build from their own directory read their local .dockerignore instead.
+
+.git/
+.github/
+
+node_modules/
+**/node_modules/
+**/.next/
+**/dist/
+**/build/
+
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/tests/
+**/requirements-dev.txt
+
+.env
+.env.*
+!.env.example
+
+**/.DS_Store
+*.log
+docs/
+*.md
+!rag/knowledge-base/**/*.md
