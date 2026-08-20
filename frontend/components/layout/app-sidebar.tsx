@@ -39,7 +39,7 @@ const NAV = [
 export function AppSidebar({
   user,
 }: {
-  user: { name: string; email: string; targetRoleName: string | null } | null;
+  user: { name: string | null; email: string; targetRoleName: string | null } | null;
 }) {
   const pathname = usePathname();
 

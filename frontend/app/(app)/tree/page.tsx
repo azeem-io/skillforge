@@ -1,22 +1,31 @@
 import { SkillTree } from "@/components/tree/skill-tree";
-import { DEMO_DEMONSTRATED, DEMO_TARGET_ROLE } from "@/lib/demo-student";
-import { tree } from "@/lib/skills";
+import { GoalPicker } from "@/components/layout/goal-picker";
+import { RoleSwitcher } from "@/components/layout/role-switcher";
+import { roleTree, roleOptions, requireTargetRole } from "@/lib/student";
 
-// Reads live data per request; without this Next bakes the build-time rows in.
+// One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
 
 export default async function TreePage() {
-  const { role, categories } = await tree(DEMO_TARGET_ROLE, DEMO_DEMONSTRATED);
+  const { roleSlug } = await requireTargetRole();
+  const options = await roleOptions();
+
+  if (!roleSlug) return <GoalPicker options={options} />;
+
+  const { role, categories } = await roleTree(roleSlug);
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
-      <div className="border-b px-6 py-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Skill Tree</h1>
-        <p className="text-muted-foreground text-sm">
-          The whole taxonomy, you at the root. The Skill Graph shows what{" "}
-          {role.name} needs; this shows where that sits in everything there is
-          to learn.
-        </p>
+      <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Skill Tree</h1>
+          <p className="text-muted-foreground text-sm">
+            The whole taxonomy, you at the root. The Skill Graph shows what{" "}
+            {role.name} needs; this shows where that sits in everything there is
+            to learn.
+          </p>
+        </div>
+        <RoleSwitcher options={options} current={roleSlug} />
       </div>
       <SkillTree categories={categories} roleName={role.name} />
     </div>

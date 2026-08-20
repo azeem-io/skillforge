@@ -13,6 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { Answer } from "./answer";
 
 type Source = { source: string; relevance: number };
 type Step = { tool: string };
@@ -35,6 +37,9 @@ export function AssistantPanel({ role }: { role?: string }) {
   const [steps, setSteps] = useState<Step[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Shared between the inline [n] chips and the source list, so hovering
+  // either end of a citation lights up the other.
+  const [activeCitation, setActiveCitation] = useState<number | null>(null);
 
   async function ask(q: string) {
     if (!q.trim() || loading) return;
@@ -43,6 +48,7 @@ export function AssistantPanel({ role }: { role?: string }) {
     setAnswer(null);
     setSources([]);
     setSteps([]);
+    setActiveCitation(null);
 
     const agentic = NEEDS_TOOLS.test(q);
 
@@ -136,8 +142,12 @@ export function AssistantPanel({ role }: { role?: string }) {
 
         {answer && (
           <div className="space-y-3">
-            <div className="bg-ai-dim/30 border-ai/30 rounded-md border p-3 text-sm whitespace-pre-wrap">
-              {answer}
+            <div className="bg-ai-dim/30 border-ai/30 rounded-md border p-3.5">
+              <Answer
+                markdown={answer}
+                activeCitation={activeCitation}
+                onCitation={setActiveCitation}
+              />
             </div>
             {steps.length > 0 && (
               <div className="space-y-1.5">
@@ -146,7 +156,11 @@ export function AssistantPanel({ role }: { role?: string }) {
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {steps.map((s, i) => (
-                    <Badge key={i} variant="secondary" className="font-mono text-xs">
+                    <Badge
+                      key={i}
+                      variant="secondary"
+                      className="font-mono text-xs"
+                    >
                       {s.tool}
                     </Badge>
                   ))}
@@ -159,13 +173,42 @@ export function AssistantPanel({ role }: { role?: string }) {
                 <p className="text-muted-foreground text-xs font-medium">
                   Retrieved sources
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <ul className="space-y-1">
                   {sources.map((s, i) => (
-                    <Badge key={s.source} variant="outline" className="text-xs">
-                      [{i + 1}] {s.source} · {s.relevance.toFixed(2)}
-                    </Badge>
+                    <li key={s.source}>
+                      <button
+                        type="button"
+                        onMouseEnter={() => setActiveCitation(i + 1)}
+                        onMouseLeave={() => setActiveCitation(null)}
+                        onFocus={() => setActiveCitation(i + 1)}
+                        onBlur={() => setActiveCitation(null)}
+                        className={cn(
+                          "flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors",
+                          activeCitation === i + 1
+                            ? "border-ai bg-ai-dim/40"
+                            : "hover:border-ai/50",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "flex h-4 min-w-4 items-center justify-center rounded border px-1 text-[10px] leading-none font-medium tabular-nums",
+                            activeCitation === i + 1
+                              ? "border-ai bg-ai text-ai-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {i + 1}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate">
+                          {s.source}
+                        </span>
+                        <span className="text-muted-foreground tabular-nums">
+                          {s.relevance.toFixed(2)}
+                        </span>
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             )}
           </div>

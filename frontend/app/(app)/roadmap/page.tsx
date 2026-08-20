@@ -7,21 +7,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SkillGraph } from "@/components/graph/skill-graph";
+import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
-import { DEMO_DEMONSTRATED } from "@/lib/demo-student";
-import { phases, roleGraph } from "@/lib/skills";
-import { resolveRole } from "@/lib/target-role";
+import { phases } from "@/lib/skills";
+import { roleGraph, roleOptions, requireTargetRole } from "@/lib/student";
 
-// Reads live data per request; without this Next bakes the build-time rows in.
+// One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
 
-export default async function RoadmapPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ role?: string }>;
-}) {
-  const { slug, options } = await resolveRole((await searchParams).role);
-  const { role, skills } = await roleGraph(slug, DEMO_DEMONSTRATED);
+export default async function RoadmapPage() {
+  const { roleSlug } = await requireTargetRole();
+  const options = await roleOptions();
+
+  if (!roleSlug) return <GoalPicker options={options} />;
+
+  const { role, skills } = await roleGraph(roleSlug);
   const layers = phases(skills);
 
   return (
@@ -34,7 +34,7 @@ export default async function RoadmapPage({
             shown, layered by prerequisite depth — {layers.length} phases.
           </p>
         </div>
-        <RoleSwitcher options={options} current={slug} />
+        <RoleSwitcher options={options} current={roleSlug} />
       </div>
 
       <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[1fr_22rem]">

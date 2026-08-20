@@ -1,7 +1,10 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { Check, ChevronsUpDown, Target } from "lucide-react";
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Check, ChevronsUpDown, Loader2, Target } from "lucide-react";
+
+import { setTargetRole } from "@/lib/actions";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,14 +31,26 @@ export function RoleSwitcher({
   current: string;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const [pending, start] = useTransition();
   const active = options.find((r) => r.slug === current);
+
+  function choose(slug: string) {
+    if (slug === current) return;
+    start(async () => {
+      await setTargetRole(slug);
+      router.refresh();
+    });
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Target className="text-muted-foreground size-3.5" />
+        <Button variant="outline" size="sm" className="gap-2" disabled={pending}>
+          {pending ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Target className="text-muted-foreground size-3.5" />
+          )}
           <span className="font-medium">{active?.name ?? "Choose a goal"}</span>
           <ChevronsUpDown className="text-muted-foreground size-3.5" />
         </Button>
@@ -47,7 +62,7 @@ export function RoleSwitcher({
         {options.map((role) => (
           <DropdownMenuItem
             key={role.slug}
-            onSelect={() => router.push(`${pathname}?role=${role.slug}`)}
+            onSelect={() => choose(role.slug)}
             className="flex-col items-start gap-1"
           >
             <span className="flex items-center gap-2">
