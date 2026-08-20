@@ -40,6 +40,10 @@ COPY packages/service-kit ./packages/service-kit
 COPY packages/db ./packages/db
 COPY backend/profile-api ./backend/profile-api
 
+# Docker seeds a fresh named volume from the image, ownership included. Without
+# this the mount point is created root-owned and the bun user cannot write a CV.
+RUN mkdir -p /data/uploads && chown -R bun:bun /data
+
 USER bun
 WORKDIR /app/backend/profile-api
 
