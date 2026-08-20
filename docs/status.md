@@ -3,7 +3,7 @@
 What is built, what is not, and who owns what. Update the boxes as things land —
 this is how Azeem and Awaim stay in sync.
 
-Last updated: 2026-08-21, after the Bun switch.
+Last updated: 2026-08-21, after the Skill Tree landed.
 
 ## Done
 
@@ -12,6 +12,9 @@ Last updated: 2026-08-21, after the Bun switch.
 - [x] shadcn/ui (radix-nova preset), 14 components installed
 - [x] Design tokens in `frontend/app/globals.css` — warm palette, `--mastery-*`
       states, `--ai` reserved for model output. **Only source of colour.**
+      `gap` is red (`--destructive-*`), not amber: red is the faster read for
+      "missing". Locked keeps grey plus a padlock so it cannot be confused with
+      skills outside the goal, which are faded instead.
 - [x] Agent harness: `CLAUDE.md`, `.claude/skills/{db-change,ui-component,add-service}`
 - [x] `docs/decisions.md` — settled calls, read before re-proposing
 - [x] `.env.example` with all six service URLs and the DeepSeek keys
@@ -22,7 +25,8 @@ Last updated: 2026-08-21, after the Bun switch.
 - [x] Seed: 3 categories, 8 subcategories, **124 skills, 144 prerequisite edges**,
       4 target roles with weighted requirements, 56 resources
 - [x] Seed validates on run: cycle detection, dangling refs, unknown slugs
-- [x] `packages/db/src/queries/skills.ts` — role closure, mastery states, phases
+- [x] `packages/db/src/queries/skills.ts` — role closure, mastery states, phases,
+      full taxonomy tree
 
 ### Frontend — Azeem
 - [x] App shell with collapsible sidebar
@@ -63,7 +67,27 @@ Last updated: 2026-08-21, after the Bun switch.
         *(temporary — moves behind api-gateway once it exists)*
   - [ ] Roadmap narration + phase rationales (prose only — never ordering)
   - [ ] Verify against the live DeepSeek API — needs `DEEPSEEK_API_KEY`
-- [ ] **Skill Tree** (`/tree`) — d3 circle packing, student at root
+- [x] **Skill Tree** (`/tree`) — d3 circle packing, student at root
+  - [x] `skillTree()` in `packages/db/src/queries/skills.ts` — the whole
+        taxonomy via `parentId`, with mastery overlaid from `roleSkillGraph()`
+        so the three views cannot disagree about a skill's state
+  - [x] Navigation follows `keystone-web`'s TransitionView: d3-zoom for drag,
+        wheel and pinch, `interpolateZoom` for click-to-focus, click again to
+        step back out, breadcrumb, search, reset
+  - [x] Clicking any node at any level opens its detail — mastery, level vs
+        required, weight, prerequisites, unlocks and seeded resources, with
+        prerequisite chips that fly to that skill
+  - [x] Search covers categories, subcategories and skills, each labelled by
+        kind; clicking the canvas drops both the selection and the search
+  - [x] Labels wrap and appear as circles grow, so the pack stays readable at
+        every scale. Widths come from canvas measurement, not a character
+        estimate, so inline glyphs line up
+  - [x] Legend and the root detail panel explain both encodings — colour is
+        state, size is what the role demands, faded is off-path
+  - [x] Leaf area is `requiredLevel × weight`: 32 of 124 skills are on the
+        AI Engineer path and take 54% of the area
+  - [x] Skills outside the goal render muted — an absence of state, not a
+        fifth mastery colour
 - [ ] Replace the frontend's duplicated gap/phase logic with calls to
       python-analyzer *(needs compose running — see blocker below)*
 - [ ] Persist generated roadmaps (`roadmaps` tables exist, currently unused)
@@ -97,7 +121,9 @@ Last updated: 2026-08-21, after the Bun switch.
 ## Known issues
 
 **Duplicated logic.** `packages/db/src/queries/skills.ts` computes gaps and
-phases in TypeScript; `python-analyzer` computes the same thing in Python. They
+phases in TypeScript; `python-analyzer` computes the same thing in Python. The
+readiness rule (a prerequisite counts at half its required level) is written out
+in both — see `docs/decisions.md`. They
 agree today because they were aligned by hand. **This will drift.** The fix is
 skill-service calling the analyzer and the frontend computing nothing — blocked
 on compose.

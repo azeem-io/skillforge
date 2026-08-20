@@ -31,3 +31,14 @@ export function categoryIndex(category: string, order: string[]): number {
 export function categoryOrder(categories: string[]): string[] {
   return [...new Set(categories)].sort();
 }
+
+export const CATEGORY_STROKE = [
+  "stroke-cat-1",
+  "stroke-cat-2",
+  "stroke-cat-3",
+  "stroke-cat-4",
+  "stroke-cat-5",
+  "stroke-cat-6",
+  "stroke-cat-7",
+  "stroke-cat-8",
+] as const;

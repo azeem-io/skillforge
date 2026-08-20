@@ -47,10 +47,10 @@
   --mastery-progress-bg: var(--teal-100);
   --mastery-progress-fg: var(--teal-900);
   --mastery-progress-ring: var(--teal-500);
-  --mastery-gap-bg: var(--warning-100);
-  --mastery-gap-fg: var(--warning-900);
-  --mastery-gap-ring: var(--warning-500);
-  --mastery-locked-bg: var(--neutral-200);
+  --mastery-gap-bg: var(--destructive-100);
+  --mastery-gap-fg: var(--destructive-900);
+  --mastery-gap-ring: var(--destructive-500);
+  --mastery-locked-bg: var(--neutral-300);
   --mastery-locked-fg: var(--neutral-800);
   --mastery-locked-ring: var(--neutral-600);
 
@@ -159,8 +159,8 @@
   --mastery-mastered-fg: var(--success-100);
   --mastery-progress-bg: var(--teal-950);
   --mastery-progress-fg: var(--teal-100);
-  --mastery-gap-bg: var(--warning-950);
-  --mastery-gap-fg: var(--warning-100);
+  --mastery-gap-bg: var(--destructive-950);
+  --mastery-gap-fg: var(--destructive-100);
   --mastery-locked-bg: var(--neutral-950);
   --mastery-locked-fg: var(--neutral-600);
   --mastery-locked-ring: var(--neutral-800);

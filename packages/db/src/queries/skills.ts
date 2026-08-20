@@ -2,6 +2,7 @@ import { asc, eq } from "drizzle-orm";
 
 import type { Database } from "../client";
 import {
+  resources,
   roleRequirements,
   skillPrerequisites,
   skills,
@@ -151,7 +152,9 @@ export function readiness(rows: SkillRow[]): number {
 
 /** Longest-path layering. Moves to RoadmapGenerator once python-analyzer lands. */
 export function phases(rows: SkillRow[]): SkillRow[][] {
-  const todo = rows.filter((r) => r.mastery === "gap" || r.mastery === "locked");
+  const todo = rows.filter(
+    (r) => r.mastery === "gap" || r.mastery === "locked",
+  );
   const inSet = new Set(todo.map((r) => r.id));
   const byId = new Map(todo.map((r) => [r.id, r]));
   const depth = new Map<string, number>();
@@ -168,4 +171,135 @@ export function phases(rows: SkillRow[]): SkillRow[][] {
   const out: SkillRow[][] = [];
   for (const r of todo) (out[depth.get(r.id)!] ??= []).push(r);
   return out.filter(Boolean);
+}
+
+export type TreeSkill = {
+  id: string;
+  slug: string;
+  name: string;
+  altitude: "CATEGORY" | "SUBCATEGORY" | "SKILL";
+  description: string | null;
+  // null when the role does not require this skill. The Skill Tree renders
+  // those muted rather than inventing a fifth mastery state.
+  mastery: Mastery | null;
+  level: number;
+  requiredLevel: number;
+  weight: number;
+  prerequisites: string[];
+  unlocks: string[];
+  resources: TreeResource[];
+  children: TreeSkill[];
+};
+
+export type TreeResource = {
+  title: string;
+  url: string | null;
+  type: string;
+  provider: string | null;
+};
+
+/**
+ * The whole taxonomy as a tree via parentId, with the role's mastery states
+ * overlaid. States come from roleSkillGraph so the Tree, Graph and Roadmap
+ * cannot disagree about what a skill's state is.
+ */
+export async function skillTree(
+  db: Database,
+  roleSlug: string,
+  demonstrated: Record<string, number> = {},
+): Promise<{
+  role: { name: string; summary: string | null };
+  categories: TreeSkill[];
+}> {
+  const { role, skills: required } = await roleSkillGraph(
+    db,
+    roleSlug,
+    demonstrated,
+  );
+  const state = new Map(required.map((r) => [r.id, r]));
+
+  const all = await db
+    .select({
+      id: skills.id,
+      slug: skills.slug,
+      name: skills.name,
+      altitude: skills.altitude,
+      parentId: skills.parentId,
+      description: skills.description,
+    })
+    .from(skills)
+    .orderBy(asc(skills.name));
+
+  // The whole prerequisite graph, not just the role's closure — the detail
+  // panel names a skill's prerequisites even when the goal does not need it.
+  const edges = await db
+    .select({
+      skillId: skillPrerequisites.skillId,
+      prerequisiteId: skillPrerequisites.prerequisiteId,
+    })
+    .from(skillPrerequisites);
+
+  const needs = new Map<string, string[]>();
+  const opens = new Map<string, string[]>();
+  for (const e of edges) {
+    if (!needs.has(e.skillId)) needs.set(e.skillId, []);
+    needs.get(e.skillId)!.push(e.prerequisiteId);
+    if (!opens.has(e.prerequisiteId)) opens.set(e.prerequisiteId, []);
+    opens.get(e.prerequisiteId)!.push(e.skillId);
+  }
+
+  const resourceRows = await db
+    .select({
+      skillId: resources.skillId,
+      title: resources.title,
+      url: resources.url,
+      type: resources.type,
+      provider: resources.provider,
+    })
+    .from(resources)
+    .orderBy(asc(resources.title));
+
+  const learning = new Map<string, TreeResource[]>();
+  for (const r of resourceRows) {
+    if (!learning.has(r.skillId)) learning.set(r.skillId, []);
+    learning.get(r.skillId)!.push({
+      title: r.title,
+      url: r.url,
+      type: r.type,
+      provider: r.provider,
+    });
+  }
+
+  const nodes = new Map<string, TreeSkill>(
+    all.map((s) => {
+      const r = state.get(s.id);
+      return [
+        s.id,
+        {
+          id: s.id,
+          slug: s.slug,
+          name: s.name,
+          altitude: s.altitude,
+          description: s.description,
+          mastery: r?.mastery ?? null,
+          level: r?.level ?? demonstrated[s.slug] ?? 0,
+          requiredLevel: r?.requiredLevel ?? 0,
+          weight: r?.weight ?? 0,
+          prerequisites: needs.get(s.id) ?? [],
+          unlocks: opens.get(s.id) ?? [],
+          resources: learning.get(s.id) ?? [],
+          children: [],
+        },
+      ];
+    }),
+  );
+
+  const categories: TreeSkill[] = [];
+  for (const s of all) {
+    const parent = s.parentId ? nodes.get(s.parentId) : undefined;
+    if (parent) parent.children.push(nodes.get(s.id)!);
+    else categories.push(nodes.get(s.id)!);
+  }
+
+  return { role: { name: role.name, summary: role.summary }, categories };
 }

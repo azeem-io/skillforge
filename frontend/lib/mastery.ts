@@ -39,3 +39,17 @@ export const MASTERY_NODE: Record<Mastery, string> = {
   locked:
     "bg-mastery-locked-bg text-mastery-locked-fg border-mastery-locked-ring",
 };
+
+export const MASTERY_CIRCLE: Record<Mastery, string> = {
+  mastered: "fill-mastery-mastered-bg stroke-mastery-mastered-ring",
+  progress: "fill-mastery-progress-bg stroke-mastery-progress-ring",
+  gap: "fill-mastery-gap-bg stroke-mastery-gap-ring",
+  locked: "fill-mastery-locked-bg stroke-mastery-locked-ring",
+};
+
+export const MASTERY_TEXT: Record<Mastery, string> = {
+  mastered: "fill-mastery-mastered-fg",
+  progress: "fill-mastery-progress-fg",
+  gap: "fill-mastery-gap-fg",
+  locked: "fill-mastery-locked-fg",
+};
