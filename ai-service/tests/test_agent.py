@@ -44,6 +44,22 @@ class StubHttp:
                     {"phase": 1, "names": ["Python", "Git"], "estimated_weeks": 4}
                 ],
             },
+            "/compare": {
+                "roles": [
+                    {
+                        "slug": "frontend-engineer",
+                        "name": "Frontend Engineer",
+                        "readiness_score": 18,
+                        "skills_remaining": 20,
+                    },
+                    {
+                        "slug": "ai-engineer",
+                        "name": "AI Engineer",
+                        "readiness_score": 14,
+                        "skills_remaining": 28,
+                    },
+                ]
+            },
         }
 
     def post(self, url, json):
@@ -118,13 +134,46 @@ class TestToolBox:
         assert "analyzer unreachable" in out["error"]
 
 
+class TestCompareTargetRoles:
+    def _box(self, http=None):
+        return ToolBox(
+            retriever=Retriever(load_chunks(KB), StubEmbedder()),
+            context={
+                "skills": [],
+                "edges": [],
+                "demonstrated": {"html": 3},
+                "target_role": "ai-engineer",
+                "roles": [{"slug": "ai-engineer", "name": "AI Engineer", "requirements": []}],
+            },
+            http=http or StubHttp(),
+            analyzer_url="http://analyzer",
+        )
+
+    def test_ranks_roles_and_reports_the_current_target(self):
+        result = self._box().compare_target_roles()
+        assert result["current_target"] == "ai-engineer"
+        assert result["roles"][0]["slug"] == "frontend-engineer"
+
+    def test_errors_when_no_roles_are_supplied(self):
+        # Without roles the analyzer would be handed an empty comparison and
+        # return nothing, which the model reads as "no good options".
+        result = toolbox().compare_target_roles()
+        assert "error" in result
+
+    def test_does_not_call_the_analyzer_without_roles(self):
+        http = StubHttp()
+        toolbox(http).compare_target_roles()
+        assert http.calls == []
+
+
 class TestSchemas:
-    def test_all_four_tools_are_declared(self):
+    def test_every_tool_is_declared(self):
         names = {s["function"]["name"] for s in SCHEMAS}
         assert names == {
             "analyze_student_skills",
             "generate_skill_gap",
             "create_roadmap",
+            "compare_target_roles",
             "search_learning_resources",
         }
 

@@ -1,25 +1,27 @@
 import { NextResponse } from "next/server";
 
 import { DEMO_DEMONSTRATED, DEMO_TARGET_ROLE } from "@/lib/demo-student";
+import { studentContext } from "@/lib/skills";
 
 const AI_SERVICE = process.env.AI_SERVICE_URL ?? "http://localhost:8084";
 
 export async function POST(request: Request) {
   const body = await request.json();
 
+  // The context is assembled here rather than passed from the browser: it is
+  // roughly 20KB of taxonomy, and the client has no business asserting what
+  // the student has demonstrated.
+  const context = await studentContext(
+    DEMO_DEMONSTRATED,
+    body.role ?? DEMO_TARGET_ROLE,
+  );
+
   try {
-    const upstream = await fetch(`${AI_SERVICE}/chat`, {
+    const upstream = await fetch(`${AI_SERVICE}/agent`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        question: body.question,
-        k: body.k ?? 4,
-        context: {
-          demonstrated: DEMO_DEMONSTRATED,
-          target_role: body.role ?? DEMO_TARGET_ROLE,
-        },
-      }),
-      signal: AbortSignal.timeout(45_000),
+      body: JSON.stringify({ question: body.question, context }),
+      signal: AbortSignal.timeout(90_000),
     });
 
     if (!upstream.ok) {
@@ -35,7 +37,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: "ai-service unreachable",
-        hint: "Start ai-service on port 8084.",
+        hint: "Start ai-service on port 8084 and python-analyzer on 8085.",
         detail: error instanceof Error ? error.message : String(error),
       },
       { status: 503 },

@@ -96,6 +96,25 @@ class ToolBox:
             ],
         }
 
+    def compare_target_roles(self) -> dict[str, Any]:
+        roles = self._context.get("roles", [])
+        if not roles:
+            return {"error": "no roles supplied in context"}
+
+        result = self._http.post(
+            f"{self._analyzer}/compare",
+            json={
+                "skills": self._context.get("skills", []),
+                "edges": self._context.get("edges", []),
+                "demonstrated": self._context.get("demonstrated", {}),
+                "roles": roles,
+            },
+        )
+        return {
+            "current_target": self._context.get("target_role"),
+            "roles": result["roles"],
+        }
+
     def search_learning_resources(self, query: str, k: int = 4) -> dict[str, Any]:
         results = self._retriever.search(query, k=k)
         return {
@@ -117,6 +136,7 @@ class ToolBox:
                 limit=int(args.get("limit", 8))
             ),
             "create_roadmap": lambda: self.create_roadmap(),
+            "compare_target_roles": lambda: self.compare_target_roles(),
             "search_learning_resources": lambda: self.search_learning_resources(
                 query=str(args.get("query", "")), k=int(args.get("k", 4))
             ),
@@ -172,6 +192,21 @@ SCHEMAS: list[dict[str, Any]] = [
                 "Generate the ordered learning plan: phases derived from a "
                 "topological sort of the prerequisite graph, with effort "
                 "estimates. The ordering is computed, not invented."
+            ),
+            "parameters": {"type": "object", "properties": {}},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "compare_target_roles",
+            "description": (
+                "Score the student against every available target role at once "
+                "and return them best-fit first, with readiness, skills "
+                "remaining, estimated weeks and what they could start today. "
+                "Call this whenever the student asks which goal to pick, or "
+                "whether their current goal is the right one. The scores are "
+                "computed — report them, never estimate your own."
             ),
             "parameters": {"type": "object", "properties": {}},
         },

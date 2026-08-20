@@ -1,7 +1,14 @@
-from analyzer.analyzer import SkillAnalyzer
+from analyzer.analyzer import SkillAnalyzer, compare_roles
 from analyzer.gaps import SkillGapCalculator
 from analyzer.graph import SkillGraph
-from analyzer.models import AnalysisRequest, Edge, Requirement, Skill
+from analyzer.models import (
+    AnalysisRequest,
+    ComparisonRequest,
+    Edge,
+    Requirement,
+    RoleRequirements,
+    Skill,
+)
 from analyzer.roadmap import RoadmapGenerator
 
 
@@ -110,6 +117,20 @@ class TestSkillGapCalculator:
         b = next(g for g in gaps if g.skill == "b")
         assert b.blocked_by == []
 
+    def test_barely_started_prerequisite_still_blocks(self):
+        # a is required at 3, so a foundation is 2. At 1 it is evidence of
+        # having looked at a, not of being ready for what depends on it.
+        gaps = self._calc({"a": 1}).identify_gaps()
+        b = next(g for g in gaps if g.skill == "b")
+        assert b.blocked_by == ["a"]
+
+    def test_half_the_required_level_is_enough_to_unblock(self):
+        # Waiting for the full level would hold back skills a student can
+        # already begin. This boundary is mirrored in packages/db.
+        gaps = self._calc({"a": 2}).identify_gaps()
+        b = next(g for g in gaps if g.skill == "b")
+        assert b.blocked_by == []
+
     def test_counts_split_mastered_and_in_progress(self):
         mastered, in_progress = self._calc({"a": 3, "b": 1}).counts()
         assert (mastered, in_progress) == (1, 1)
@@ -208,3 +229,48 @@ class TestSkillAnalyzer:
         result = SkillAnalyzer(self._request({"a": 5})).analyze()
         assert result.readiness_score == 0
         assert result.roadmap.to_learn < result.roadmap.with_prerequisites
+
+
+class TestCompareRoles:
+    def _request(self, demonstrated: dict[str, int]) -> ComparisonRequest:
+        nodes, edges = chain()
+        return ComparisonRequest(
+            skills=nodes,
+            edges=edges,
+            demonstrated=demonstrated,
+            roles=[
+                RoleRequirements(
+                    slug="deep",
+                    name="Deep",
+                    requirements=[Requirement(skill="c", required_level=3, weight=3)],
+                ),
+                RoleRequirements(
+                    slug="shallow",
+                    name="Shallow",
+                    requirements=[Requirement(skill="d", required_level=3, weight=3)],
+                ),
+            ],
+        )
+
+    def test_orders_by_readiness_descending(self):
+        result = compare_roles(self._request({"d": 3}))
+        assert [r.slug for r in result.roles] == ["shallow", "deep"]
+        assert result.roles[0].readiness_score == 100
+        assert result.roles[1].readiness_score == 0
+
+    def test_scores_every_role_supplied(self):
+        result = compare_roles(self._request({}))
+        assert len(result.roles) == 2
+        assert all(r.readiness_score == 0 for r in result.roles)
+
+    def test_ties_break_toward_the_shorter_path(self):
+        # Neither role is started, so both score 0. `d` stands alone while `c`
+        # drags a and b behind it, so Shallow must come first.
+        result = compare_roles(self._request({}))
+        assert result.roles[0].slug == "shallow"
+        assert result.roles[0].skills_remaining < result.roles[1].skills_remaining
+
+    def test_first_phase_lists_only_startable_skills(self):
+        result = compare_roles(self._request({}))
+        deep = next(r for r in result.roles if r.slug == "deep")
+        assert deep.first_phase == ["A"]

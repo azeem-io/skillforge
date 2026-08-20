@@ -31,11 +31,15 @@ class InProcessAnalyzer:
     """Speaks the HttpClient protocol, runs python-analyzer's classes directly."""
 
     def post(self, url: str, json: dict) -> object:
-        from analyzer.analyzer import SkillAnalyzer
-        from analyzer.models import AnalysisRequest
+        from analyzer.analyzer import SkillAnalyzer, compare_roles
+        from analyzer.models import AnalysisRequest, ComparisonRequest
+
+        endpoint = url.rstrip("/").split("/")[-1]
+
+        if endpoint == "compare":
+            return compare_roles(ComparisonRequest(**json)).model_dump()
 
         analyzer = SkillAnalyzer(AnalysisRequest(**json))
-        endpoint = url.rstrip("/").split("/")[-1]
 
         if endpoint == "analyze":
             return analyzer.analyze().model_dump()

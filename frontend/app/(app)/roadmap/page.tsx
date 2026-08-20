@@ -7,24 +7,34 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SkillGraph } from "@/components/graph/skill-graph";
-import { DEMO_DEMONSTRATED, DEMO_TARGET_ROLE } from "@/lib/demo-student";
+import { RoleSwitcher } from "@/components/layout/role-switcher";
+import { DEMO_DEMONSTRATED } from "@/lib/demo-student";
 import { phases, roleGraph } from "@/lib/skills";
+import { resolveRole } from "@/lib/target-role";
 
 // Reads live data per request; without this Next bakes the build-time rows in.
 export const dynamic = "force-dynamic";
 
-export default async function RoadmapPage() {
-  const { role, skills } = await roleGraph(DEMO_TARGET_ROLE, DEMO_DEMONSTRATED);
+export default async function RoadmapPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string }>;
+}) {
+  const { slug, options } = await resolveRole((await searchParams).role);
+  const { role, skills } = await roleGraph(slug, DEMO_DEMONSTRATED);
   const layers = phases(skills);
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
-      <div className="border-b px-6 py-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Roadmap</h1>
-        <p className="text-muted-foreground text-sm">
-          The subgraph {role.name} requires, minus what you have already shown,
-          layered by prerequisite depth — {layers.length} phases.
-        </p>
+      <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Roadmap</h1>
+          <p className="text-muted-foreground text-sm">
+            The subgraph {role.name} requires, minus what you have already
+            shown, layered by prerequisite depth — {layers.length} phases.
+          </p>
+        </div>
+        <RoleSwitcher options={options} current={slug} />
       </div>
 
       <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[1fr_22rem]">
@@ -42,7 +52,7 @@ export default async function RoadmapPage() {
                 </div>
                 <CardDescription>
                   {i === 0
-                    ? "Nothing blocks these — every prerequisite is already met."
+                    ? "Every prerequisite is far enough along to begin these now."
                     : `Unlocked once phase ${i} lands.`}
                 </CardDescription>
               </CardHeader>

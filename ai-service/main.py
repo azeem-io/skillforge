@@ -55,6 +55,9 @@ class StudentContext(BaseModel):
     edges: list[dict[str, Any]] = Field(default_factory=list)
     requirements: list[dict[str, Any]] = Field(default_factory=list)
     demonstrated: dict[str, int] = Field(default_factory=dict)
+    # Every role with its requirements, so compare_target_roles can rank them.
+    roles: list[dict[str, Any]] = Field(default_factory=list)
+    target_role: str | None = None
 
 
 class SearchRequest(BaseModel):
@@ -65,6 +68,7 @@ class SearchRequest(BaseModel):
 class ChatRequest(BaseModel):
     question: str
     k: int = 4
+    context: StudentContext | None = None
 
 
 class AgentRequest(BaseModel):
@@ -76,6 +80,27 @@ class ExpandRequest(BaseModel):
     skill: str
     subcategory: str = ""
     count: int = 3
+
+
+def student_summary(context: StudentContext | None) -> str:
+    """
+    Demonstrated levels folded into the RAG prompt. Enough for the model to
+    tailor an answer without the tool-calling round trips /agent needs — it
+    still cannot compute, so anything numeric belongs on /agent.
+    """
+    if context is None or not context.demonstrated:
+        return ""
+
+    levels = ", ".join(
+        f"{slug} (level {level})"
+        for slug, level in sorted(context.demonstrated.items())
+    )
+    target = f" Their target role is {context.target_role}." if context.target_role else ""
+    return (
+        f"\n\nThe student has demonstrated: {levels}.{target} Use this to tailor "
+        "the answer, but do not state readiness percentages or counts — those "
+        "are computed elsewhere and guessing them would be wrong."
+    )
 
 
 @app.get("/health")
@@ -114,6 +139,7 @@ def chat(request: ChatRequest) -> dict[str, Any]:
             "content": (
                 "Answer using only the sources below. If they do not cover the "
                 "question, say so plainly rather than guessing. Cite as [1], [2]."
+                f"{student_summary(request.context)}"
                 f"\n\n{context}"
             ),
         },
@@ -133,7 +159,7 @@ def chat(request: ChatRequest) -> dict[str, Any]:
 
 @app.post("/agent")
 def agent(request: AgentRequest) -> dict[str, Any]:
-    """The Career Planning Agent. Four tools, real actions against real data."""
+    """The Career Planning Agent. Five tools, real actions against real data."""
     tools = ToolBox(retriever=retriever(), context=request.context.model_dump())
     try:
         result = CareerPlanningAgent(client(), tools).run(request.question)

@@ -19,16 +19,23 @@ import {
   MASTERY_LABEL,
   type Mastery,
 } from "@/lib/mastery";
-import { DEMO_DEMONSTRATED, DEMO_TARGET_ROLE } from "@/lib/demo-student";
+import { RoleSwitcher } from "@/components/layout/role-switcher";
+import { DEMO_DEMONSTRATED } from "@/lib/demo-student";
 import { phases, readiness, roleGraph } from "@/lib/skills";
+import { resolveRole } from "@/lib/target-role";
 
 const ORDER: Mastery[] = ["mastered", "progress", "gap", "locked"];
 
 // Reads live data per request; without this Next bakes the build-time rows in.
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const { role, skills } = await roleGraph(DEMO_TARGET_ROLE, DEMO_DEMONSTRATED);
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string }>;
+}) {
+  const { slug, options } = await resolveRole((await searchParams).role);
+  const { role, skills } = await roleGraph(slug, DEMO_DEMONSTRATED);
   const score = readiness(skills);
   const layers = phases(skills);
   const nextUp = layers[0] ?? [];
@@ -54,11 +61,14 @@ export default async function DashboardPage() {
             <span className="text-foreground font-medium">{role.name}</span>
           </p>
         </div>
-        <Button asChild>
-          <Link href="/roadmap">
-            View roadmap <ArrowRight className="size-4" />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <RoleSwitcher options={options} current={slug} />
+          <Button asChild>
+            <Link href="/roadmap">
+              View roadmap <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -111,7 +121,8 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Start here</CardTitle>
           <CardDescription>
-            Nothing blocks these — every prerequisite is already met.
+            Every prerequisite is far enough along that you can begin these
+            now.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -155,7 +166,7 @@ export default async function DashboardPage() {
         </Card>
       ))}
 
-      <AssistantPanel />
+      <AssistantPanel role={slug} />
     </div>
   );
 }

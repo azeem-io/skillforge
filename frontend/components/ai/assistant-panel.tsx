@@ -15,17 +15,24 @@ import {
 import { Input } from "@/components/ui/input";
 
 type Source = { source: string; relevance: number };
+type Step = { tool: string };
 
 const SUGGESTED = [
+  "What goal should I choose based on my skills?",
   "Should I learn React before JavaScript?",
   "Why is my roadmap ordered this way?",
-  "What projects prove I know feature engineering?",
 ];
 
-export function AssistantPanel() {
+// Questions that need real numbers go to the agent, which can call the
+// analyzer. Everything else takes the one-shot RAG path, which is far quicker.
+const NEEDS_TOOLS =
+  /\b(goal|role|career|switch|readiness|ready|gap|missing|roadmap|how long|weeks|next|compare|instead)\b/i;
+
+export function AssistantPanel({ role }: { role?: string }) {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
   const [sources, setSources] = useState<Source[]>([]);
+  const [steps, setSteps] = useState<Step[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -35,12 +42,15 @@ export function AssistantPanel() {
     setError(null);
     setAnswer(null);
     setSources([]);
+    setSteps([]);
+
+    const agentic = NEEDS_TOOLS.test(q);
 
     try {
-      const response = await fetch("/api/ai/chat", {
+      const response = await fetch(agentic ? "/api/ai/agent" : "/api/ai/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question: q }),
+        body: JSON.stringify({ question: q, role }),
       });
       const data = await response.json();
 
@@ -50,6 +60,7 @@ export function AssistantPanel() {
       }
       setAnswer(data.answer);
       setSources(data.sources ?? []);
+      setSteps(data.steps ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Request failed.");
     } finally {
@@ -113,7 +124,7 @@ export function AssistantPanel() {
         {loading && (
           <p className="text-muted-foreground flex items-center gap-2 text-sm">
             <Loader2 className="size-3.5 animate-spin" />
-            Retrieving from the knowledge base…
+            Working through your skill graph…
           </p>
         )}
 
@@ -128,6 +139,21 @@ export function AssistantPanel() {
             <div className="bg-ai-dim/30 border-ai/30 rounded-md border p-3 text-sm whitespace-pre-wrap">
               {answer}
             </div>
+            {steps.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-muted-foreground text-xs font-medium">
+                  Tools called
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {steps.map((s, i) => (
+                    <Badge key={i} variant="secondary" className="font-mono text-xs">
+                      {s.tool}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {sources.length > 0 && (
               <div className="space-y-1.5">
                 <p className="text-muted-foreground text-xs font-medium">

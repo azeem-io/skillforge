@@ -59,6 +59,37 @@ class Roadmap(BaseModel):
     phases: list[Phase]
 
 
+class RoleRequirements(BaseModel):
+    slug: str
+    name: str
+    requirements: list[Requirement]
+
+
+class ComparisonRequest(BaseModel):
+    skills: list[Skill]
+    edges: list[Edge]
+    demonstrated: dict[str, int] = Field(default_factory=dict)
+    roles: list[RoleRequirements]
+
+
+class RoleComparison(BaseModel):
+    slug: str
+    name: str
+    readiness_score: int
+    mastered: int
+    in_progress: int
+    requirements: int
+    skills_remaining: int
+    total_weeks: int
+    # Startable today. A narrow first phase means a shorter run-up than the
+    # readiness percentage alone suggests.
+    first_phase: list[str]
+
+
+class ComparisonResponse(BaseModel):
+    roles: list[RoleComparison]
+
+
 class AnalysisResponse(BaseModel):
     readiness_score: int
     mastered: int

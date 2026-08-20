@@ -1,7 +1,14 @@
 from fastapi import FastAPI
 
-from analyzer.analyzer import SkillAnalyzer
-from analyzer.models import AnalysisRequest, AnalysisResponse, Gap, Roadmap
+from analyzer.analyzer import SkillAnalyzer, compare_roles
+from analyzer.models import (
+    AnalysisRequest,
+    AnalysisResponse,
+    ComparisonRequest,
+    ComparisonResponse,
+    Gap,
+    Roadmap,
+)
 
 app = FastAPI(
     title="SkillForge Analyzer",
@@ -29,6 +36,11 @@ def gaps(request: AnalysisRequest) -> list[Gap]:
 def roadmap(request: AnalysisRequest) -> Roadmap:
     analyzer = SkillAnalyzer(request)
     return analyzer.analyze().roadmap
+
+
+@app.post("/compare", response_model=ComparisonResponse)
+def compare(request: ComparisonRequest) -> ComparisonResponse:
+    return compare_roles(request)
 
 
 @app.post("/score")

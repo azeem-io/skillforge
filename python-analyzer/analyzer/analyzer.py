@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from .gaps import SkillGapCalculator
 from .graph import SkillGraph
-from .models import AnalysisRequest, AnalysisResponse, Gap
+from .models import (
+    AnalysisRequest,
+    AnalysisResponse,
+    ComparisonRequest,
+    ComparisonResponse,
+    Gap,
+    RoleComparison,
+)
 from .roadmap import RoadmapGenerator
 
 # How many topics to put in front of a student at once.
@@ -73,3 +80,42 @@ class SkillAnalyzer:
             roadmap=self._generator.generate(gaps),
             warnings=warnings,
         )
+
+
+def compare_roles(request: ComparisonRequest) -> ComparisonResponse:
+    """
+    Score a student against several roles at once, best fit first.
+
+    Deterministic on purpose: the numbers a recommendation is argued from are
+    computed here, and the model is only ever handed the result to narrate.
+    """
+    results: list[RoleComparison] = []
+
+    for role in request.roles:
+        analysis = SkillAnalyzer(
+            AnalysisRequest(
+                skills=request.skills,
+                edges=request.edges,
+                requirements=role.requirements,
+                demonstrated=request.demonstrated,
+            )
+        ).analyze()
+
+        first = analysis.roadmap.phases[0].names if analysis.roadmap.phases else []
+
+        results.append(
+            RoleComparison(
+                slug=role.slug,
+                name=role.name,
+                readiness_score=analysis.readiness_score,
+                mastered=analysis.mastered,
+                in_progress=analysis.in_progress,
+                requirements=len(role.requirements),
+                skills_remaining=analysis.roadmap.to_learn,
+                total_weeks=analysis.roadmap.total_weeks,
+                first_phase=first,
+            )
+        )
+
+    results.sort(key=lambda r: (-r.readiness_score, r.skills_remaining))
+    return ComparisonResponse(roles=results)
