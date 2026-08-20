@@ -119,7 +119,7 @@ docker compose up -d
 ok "containers started"
 
 bold "Waiting for health"
-for service in postgres auth-service profile-api skill-service api-gateway frontend; do
+for service in postgres python-analyzer ai-service auth-service profile-api skill-service api-gateway frontend; do
   printf '  %-14s' "$service"
   for _ in $(seq 1 60); do
     status=$(docker compose ps --format json "$service" 2>/dev/null \

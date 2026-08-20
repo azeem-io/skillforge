@@ -20,7 +20,7 @@
     "dev:services": "bun run --filter '@skillforge/auth-service' --filter '@skillforge/api-gateway' --filter '@skillforge/profile-api' --filter '@skillforge/skill-service' dev",
     "dev:all": "bun run --filter '*' dev",
     "setup": "./scripts/setup.sh",
-    "up": "docker compose up -d",
+    "up": "docker compose up -d --build",
     "down": "docker compose down"
   }
 }
