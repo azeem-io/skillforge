@@ -1,0 +1,44 @@
+#cloud-config
+# Brings a fresh Contabo VPS to the state docker-compose.yml expects: Docker,
+# a non-root deploy user, and Coolify. Everything after this is `git clone` and
+# `docker compose up -d`.
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - ufw
+
+users:
+  - name: deploy
+    groups: [sudo, docker]
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+
+write_files:
+  - path: /etc/skillforge.env
+    permissions: "0600"
+    content: |
+      SITE_ADDRESS=${site_address}
+
+runcmd:
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - systemctl enable --now docker
+  # Belt and braces with the Contabo firewall: the provider's rules are applied
+  # at their edge, and a host that also refuses the connection does not depend
+  # on that having worked.
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw allow 443/udp
+  - ufw --force enable
+  - curl -fsSL https://cdn.coollabs.io/coolify/install.sh -o /root/install-coolify.sh
+  - bash /root/install-coolify.sh
