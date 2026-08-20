@@ -1,0 +1,24 @@
+{
+  "name": "@skillforge/auth-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --env-file=../../.env --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.8.0",
+    "@skillforge/db": "*",
+    "@skillforge/service-kit": "*",
+    "better-auth": "^1.4.6",
+    "drizzle-orm": "^0.44.6",
+    "hono": "^4.6.14",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.6",
+    "typescript": "^5.9.3"
+  }
+}
