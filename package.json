@@ -1,0 +1,21 @@
+{
+  "name": "skillforge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered student skills and career development platform",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*",
+    "frontend",
+    "backend/*"
+  ],
+  "scripts": {
+    "db:generate": "npm run generate -w @skillforge/db",
+    "db:migrate": "npm run migrate -w @skillforge/db",
+    "db:seed": "npm run seed -w @skillforge/db",
+    "db:studio": "npm run studio -w @skillforge/db"
+  }
+}

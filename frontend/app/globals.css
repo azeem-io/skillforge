@@ -1,0 +1,286 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --radius: 0.5rem;
+
+  /* Core */
+  --primary: oklch(0.271 0.016 102.2);
+  --primary-foreground: oklch(0.985 0.004 96);
+  --secondary: oklch(0.527 0.019 93.5);
+  --secondary-foreground: oklch(1 0 0);
+
+  /* Surfaces */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.271 0.016 102.2);
+  --muted: oklch(0.986 0.006 96);
+  --muted-foreground: oklch(0.527 0.019 93.5);
+  --accent: oklch(0.924 0.013 93);
+  --accent-foreground: oklch(0.271 0.016 102.2);
+  --background-dim: oklch(0.96 0.005 96);
+  --muted-dim: oklch(0.65 0.008 96);
+
+  /* Borders */
+  --border: oklch(0.876 0.008 96);
+  --border-strong: color-mix(in oklch, var(--border) 75%, var(--foreground));
+  --input: oklch(0.876 0.008 96);
+  --ring: oklch(0.746 0.094 195);
+
+  /* Functional */
+  --destructive: oklch(0.578 0.198 28);
+  --destructive-foreground: oklch(1 0 0);
+  --success: oklch(0.716 0.119 148);
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.795 0.155 68);
+  --warning-foreground: oklch(0.271 0.016 102.2);
+
+  /* Mastery state — colours every node in all three graph views.
+     gap is the loudest: it is the only state a student can act on. */
+  --mastery-mastered-bg: var(--success-100);
+  --mastery-mastered-fg: var(--success-900);
+  --mastery-mastered-ring: var(--success-500);
+  --mastery-progress-bg: var(--teal-100);
+  --mastery-progress-fg: var(--teal-900);
+  --mastery-progress-ring: var(--teal-500);
+  --mastery-gap-bg: var(--warning-100);
+  --mastery-gap-fg: var(--warning-900);
+  --mastery-gap-ring: var(--warning-500);
+  --mastery-locked-bg: var(--neutral-200);
+  --mastery-locked-fg: var(--neutral-800);
+  --mastery-locked-ring: var(--neutral-600);
+
+  /* Reserved for model-generated content only, so gold always means
+     "a model made this". */
+  --ai: oklch(0.804 0.161 72.71);
+  --ai-foreground: oklch(0.271 0.016 102.2);
+  --ai-dim: oklch(0.925 0.046 60.86);
+
+  /* Scales */
+  --destructive-50: oklch(0.959 0.019 25.68);
+  --destructive-100: oklch(0.926 0.036 24.23);
+  --destructive-500: oklch(0.623 0.199 36.66);
+  --destructive-900: oklch(0.241 0.077 36.27);
+  --destructive-950: oklch(0.184 0.059 36.09);
+
+  --success-50: oklch(0.970 0.033 153.64);
+  --success-100: oklch(0.951 0.058 153.42);
+  --success-500: oklch(0.755 0.128 153.5);
+  --success-900: oklch(0.263 0.046 153.34);
+  --success-950: oklch(0.194 0.032 153.99);
+
+  --warning-50: oklch(0.983 0.010 58.27);
+  --warning-100: oklch(0.958 0.025 61.66);
+  --warning-500: oklch(0.804 0.161 72.71);
+  --warning-900: oklch(0.268 0.055 72.63);
+  --warning-950: oklch(0.208 0.043 70.92);
+
+  --teal-50: oklch(0.983 0.010 195);
+  --teal-100: oklch(0.955 0.024 195);
+  --teal-200: oklch(0.906 0.048 195);
+  --teal-300: oklch(0.858 0.070 195);
+  --teal-400: oklch(0.802 0.084 195);
+  --teal-500: oklch(0.746 0.094 195);
+  --teal-600: oklch(0.624 0.079 195);
+  --teal-700: oklch(0.504 0.064 195);
+  --teal-800: oklch(0.373 0.048 195);
+  --teal-900: oklch(0.251 0.032 195);
+  --teal-950: oklch(0.196 0.025 195);
+
+  --neutral-100: oklch(0.991 0.003 84.4);
+  --neutral-200: oklch(0.982 0.005 94.94);
+  --neutral-300: oklch(0.955 0.010 94.94);
+  --neutral-600: oklch(0.809 0.025 96.6);
+  --neutral-800: oklch(0.474 0.014 96.59);
+  --neutral-950: oklch(0.225 0.008 106.95);
+
+  /* One per top-level skill category */
+  --cat-1: oklch(0.640 0.120 235);
+  --cat-2: oklch(0.649 0.138 144);
+  --cat-3: oklch(0.601 0.153 293);
+  --cat-4: oklch(0.700 0.193 47);
+  --cat-5: oklch(0.668 0.139 80);
+  --cat-6: oklch(0.623 0.199 37);
+  --cat-7: oklch(0.624 0.079 195);
+  --cat-8: oklch(0.560 0.046 256);
+
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --popover: var(--background);
+  --popover-foreground: var(--foreground);
+}
+
+.dark {
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.3 0.01 96);
+  --secondary-foreground: oklch(0.922 0 0);
+  --background: oklch(0.145 0 0);
+  --background-dim: oklch(0.12 0.005 96);
+  --foreground: oklch(0.985 0 0);
+  --muted: oklch(0.18 0.01 96);
+  --muted-foreground: oklch(0.65 0.01 96);
+  --muted-dim: oklch(0.4 0.008 96);
+  --accent: oklch(0.22 0.01 96);
+  --accent-foreground: oklch(0.922 0 0);
+  --border: oklch(0.25 0.01 96);
+  --border-strong: oklch(0.35 0.01 96);
+  --input: oklch(0.25 0.01 96);
+  --ring: oklch(0.624 0.079 195);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.45 0.18 28);
+  --destructive-foreground: oklch(0.985 0 0);
+  --success: oklch(0.55 0.1 148);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.65 0.13 68);
+  --warning-foreground: oklch(0.15 0 0);
+
+  --ai: oklch(0.72 0.14 72);
+  --ai-foreground: oklch(0.15 0 0);
+  --ai-dim: oklch(0.32 0.06 70);
+
+  --mastery-mastered-bg: var(--success-950);
+  --mastery-mastered-fg: var(--success-100);
+  --mastery-progress-bg: var(--teal-950);
+  --mastery-progress-fg: var(--teal-100);
+  --mastery-gap-bg: var(--warning-950);
+  --mastery-gap-fg: var(--warning-100);
+  --mastery-locked-bg: var(--neutral-950);
+  --mastery-locked-fg: var(--neutral-600);
+  --mastery-locked-ring: var(--neutral-800);
+}
+
+/* @theme inline resolves var() per-element rather than at :root, which is what
+   lets the .dark overrides above take effect. */
+@theme inline {
+  --color-background: var(--background);
+  --color-background-dim: var(--background-dim);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted-dim: var(--muted-dim);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-ai: var(--ai);
+  --color-ai-foreground: var(--ai-foreground);
+  --color-ai-dim: var(--ai-dim);
+
+  --color-mastery-mastered-bg: var(--mastery-mastered-bg);
+  --color-mastery-mastered-fg: var(--mastery-mastered-fg);
+  --color-mastery-mastered-ring: var(--mastery-mastered-ring);
+  --color-mastery-progress-bg: var(--mastery-progress-bg);
+  --color-mastery-progress-fg: var(--mastery-progress-fg);
+  --color-mastery-progress-ring: var(--mastery-progress-ring);
+  --color-mastery-gap-bg: var(--mastery-gap-bg);
+  --color-mastery-gap-fg: var(--mastery-gap-fg);
+  --color-mastery-gap-ring: var(--mastery-gap-ring);
+  --color-mastery-locked-bg: var(--mastery-locked-bg);
+  --color-mastery-locked-fg: var(--mastery-locked-fg);
+  --color-mastery-locked-ring: var(--mastery-locked-ring);
+
+  --color-cat-1: var(--cat-1);
+  --color-cat-2: var(--cat-2);
+  --color-cat-3: var(--cat-3);
+  --color-cat-4: var(--cat-4);
+  --color-cat-5: var(--cat-5);
+  --color-cat-6: var(--cat-6);
+  --color-cat-7: var(--cat-7);
+  --color-cat-8: var(--cat-8);
+
+  --color-teal-50: var(--teal-50);
+  --color-teal-100: var(--teal-100);
+  --color-teal-200: var(--teal-200);
+  --color-teal-300: var(--teal-300);
+  --color-teal-400: var(--teal-400);
+  --color-teal-500: var(--teal-500);
+  --color-teal-600: var(--teal-600);
+  --color-teal-700: var(--teal-700);
+  --color-teal-800: var(--teal-800);
+  --color-teal-900: var(--teal-900);
+  --color-teal-950: var(--teal-950);
+
+  --color-success-50: var(--success-50);
+  --color-success-100: var(--success-100);
+  --color-success-500: var(--success-500);
+  --color-success-900: var(--success-900);
+  --color-success-950: var(--success-950);
+  --color-warning-50: var(--warning-50);
+  --color-warning-100: var(--warning-100);
+  --color-warning-500: var(--warning-500);
+  --color-warning-900: var(--warning-900);
+  --color-warning-950: var(--warning-950);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-950: var(--neutral-950);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-muted text-foreground;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+  :focus-visible {
+    @apply outline-ring outline-2 outline-offset-2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--muted-dim);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
