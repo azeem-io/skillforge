@@ -30,7 +30,8 @@ Last updated: 2026-08-21, after the Bun switch.
 - [x] `/graph` — React Flow, dagre layout, mastery colours, prerequisite edges
 - [x] `/roadmap` — same component in `mode="roadmap"`, phase cards
 - [x] All three read live from Postgres (`force-dynamic`)
-- [x] Expand wand UI — **visual only, not wired to a model yet**
+- [x] Expand wand wired to ai-service `/expand`
+- [x] Skill nodes: category colour bar, subcategory tag, level dots, no edge handles
 
 ### python-analyzer — Azeem
 - [x] `SkillGraph` — closure, cycle detection, longest-path layering
@@ -56,7 +57,10 @@ Last updated: 2026-08-21, after the Bun switch.
         scan beats a round trip. Revisit if it grows.
   - [x] Career Planning Agent, 4 tools, `/agent` endpoint
   - [x] `/expand` endpoint for the wand — returns structured sub-skills
-  - [ ] Call `/expand` from the graph UI (endpoint is ready, button still fakes it)
+  - [x] Wand calls `/expand` from the graph UI, with optimistic ghost nodes
+  - [x] AI assistant panel on the dashboard, calls `/chat`, shows retrieved sources
+  - [x] Next route handlers `/api/ai/expand` and `/api/ai/chat` proxy to ai-service
+        *(temporary — moves behind api-gateway once it exists)*
   - [ ] Roadmap narration + phase rationales (prose only — never ordering)
   - [ ] Verify against the live DeepSeek API — needs `DEEPSEEK_API_KEY`
 - [ ] **Skill Tree** (`/tree`) — d3 circle packing, student at root
@@ -106,6 +110,9 @@ switches to the gateway.
 **Next runs on Node, not Bun.** `next build` segfaults on the Bun runtime
 (SIGILL, Bun 1.3.14). Frontend scripts are plain `next dev` / `next build` on
 purpose. Do not "fix" this to `bun --bun next` — it will break the build.
+
+**ai-service must be running** for the wand and assistant. Start it on 8084;
+the UI shows the exact command in the error if it is not reachable.
 
 **No auth yet.** Everything runs as a hardcoded demo student in
 `frontend/lib/demo-student.ts`. Replace once auth-service lands.

@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+
+import { AssistantPanel } from "@/components/ai/assistant-panel";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -153,17 +155,7 @@ export default async function DashboardPage() {
         </Card>
       ))}
 
-      <Card className="border-ai/40">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="text-ai size-4" />
-            AI career assistant
-          </CardTitle>
-          <CardDescription>
-            Grounded in the knowledge base. Wired once ai-service lands.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <AssistantPanel />
     </div>
   );
 }
