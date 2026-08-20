@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 
 from analyzer.analyzer import SkillAnalyzer, compare_roles, plan
 from analyzer.models import (
@@ -12,6 +12,9 @@ from analyzer.models import (
     Roadmap,
 )
 
+router = APIRouter()
+
+
 app = FastAPI(
     title="SkillForge Analyzer",
     description="Skill gap analysis and roadmap generation.",
@@ -19,38 +22,44 @@ app = FastAPI(
 )
 
 
-@app.get("/health")
+@router.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/analyze", response_model=AnalysisResponse)
+@router.post("/analyze", response_model=AnalysisResponse)
 def analyze(request: AnalysisRequest) -> AnalysisResponse:
     return SkillAnalyzer(request).analyze()
 
 
-@app.post("/gaps", response_model=list[Gap])
+@router.post("/gaps", response_model=list[Gap])
 def gaps(request: AnalysisRequest) -> list[Gap]:
     return SkillAnalyzer(request).identify_gaps()
 
 
-@app.post("/roadmap", response_model=Roadmap)
+@router.post("/roadmap", response_model=Roadmap)
 def roadmap(request: AnalysisRequest) -> Roadmap:
     analyzer = SkillAnalyzer(request)
     return analyzer.analyze().roadmap
 
 
-@app.post("/plan", response_model=PlanResponse)
+@router.post("/plan", response_model=PlanResponse)
 def plan_route(request: PlanRequest) -> PlanResponse:
     """skill-service's shape. /roadmap keeps ai-service's."""
     return plan(request)
 
 
-@app.post("/compare", response_model=ComparisonResponse)
+@router.post("/compare", response_model=ComparisonResponse)
 def compare(request: ComparisonRequest) -> ComparisonResponse:
     return compare_roles(request)
 
 
-@app.post("/score")
+@router.post("/score")
 def score(request: AnalysisRequest) -> dict[str, int]:
     return {"readiness_score": SkillAnalyzer(request).calculate_score()}
+
+
+# Bare paths for ai-service and skill-service, /api/analysis for the gateway,
+# which forwards the request path unchanged.
+app.include_router(router)
+app.include_router(router, prefix="/api/analysis")

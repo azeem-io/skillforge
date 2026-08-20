@@ -123,7 +123,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       GATEWAY_SECRET: ${GATEWAY_SECRET:?set GATEWAY_SECRET in .env}
-      PYTHON_ANALYZER_URL: ${PYTHON_ANALYZER_URL:-http://python-analyzer:8085}
+      PYTHON_ANALYZER_URL: http://python-analyzer:8085
       PORT: 8083
     healthcheck:
       test: ["CMD", "bun", "-e", "process.exit((await fetch('http://localhost:8083/health')).ok ? 0 : 1)"]
@@ -190,8 +190,8 @@ services:
       SKILL_SERVICE_URL: http://skill-service:8083
       # Not running yet. The route exists so adding the service is a one-line
       # change here rather than a change to the gateway.
-      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://ai-service:8084}
-      PYTHON_ANALYZER_URL: ${PYTHON_ANALYZER_URL:-http://python-analyzer:8085}
+      AI_SERVICE_URL: http://ai-service:8084
+      PYTHON_ANALYZER_URL: http://python-analyzer:8085
       PORT: 8080
     healthcheck:
       test: ["CMD", "bun", "-e", "process.exit((await fetch('http://localhost:8080/health')).ok ? 0 : 1)"]

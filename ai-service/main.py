@@ -8,7 +8,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from service.agent import CareerPlanningAgent
@@ -30,6 +30,9 @@ async def lifespan(_: FastAPI):
     except Exception as exc:
         print(f"[warm-up] retrieval unavailable, will retry per request: {exc}")
     yield
+
+
+router = APIRouter()
 
 
 app = FastAPI(
@@ -103,7 +106,7 @@ def student_summary(context: StudentContext | None) -> str:
     )
 
 
-@app.get("/health")
+@router.get("/health")
 def health() -> dict[str, Any]:
     return {
         "status": "ok",
@@ -113,7 +116,7 @@ def health() -> dict[str, Any]:
     }
 
 
-@app.post("/search")
+@router.post("/search")
 def search(request: SearchRequest) -> dict[str, Any]:
     """Retrieval only — no generation. Useful for showing what RAG retrieved."""
     results = retriever().search(request.query, k=request.k)
@@ -125,7 +128,7 @@ def search(request: SearchRequest) -> dict[str, Any]:
     }
 
 
-@app.post("/chat")
+@router.post("/chat")
 def chat(request: ChatRequest) -> dict[str, Any]:
     """RAG: retrieve from the knowledge base, then answer grounded in it."""
     results = retriever().search(request.question, k=request.k)
@@ -157,7 +160,7 @@ def chat(request: ChatRequest) -> dict[str, Any]:
     }
 
 
-@app.post("/agent")
+@router.post("/agent")
 def agent(request: AgentRequest) -> dict[str, Any]:
     """The Career Planning Agent. Five tools, real actions against real data."""
     tools = ToolBox(retriever=retriever(), context=request.context.model_dump())
@@ -176,7 +179,7 @@ def agent(request: AgentRequest) -> dict[str, Any]:
     }
 
 
-@app.post("/expand")
+@router.post("/expand")
 def expand(request: ExpandRequest) -> dict[str, Any]:
     """
     The wand. Breaks a skill into sub-skills, grounded in the knowledge base.
@@ -223,3 +226,10 @@ def expand(request: ExpandRequest) -> dict[str, Any]:
         "sub_skills": parsed.get("sub_skills", [])[: request.count],
         "sources": [c.citation for c, _ in results],
     }
+
+
+# Mounted twice: bare paths for internal callers and the healthcheck, and under
+# /api/ai because the gateway forwards the request path unchanged, the same way
+# skill-service mounts /api/skills itself.
+app.include_router(router)
+app.include_router(router, prefix="/api/ai")

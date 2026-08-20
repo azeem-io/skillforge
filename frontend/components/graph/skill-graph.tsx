@@ -71,7 +71,7 @@ function GraphInner({
       setSkills((prev) => [...prev, ...ghosts]);
 
       try {
-        const response = await fetch("/api/ai/expand", {
+        const response = await fetch("/ai/expand", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({

@@ -47,7 +47,7 @@ export function AssistantPanel({ role }: { role?: string }) {
     const agentic = NEEDS_TOOLS.test(q);
 
     try {
-      const response = await fetch(agentic ? "/api/ai/agent" : "/api/ai/chat", {
+      const response = await fetch(agentic ? "/ai/agent" : "/ai/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ question: q, role }),
