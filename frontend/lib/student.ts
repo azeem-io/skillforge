@@ -7,7 +7,7 @@ import { api, apiOrNull } from "@/lib/api";
 import type { SkillRow, TreeSkill } from "@skillforge/db";
 
 export type Me = {
-  id: string;
+  userId: string;
   email: string;
   name: string | null;
   role: "student" | "mentor" | "admin";
@@ -64,4 +64,51 @@ export function roleTree(roleSlug: string) {
 export async function requireTargetRole() {
   const profile = await requireUser();
   return { profile, roleSlug: profile.targetRoleSlug };
+}
+
+export type RosterStudent = {
+  userId: string;
+  name: string | null;
+  email: string;
+  role: "student" | "mentor" | "admin";
+  experienceLevel: string | null;
+  targetRoleSlug: string | null;
+  targetRoleName: string | null;
+  demonstrated: number;
+  readiness: number | null;
+};
+
+/** Mentors and admins only. A student reaching this is a redirect, not a 403. */
+export async function requireStaff(): Promise<Me> {
+  const profile = await requireUser();
+  if (profile.role === "student") redirect("/dashboard");
+  return profile;
+}
+
+export function roster() {
+  return api<{ students: RosterStudent[] }>("/api/profile/students");
+}
+
+export function mentorships() {
+  return api<{
+    mentorships: {
+      mentorId: string;
+      studentId: string;
+      mentorName: string | null;
+      mentorEmail: string;
+    }[];
+  }>("/api/profile/mentorships");
+}
+
+export function studentDetail(userId: string) {
+  return api<{
+    profile: Me;
+    skills: {
+      slug: string;
+      name: string;
+      level: number;
+      source: string;
+      evidence: string | null;
+    }[];
+  }>(`/api/profile/students/${encodeURIComponent(userId)}`);
 }

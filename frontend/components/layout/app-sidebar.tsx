@@ -10,6 +10,7 @@ import {
   Route,
   Sparkles,
   User,
+  Users,
   Waypoints,
 } from "lucide-react";
 
@@ -29,6 +30,7 @@ import {
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/assistant", label: "Assistant", icon: Sparkles },
   { href: "/graph", label: "Skill Graph", icon: Waypoints },
   { href: "/roadmap", label: "Roadmap", icon: Route },
   { href: "/tree", label: "Skill Tree", icon: GitBranch },
@@ -39,9 +41,15 @@ const NAV = [
 export function AppSidebar({
   user,
 }: {
-  user: { name: string | null; email: string; targetRoleName: string | null } | null;
+  user: {
+    name: string | null;
+    email: string;
+    role?: "student" | "mentor" | "admin";
+    targetRoleName: string | null;
+  } | null;
 }) {
   const pathname = usePathname();
+  const isStaff = user?.role === "mentor" || user?.role === "admin";
 
   return (
     <Sidebar collapsible="icon">
@@ -78,6 +86,32 @@ export function AppSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isStaff && (
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              {user?.role === "admin" ? "Admin" : "Mentoring"}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={user?.role === "admin" ? "All users" : "My students"}
+                    isActive={pathname.startsWith("/students")}
+                  >
+                    <Link href="/students">
+                      <Users />
+                      <span>
+                        {user?.role === "admin" ? "All users" : "My students"}
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter>

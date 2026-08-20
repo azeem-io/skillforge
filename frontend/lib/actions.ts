@@ -18,3 +18,29 @@ export async function setTargetRole(slug: string) {
     revalidatePath(path);
   }
 }
+
+export async function changeUserRole(
+  userId: string,
+  role: "student" | "mentor" | "admin",
+) {
+  await api(`/api/profile/students/${userId}/role`, {
+    method: "PUT",
+    body: { role },
+  });
+  revalidatePath("/students");
+}
+
+export async function assignMentor(studentId: string, mentorId: string) {
+  await api(`/api/profile/students/${studentId}/mentor`, {
+    method: "PUT",
+    body: { mentorId },
+  });
+  revalidatePath("/students");
+}
+
+export async function unassignMentor(studentId: string, mentorId: string) {
+  await api(`/api/profile/students/${studentId}/mentor/${mentorId}`, {
+    method: "DELETE",
+  });
+  revalidatePath("/students");
+}
