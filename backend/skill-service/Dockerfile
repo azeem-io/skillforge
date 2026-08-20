@@ -21,7 +21,10 @@ COPY backend/skill-service/package.json ./backend/skill-service/
 # Next's file tracer cannot follow that, and the standalone output comes out
 # missing @swc/helpers, which fails at container start rather than at build.
 # A hoisted tree is the flat npm-shaped layout every tool already understands.
-RUN bun install --frozen-lockfile --linker=hoisted
+# --production drops devDependencies. Nothing here imports them: Bun runs
+# TypeScript directly, so typescript and @types/bun are build-time only, and
+# migrate.sh calls bun src/migrate.ts rather than drizzle-kit.
+RUN bun install --frozen-lockfile --linker=hoisted --production
 
 # -------------------------------------------------------------------- runtime
 # No build stage: Bun runs TypeScript directly, so there is nothing to compile.

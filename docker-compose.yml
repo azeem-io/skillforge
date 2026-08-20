@@ -69,7 +69,14 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
       # The origin the browser sees, which is Caddy's.
       BETTER_AUTH_URL: https://${SITE_ADDRESS:-localhost}
-      TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-}
+      # http://localhost:3000 is trusted alongside the Caddy address because the
+      # frontend port is published for testing without the self-signed
+      # certificate; Better Auth rejects any origin not named here.
+      TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-http://localhost:3000}
+      # Declared in .env.example but never forwarded, so a Secure-only cookie
+      # was issued and http://localhost:3000 could sign in but not stay signed
+      # in. Set false behind real TLS.
+      AUTH_INSECURE_COOKIES: ${AUTH_INSECURE_COOKIES:-true}
       # Caddy and the gateway are the only hops in front of this container, so
       # they are the only ones allowed to set X-Forwarded-For. Without naming
       # them, Better Auth cannot tell which hop is real and collapses every
@@ -206,6 +213,11 @@ services:
       dockerfile: frontend/Dockerfile
     image: ${IMAGE_PREFIX:-skillforge}/frontend:${IMAGE_TAG:-local}
     restart: unless-stopped
+    # Published so http://localhost:3000 works without Caddy's self-signed
+    # certificate in the way. next.config.ts rewrites /api/* to the gateway, so
+    # this is the whole app, not a partial one. Caddy on 443 is the real entry.
+    ports:
+      - "3000:3000"
     depends_on:
       api-gateway:
         condition: service_healthy
