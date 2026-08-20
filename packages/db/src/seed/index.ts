@@ -2,12 +2,15 @@ import { createHash } from "node:crypto";
 
 import { createDb } from "../client";
 import {
+  assessments,
+  questions,
   resources,
   roleRequirements,
   skillPrerequisites,
   skills,
   targetRoles,
 } from "../schema/index";
+import { ASSESSMENTS } from "./assessments";
 import { CATEGORIES, SKILLS } from "./taxonomy";
 import { RESOURCES } from "./resources";
 import { ROLES } from "./roles";
@@ -58,6 +61,29 @@ function validate() {
     if (!bySlug.has(r.skill)) {
       problems.push(`resource "${r.title}": unknown skill ${r.skill}`);
     }
+  }
+
+  for (const a of ASSESSMENTS) {
+    if (!subs.has(a.skill)) {
+      problems.push(`assessment ${a.slug}: unknown subcategory ${a.skill}`);
+    }
+    a.questions.forEach((q, i) => {
+      const where = `assessment ${a.slug} q${i + 1}`;
+      if (!bySlug.has(q.skill)) {
+        problems.push(`${where}: unknown skill ${q.skill}`);
+      }
+      if (q.type === "mcq") {
+        if (!q.choices?.length) problems.push(`${where}: mcq without choices`);
+        if (!q.correct?.length) problems.push(`${where}: mcq without a correct index`);
+        for (const index of q.correct ?? []) {
+          if (index < 0 || index >= (q.choices?.length ?? 0)) {
+            problems.push(`${where}: correct index ${index} is out of range`);
+          }
+        }
+      } else if (!q.answer) {
+        problems.push(`${where}: ${q.type} without an answer`);
+      }
+    });
   }
 
   // Depth-first cycle detection. A cycle makes the roadmap's topological sort
@@ -205,6 +231,64 @@ await db.insert(resources).values(
   })),
 );
 
+await db
+  .insert(assessments)
+  .values(
+    ASSESSMENTS.map((a) => ({
+      id: idFor("assessment", a.slug),
+      slug: a.slug,
+      title: a.title,
+      description: a.description,
+      skillId: idFor("skill", a.skill),
+      published: true,
+    })),
+  )
+  .onConflictDoUpdate({
+    target: assessments.slug,
+    set: {
+      title: assessments.title,
+      description: assessments.description,
+      skillId: assessments.skillId,
+      published: assessments.published,
+    },
+  });
+
+// Keyed on (assessment, ordinal) rather than on a generated id, so re-seeding
+// updates a question in place and never orphans the attempt answers pointing
+// at it.
+await db
+  .insert(questions)
+  .values(
+    ASSESSMENTS.flatMap((a) =>
+      a.questions.map((q, index) => ({
+        id: idFor("question", `${a.slug}:${index + 1}`),
+        assessmentId: idFor("assessment", a.slug),
+        ordinal: index + 1,
+        type: q.type,
+        question: q.question,
+        answer: q.answer ?? null,
+        choices: q.choices ?? null,
+        correct: q.correct ?? null,
+        explanation: q.explanation ?? null,
+        skillId: idFor("skill", q.skill),
+        difficulty: q.difficulty,
+      })),
+    ),
+  )
+  .onConflictDoUpdate({
+    target: [questions.assessmentId, questions.ordinal],
+    set: {
+      type: questions.type,
+      question: questions.question,
+      answer: questions.answer,
+      choices: questions.choices,
+      correct: questions.correct,
+      explanation: questions.explanation,
+      skillId: questions.skillId,
+      difficulty: questions.difficulty,
+    },
+  });
+
 const categories = CATEGORIES.length;
 const subcategories = CATEGORIES.reduce(
   (n, c) => n + c.subcategories.length,
@@ -214,7 +298,9 @@ const subcategories = CATEGORIES.reduce(
 console.log(
   `seeded ${categories} categories, ${subcategories} subcategories, ` +
     `${SKILLS.length} skills, ${edgeRows.length} prerequisite edges, ` +
-    `${ROLES.length} roles, ${RESOURCES.length} resources`,
+    `${ROLES.length} roles, ${RESOURCES.length} resources, ` +
+    `${ASSESSMENTS.length} assessments, ` +
+    `${ASSESSMENTS.reduce((n, a) => n + a.questions.length, 0)} questions`,
 );
 
 process.exit(0);

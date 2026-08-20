@@ -56,6 +56,10 @@ export const accounts = pgTable(
     id: text("id").primaryKey(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
+    // Better Auth 1.7 made this a required field on every account. Credential
+    // accounts get the synthetic value `local:credential`; the drizzle adapter
+    // throws on any field the schema does not carry, so sign-up 500s without it.
+    issuer: text("issuer").notNull(),
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
