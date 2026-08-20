@@ -45,3 +45,9 @@ coverage/
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+
+# python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/

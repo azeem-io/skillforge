@@ -120,13 +120,14 @@ export async function roleSkillGraph(
     };
   });
 
-  const met = new Set(
-    rows.filter((r) => r.level >= r.requiredLevel).map((r) => r.id),
-  );
+  // locked means no foundation at all in a prerequisite, matching
+  // SkillGapCalculator.identify_gaps() in python-analyzer. Requiring full
+  // mastery of every prerequisite would mark almost everything locked.
+  const started = new Set(rows.filter((r) => r.level > 0).map((r) => r.id));
   for (const r of rows) {
     if (r.level >= r.requiredLevel) r.mastery = "mastered";
     else if (r.level > 0) r.mastery = "progress";
-    else if (r.prerequisites.every((p) => met.has(p))) r.mastery = "gap";
+    else if (r.prerequisites.every((p) => started.has(p))) r.mastery = "gap";
     else r.mastery = "locked";
   }
 
