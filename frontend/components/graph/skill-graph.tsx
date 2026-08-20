@@ -13,65 +13,52 @@ import {
 
 import "@xyflow/react/dist/style.css";
 
-import { SKILLS, type MockSkill } from "@/lib/mock";
 import { MASTERY_DOT, MASTERY_LABEL, type Mastery } from "@/lib/mastery";
-import { layoutGraph, rankOf } from "./layout";
+import { layoutGraph } from "./layout";
 import { SkillNode } from "./skill-node";
 
 const nodeTypes = { skill: SkillNode };
-
 const MASTERY_ORDER: Mastery[] = ["mastered", "progress", "gap", "locked"];
+
+export type GraphSkill = {
+  id: string;
+  name: string;
+  subcategory: string;
+  mastery: Mastery;
+  level: number;
+  requiredLevel: number;
+  prerequisites: string[];
+};
 
 type Mode = "explore" | "roadmap";
 
-function build(skills: MockSkill[], onExpand: (id: string) => void) {
-  const nodes: Node[] = skills.map((s) => ({
-    id: s.id,
-    type: "skill",
-    position: { x: 0, y: 0 },
-    data: {
-      name: s.name,
-      subcategory: s.subcategory,
-      mastery: s.mastery,
-      level: s.level,
-      requiredLevel: s.requiredLevel,
-      onExpand,
-    },
-  }));
+function GraphInner({
+  skills: initial,
+  mode,
+}: {
+  skills: GraphSkill[];
+  mode: Mode;
+}) {
+  const [skills, setSkills] = useState(initial);
 
-  const edges: Edge[] = skills.flatMap((s) =>
-    s.prerequisites.map((p) => ({
-      id: `${p}-${s.id}`,
-      source: p,
-      target: s.id,
-      markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
-      style: { strokeWidth: 1.5 },
-    })),
-  );
-
-  return { nodes, edges };
-}
-
-function GraphInner({ mode }: { mode: Mode }) {
-  const [skills, setSkills] = useState(SKILLS);
-
-  // Stands in for the AI expand tool: ghost children appear immediately with
-  // the edge already drawn, then fill once ai-service returns.
+  // Stands in for the AI expand tool: children appear immediately with the edge
+  // already drawn, then fill once ai-service returns.
   const onExpand = useCallback((id: string) => {
     setSkills((prev) => {
       const parent = prev.find((s) => s.id === id);
       if (!parent || prev.some((s) => s.id === `${id}-sub-1`)) return prev;
-      const children: MockSkill[] = [1, 2].map((i) => ({
-        id: `${id}-sub-${i}`,
-        name: `Sub-skill ${i}`,
-        subcategory: parent.subcategory,
-        category: parent.category,
-        mastery: "gap",
-        level: 0,
-        requiredLevel: parent.requiredLevel,
-        prerequisites: [id],
-      }));
-      return [...prev, ...children];
+      return [
+        ...prev,
+        ...[1, 2].map((i) => ({
+          id: `${id}-sub-${i}`,
+          name: `Sub-skill ${i}`,
+          subcategory: parent.subcategory,
+          mastery: "gap" as Mastery,
+          level: 0,
+          requiredLevel: parent.requiredLevel,
+          prerequisites: [id],
+        })),
+      ];
     });
   }, []);
 
@@ -81,22 +68,31 @@ function GraphInner({ mode }: { mode: Mode }) {
         ? skills.filter((s) => s.mastery === "gap" || s.mastery === "locked")
         : skills;
     const ids = new Set(visible.map((s) => s.id));
-    const scoped = visible.map((s) => ({
-      ...s,
-      prerequisites: s.prerequisites.filter((p) => ids.has(p)),
+
+    const built: Node[] = visible.map((s) => ({
+      id: s.id,
+      type: "skill",
+      position: { x: 0, y: 0 },
+      data: { ...s, onExpand },
     }));
-    const built = build(scoped, onExpand);
+
+    const builtEdges: Edge[] = visible.flatMap((s) =>
+      s.prerequisites
+        .filter((p) => ids.has(p))
+        .map((p) => ({
+          id: `${p}-${s.id}`,
+          source: p,
+          target: s.id,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
+          style: { strokeWidth: 1.5 },
+        })),
+    );
+
     return {
-      nodes: layoutGraph(built.nodes, built.edges, "LR"),
-      edges: built.edges,
+      nodes: layoutGraph(built, builtEdges, "LR"),
+      edges: builtEdges,
     };
   }, [skills, mode, onExpand]);
-
-  const phases = useMemo(() => {
-    if (mode !== "roadmap") return null;
-    const ranks = rankOf(nodes, edges);
-    return Math.max(0, ...ranks.values()) + 1;
-  }, [mode, nodes, edges]);
 
   return (
     <div className="relative h-full w-full">
@@ -105,7 +101,7 @@ function GraphInner({ mode }: { mode: Mode }) {
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
-        minZoom={0.2}
+        minZoom={0.1}
         maxZoom={1.6}
         proOptions={{ hideAttribution: true }}
       >
@@ -115,7 +111,7 @@ function GraphInner({ mode }: { mode: Mode }) {
 
       <div className="bg-card/90 absolute top-3 left-3 rounded-md border p-3 text-xs backdrop-blur">
         <div className="mb-2 font-medium">
-          {mode === "roadmap" ? `Roadmap · ${phases} phases` : "Mastery"}
+          {mode === "roadmap" ? "To learn" : "Mastery"} · {nodes.length} skills
         </div>
         <ul className="space-y-1.5">
           {MASTERY_ORDER.map((m) => (
@@ -130,10 +126,16 @@ function GraphInner({ mode }: { mode: Mode }) {
   );
 }
 
-export function SkillGraph({ mode = "explore" }: { mode?: Mode }) {
+export function SkillGraph({
+  skills,
+  mode = "explore",
+}: {
+  skills: GraphSkill[];
+  mode?: Mode;
+}) {
   return (
     <ReactFlowProvider>
-      <GraphInner mode={mode} />
+      <GraphInner skills={skills} mode={mode} />
     </ReactFlowProvider>
   );
 }

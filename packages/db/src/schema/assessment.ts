@@ -14,8 +14,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { users } from "./auth.ts";
-import { skills } from "./skills.ts";
+import { users } from "./auth";
+import { skills } from "./skills";
 
 export const questionType = pgEnum("question_type", ["recall", "cloze", "mcq"]);
 

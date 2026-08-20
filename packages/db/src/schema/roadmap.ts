@@ -12,8 +12,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { users } from "./auth.ts";
-import { skills, targetRoles } from "./skills.ts";
+import { users } from "./auth";
+import { skills, targetRoles } from "./skills";
 
 export const roadmapStatus = pgEnum("roadmap_status", [
   "draft",

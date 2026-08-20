@@ -4,18 +4,18 @@
   "private": true,
   "description": "AI-powered student skills and career development platform",
   "license": "MIT",
-  "engines": {
-    "node": ">=22"
-  },
   "workspaces": [
     "packages/*",
     "frontend",
     "backend/*"
   ],
   "scripts": {
-    "db:generate": "npm run generate -w @skillforge/db",
-    "db:migrate": "npm run migrate -w @skillforge/db",
-    "db:seed": "npm run seed -w @skillforge/db",
-    "db:studio": "npm run studio -w @skillforge/db"
+    "dev": "bun run --filter @skillforge/frontend dev",
+    "build": "bun run --filter @skillforge/frontend build",
+    "db:generate": "bun run --filter @skillforge/db generate",
+    "db:migrate": "bun run --filter @skillforge/db migrate",
+    "db:seed": "bun run --filter @skillforge/db seed",
+    "db:studio": "bun run --filter @skillforge/db studio",
+    "typecheck": "bun run --filter '*' typecheck"
   }
 }

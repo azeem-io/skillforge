@@ -10,10 +10,10 @@
     "./schema": "./src/schema/index.ts"
   },
   "scripts": {
-    "generate": "drizzle-kit generate",
-    "migrate": "node --env-file-if-exists=../../.env --experimental-strip-types src/migrate.ts",
-    "seed": "node --env-file-if-exists=../../.env --experimental-strip-types src/seed/index.ts",
-    "studio": "drizzle-kit studio",
+    "generate": "bun --env-file=../../.env x drizzle-kit generate",
+    "migrate": "bun --env-file=../../.env src/migrate.ts",
+    "seed": "bun --env-file=../../.env src/seed/index.ts",
+    "studio": "bun --env-file=../../.env x drizzle-kit studio",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -21,8 +21,8 @@
     "postgres": "^3.4.7"
   },
   "devDependencies": {
+    "@types/bun": "^1.3.6",
     "drizzle-kit": "^0.31.5",
-    "typescript": "^5.9.3",
-    "@types/node": "^24.10.1"
+    "typescript": "^5.9.3"
   }
 }

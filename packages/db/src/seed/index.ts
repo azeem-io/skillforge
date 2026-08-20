@@ -1,16 +1,16 @@
 import { createHash } from "node:crypto";
 
-import { createDb } from "../client.ts";
+import { createDb } from "../client";
 import {
   resources,
   roleRequirements,
   skillPrerequisites,
   skills,
   targetRoles,
-} from "../schema/index.ts";
-import { CATEGORIES, SKILLS } from "./taxonomy.ts";
-import { RESOURCES } from "./resources.ts";
-import { ROLES } from "./roles.ts";
+} from "../schema/index";
+import { CATEGORIES, SKILLS } from "./taxonomy";
+import { RESOURCES } from "./resources";
+import { ROLES } from "./roles";
 
 const url = process.env.DATABASE_URL;
 if (!url) {

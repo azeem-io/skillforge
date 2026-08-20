@@ -9,12 +9,18 @@ algorithm at its core", but skill gap analysis *is* a matching algorithm —
 student proficiency vector against weighted role requirements. Same substance,
 and SkillForge lets us reuse an existing auth, assessment and Docker base.
 
-## Stack: Node 24 + npm, not Bun
+## Stack: Bun, with Next on Node
 
-Retention Lab is Bun-based, but the logic we lift from it (queries, scheduler,
-session builder, password hashing) has zero Bun or Next imports — it is plain
-TypeScript. Node is the steadier base for the Docker and Kubernetes
-deliverables. Reversible if it becomes a problem.
+Started on npm because Node looked steadier for the Docker and Kubernetes
+deliverables. Switched to Bun once two things were clear: Retention Lab already
+has a working Bun Dockerfile, so that risk was already retired, and Bun runs
+TypeScript natively — which removed the `--experimental-strip-types` flags from
+the migrate and seed scripts.
+
+One caveat found by trying it: `next build` **segfaults** on the Bun runtime
+(SIGILL, Bun 1.3.14). So the frontend scripts are plain `next dev` / `next
+build`, which Bun executes via Node. Bun remains the package manager and the
+runtime for every script that is not Next.
 
 ## Styling: Tailwind v4 everywhere, Keystone's tokens
 

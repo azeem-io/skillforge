@@ -5,7 +5,11 @@ AI-powered student skills and career development platform. Hackathon project,
 
 ## Stack — do not substitute
 
-- **Node 24 + npm.** Not Bun, not pnpm. Lockfile is `package-lock.json`.
+- **Bun.** `bun install` from the repo root, never inside a workspace folder.
+  Lockfile is `bun.lock`. Bun runs TypeScript natively, so scripts need no flags.
+- **Next runs on Node, not the Bun runtime.** `next build` segfaults under Bun
+  1.3.14, so the frontend scripts are plain `next dev` / `next build`. Bun is
+  the package manager and script runner only.
 - **Next.js 16** App Router, React 19, TypeScript strict, Turbopack
 - **Tailwind v4** CSS-first, no config file. **No CSS Modules.** No other CSS
   system anywhere in the repo.
