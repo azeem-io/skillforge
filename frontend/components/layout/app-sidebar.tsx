@@ -6,12 +6,14 @@ import {
   ClipboardCheck,
   GitBranch,
   LayoutDashboard,
+  LogIn,
   Route,
   Sparkles,
   User,
   Waypoints,
 } from "lucide-react";
 
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import {
   Sidebar,
   SidebarContent,
@@ -34,7 +36,11 @@ const NAV = [
   { href: "/profile", label: "Profile", icon: User },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({
+  user,
+}: {
+  user: { name: string; email: string; targetRoleName: string | null } | null;
+}) {
   const pathname = usePathname();
 
   return (
@@ -75,9 +81,34 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="text-muted-foreground px-2 py-1 text-xs group-data-[collapsible=icon]:hidden">
-          Goal: AI Engineer
-        </div>
+        {user ? (
+          <>
+            <div className="px-2 py-1 group-data-[collapsible=icon]:hidden">
+              <p className="truncate text-sm font-medium">{user.name}</p>
+              <p className="text-muted-foreground truncate text-xs">
+                {user.targetRoleName
+                  ? `Goal: ${user.targetRoleName}`
+                  : "No goal set yet"}
+              </p>
+            </div>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SignOutButton />
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </>
+        ) : (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Sign in">
+                <Link href="/login">
+                  <LogIn />
+                  <span>Sign in</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
