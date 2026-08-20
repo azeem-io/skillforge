@@ -38,6 +38,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # and `next build` imports every route module to inspect its exports; it is
 # never connected to and never copied into the runtime stage.
 ENV DATABASE_URL=postgres://build:build@localhost:5432/build
+# next.config.ts compiles its rewrites at build time, so this has to be set
+# here, not at runtime. Without it /api/* 404s on the published port 3000.
+# Behind Caddy the rewrite is never reached, so it costs nothing there.
+ARG GATEWAY_URL=http://api-gateway:8080
+ENV GATEWAY_URL=${GATEWAY_URL}
 WORKDIR /app/frontend
 RUN npx next build
 
