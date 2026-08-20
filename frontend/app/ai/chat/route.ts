@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { DEMO_DEMONSTRATED, DEMO_TARGET_ROLE } from "@/lib/demo-student";
+import { assistantStudent, historyFrom } from "@/lib/ai-context";
 
 const AI_SERVICE = process.env.AI_SERVICE_URL ?? "http://localhost:8084";
 
 export async function POST(request: Request) {
   const body = await request.json();
+  const { roleSlug, demonstrated } = await assistantStudent();
 
   try {
     const upstream = await fetch(`${AI_SERVICE}/chat`, {
@@ -14,10 +15,8 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         question: body.question,
         k: body.k ?? 4,
-        context: {
-          demonstrated: DEMO_DEMONSTRATED,
-          target_role: body.role ?? DEMO_TARGET_ROLE,
-        },
+        history: historyFrom(body),
+        context: { demonstrated, target_role: roleSlug },
       }),
       signal: AbortSignal.timeout(45_000),
     });

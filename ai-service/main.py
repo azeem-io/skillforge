@@ -6,7 +6,7 @@ import os
 from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -68,21 +68,50 @@ class SearchRequest(BaseModel):
     k: int = 4
 
 
+class Turn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+# Enough for a follow-up to make sense without letting a long session push the
+# retrieved sources out of the model's attention.
+MAX_HISTORY = 10
+
+
 class ChatRequest(BaseModel):
     question: str
     k: int = 4
     context: StudentContext | None = None
+    history: list[Turn] = Field(default_factory=list)
 
 
 class AgentRequest(BaseModel):
     question: str
     context: StudentContext = Field(default_factory=StudentContext)
+    history: list[Turn] = Field(default_factory=list)
 
 
 class ExpandRequest(BaseModel):
     skill: str
     subcategory: str = ""
     count: int = 3
+
+
+CHAT_SYSTEM = """You are the SkillForge career assistant, talking with a student \
+who wants a career in technology.
+
+- Prefer the sources below, and cite one as [1], [2] matching its number when you use it.
+- The sources are a small knowledge base, not the whole world. When they do not \
+cover something, say so in a clause and then answer from what you know anyway. \
+Refusing outright is not an answer.
+- This is a conversation. Read the earlier turns: treat "it", "that" and "why" as \
+referring to them, and answer a follow-up directly instead of restating everything.
+- Write markdown. Short paragraphs, bold for the thing that matters, a list only \
+when there is genuinely more than one item. No headings on a two-line answer.
+- Never state a readiness percentage, a gap count, or roadmap phase order. Those \
+are computed by the analyzer and guessing them would contradict the rest of the \
+app. Say what they depend on instead.
+- Be concrete and brief. A student wants the next action, not an essay."""
 
 
 def student_summary(context: StudentContext | None) -> str:
@@ -136,18 +165,18 @@ def chat(request: ChatRequest) -> dict[str, Any]:
         raise HTTPException(503, "knowledge base is empty")
 
     context = build_context(results)
-    messages = [
+    messages: list[dict[str, Any]] = [
         {
             "role": "system",
             "content": (
-                "Answer using only the sources below. If they do not cover the "
-                "question, say so plainly rather than guessing. Cite as [1], [2]."
+                f"{CHAT_SYSTEM}"
                 f"{student_summary(request.context)}"
                 f"\n\n{context}"
             ),
-        },
-        {"role": "user", "content": request.question},
+        }
     ]
+    messages.extend(t.model_dump() for t in request.history[-MAX_HISTORY:])
+    messages.append({"role": "user", "content": request.question})
 
     try:
         message = client().chat(messages)
@@ -164,8 +193,9 @@ def chat(request: ChatRequest) -> dict[str, Any]:
 def agent(request: AgentRequest) -> dict[str, Any]:
     """The Career Planning Agent. Five tools, real actions against real data."""
     tools = ToolBox(retriever=retriever(), context=request.context.model_dump())
+    history = [t.model_dump() for t in request.history[-MAX_HISTORY:]]
     try:
-        result = CareerPlanningAgent(client(), tools).run(request.question)
+        result = CareerPlanningAgent(client(), tools).run(request.question, history)
     except RuntimeError as exc:
         raise HTTPException(503, str(exc)) from exc
 

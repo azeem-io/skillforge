@@ -1,26 +1,24 @@
 import { NextResponse } from "next/server";
 
-import { DEMO_DEMONSTRATED, DEMO_TARGET_ROLE } from "@/lib/demo-student";
+import { assistantStudent, historyFrom } from "@/lib/ai-context";
 import { studentContext } from "@/lib/skills";
 
 const AI_SERVICE = process.env.AI_SERVICE_URL ?? "http://localhost:8084";
 
 export async function POST(request: Request) {
   const body = await request.json();
-
-  // The context is assembled here rather than passed from the browser: it is
-  // roughly 20KB of taxonomy, and the client has no business asserting what
-  // the student has demonstrated.
-  const context = await studentContext(
-    DEMO_DEMONSTRATED,
-    body.role ?? DEMO_TARGET_ROLE,
-  );
+  const { roleSlug, demonstrated } = await assistantStudent();
+  const context = await studentContext(demonstrated, roleSlug ?? undefined);
 
   try {
     const upstream = await fetch(`${AI_SERVICE}/agent`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ question: body.question, context }),
+      body: JSON.stringify({
+        question: body.question,
+        history: historyFrom(body),
+        context,
+      }),
       signal: AbortSignal.timeout(90_000),
     });
 
