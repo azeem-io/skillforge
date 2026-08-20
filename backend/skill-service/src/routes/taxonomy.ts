@@ -1,4 +1,4 @@
-import { listRoles, roleSkillGraph, readiness } from "@skillforge/db";
+import { listRoles, roleSkillGraph, readiness, skillTree } from "@skillforge/db";
 import { skills, studentSkills } from "@skillforge/db/schema";
 import { query } from "@skillforge/service-kit";
 import { asc, eq } from "drizzle-orm";
@@ -81,4 +81,22 @@ taxonomy.get("/graph", async (c) => {
   });
 
   return c.json({ ...graph, readiness: readiness(graph.skills) });
+});
+
+/**
+ * The third view of the same table: the whole taxonomy as a tree, with the
+ * role's mastery states overlaid. Skills the role does not require come back
+ * with a null mastery rather than a fifth state.
+ */
+taxonomy.get("/tree", async (c) => {
+  const { role } = query(c, z.object({ role: z.string().min(1) }));
+  const actor = c.get("identity");
+
+  return c.json(
+    await skillTree(db, role, await demonstratedLevels(actor?.id ?? null)).catch(
+      () => {
+        throw new HTTPException(404, { message: `No such role: ${role}` });
+      },
+    ),
+  );
 });

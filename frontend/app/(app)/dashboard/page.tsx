@@ -19,26 +19,28 @@ import {
   MASTERY_LABEL,
   type Mastery,
 } from "@/lib/mastery";
+import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
-import { DEMO_DEMONSTRATED } from "@/lib/demo-student";
-import { phases, readiness, roleGraph } from "@/lib/skills";
-import { resolveRole } from "@/lib/target-role";
+import { FirstSteps } from "@/components/layout/first-steps";
+import { phases, readiness } from "@/lib/skills";
+import { roleGraph, roleOptions, requireTargetRole } from "@/lib/student";
 
 const ORDER: Mastery[] = ["mastered", "progress", "gap", "locked"];
 
-// Reads live data per request; without this Next bakes the build-time rows in.
+// One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ role?: string }>;
-}) {
-  const { slug, options } = await resolveRole((await searchParams).role);
-  const { role, skills } = await roleGraph(slug, DEMO_DEMONSTRATED);
+export default async function DashboardPage() {
+  const { profile, roleSlug } = await requireTargetRole();
+  const options = await roleOptions();
+
+  if (!roleSlug) return <GoalPicker options={options} />;
+
+  const { role, skills } = await roleGraph(roleSlug);
   const score = readiness(skills);
   const layers = phases(skills);
   const nextUp = layers[0] ?? [];
+  const demonstrated = skills.filter((s) => s.level > 0).length;
 
   const counts = ORDER.map((m) => ({
     mastery: m,
@@ -57,12 +59,12 @@ export default async function DashboardPage({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground text-sm">
-            Working toward{" "}
+            {profile.name ? `${profile.name} — working` : "Working"} toward{" "}
             <span className="text-foreground font-medium">{role.name}</span>
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <RoleSwitcher options={options} current={slug} />
+          <RoleSwitcher options={options} current={roleSlug} />
           <Button asChild>
             <Link href="/roadmap">
               View roadmap <ArrowRight className="size-4" />
@@ -70,6 +72,8 @@ export default async function DashboardPage({
           </Button>
         </div>
       </div>
+
+      {demonstrated === 0 && <FirstSteps roleName={role.name} />}
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -166,7 +170,7 @@ export default async function DashboardPage({
         </Card>
       ))}
 
-      <AssistantPanel role={slug} />
+      <AssistantPanel role={roleSlug} />
     </div>
   );
 }

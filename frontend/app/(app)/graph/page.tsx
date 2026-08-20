@@ -1,19 +1,18 @@
 import { SkillGraph } from "@/components/graph/skill-graph";
+import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
-import { DEMO_DEMONSTRATED } from "@/lib/demo-student";
-import { roleGraph } from "@/lib/skills";
-import { resolveRole } from "@/lib/target-role";
+import { roleGraph, roleOptions, requireTargetRole } from "@/lib/student";
 
-// Reads live data per request; without this Next bakes the build-time rows in.
+// One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
 
-export default async function GraphPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ role?: string }>;
-}) {
-  const { slug, options } = await resolveRole((await searchParams).role);
-  const { role, skills } = await roleGraph(slug, DEMO_DEMONSTRATED);
+export default async function GraphPage() {
+  const { roleSlug } = await requireTargetRole();
+  const options = await roleOptions();
+
+  if (!roleSlug) return <GoalPicker options={options} />;
+
+  const { role, skills } = await roleGraph(roleSlug);
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
@@ -25,7 +24,7 @@ export default async function GraphPage({
             node for the expand wand.
           </p>
         </div>
-        <RoleSwitcher options={options} current={slug} />
+        <RoleSwitcher options={options} current={roleSlug} />
       </div>
       <div className="flex-1">
         <SkillGraph skills={skills} mode="explore" />
