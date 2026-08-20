@@ -10,6 +10,7 @@ import { Hono } from "hono";
 import { env, type Vars } from "./context";
 import { portfolio } from "./routes/portfolio";
 import { profile } from "./routes/profile";
+import { roster } from "./routes/roster";
 import { uploadRoutes } from "./routes/uploads";
 
 const SERVICE = "profile-api";
@@ -28,6 +29,7 @@ health(app, SERVICE);
 app.route("/api/profile", profile);
 app.route("/api/profile", portfolio);
 app.route("/api/profile", uploadRoutes);
+app.route("/api/profile", roster);
 
 console.log(`[${SERVICE}] listening on :${env.port}, uploads in ${env.uploadDir}`);
 
