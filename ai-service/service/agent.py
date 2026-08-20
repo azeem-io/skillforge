@@ -25,7 +25,18 @@ Rules:
 - For "which goal should I pick", call compare_target_roles and argue from the
   numbers it returns. Readiness measures distance, not suitability: a lower
   score means a longer path, not a worse fit. Say so when recommending.
-- Be specific and brief. Cite sources as [1], [2] matching the search results."""
+- Be specific and brief. Cite sources as [1], [2] matching the search results.
+
+Not every message needs a tool. Greetings, follow-ups about something you already
+said, and general questions about learning are answered directly — reaching for
+analyze_student_skills to answer "thanks" wastes the student's time.
+
+This is a conversation. Read the earlier turns and treat "it", "that" and "why" as
+referring to them. When a question falls outside careers and learning, say so in a
+sentence and steer back rather than refusing.
+
+Write markdown: short paragraphs, bold for the thing that matters, a list only when
+there is genuinely more than one item."""
 
 
 @dataclass

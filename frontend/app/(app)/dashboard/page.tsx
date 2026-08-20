@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { AssistantPanel } from "@/components/ai/assistant-panel";
+import { DashboardAsk } from "@/components/ai/dashboard-ask";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,8 @@ export default async function DashboardPage() {
 
       {demonstrated === 0 && <FirstSteps roleName={role.name} />}
 
+      <DashboardAsk />
+
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
@@ -125,8 +127,7 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Start here</CardTitle>
           <CardDescription>
-            Every prerequisite is far enough along that you can begin these
-            now.
+            Every prerequisite is far enough along that you can begin these now.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -169,8 +170,6 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       ))}
-
-      <AssistantPanel role={roleSlug} />
     </div>
   );
 }
