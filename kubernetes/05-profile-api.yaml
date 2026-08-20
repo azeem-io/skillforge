@@ -25,6 +25,11 @@ spec:
       labels:
         app: profile-api
     spec:
+      # The PVC mounts root-owned otherwise and the bun user (1000) cannot write
+      # a CV. Kubernetes does not seed a volume from the image, so the mkdir in
+      # the Dockerfile covers compose but not this.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: profile-api
           image: skillforge/profile-api:local
