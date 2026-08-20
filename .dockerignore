@@ -1,0 +1,20 @@
+node_modules
+**/node_modules
+.git
+.next
+**/.next
+**/dist
+coverage
+*.log
+
+# Never build a secret into an image. .env.example is the only one that ships.
+.env
+.env.*
+!.env.example
+
+.claude
+kubernetes
+terraform
+docs
+*.md
+!README.md
