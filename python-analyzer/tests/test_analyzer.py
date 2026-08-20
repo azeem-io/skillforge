@@ -1,4 +1,4 @@
-from analyzer.analyzer import SkillAnalyzer, compare_roles
+from analyzer.analyzer import SkillAnalyzer, compare_roles, plan
 from analyzer.gaps import SkillGapCalculator
 from analyzer.graph import SkillGraph
 from analyzer.models import (
@@ -6,7 +6,9 @@ from analyzer.models import (
     ComparisonRequest,
     Edge,
     Requirement,
+    PlanRequest,
     RoleRequirements,
+    ServiceSkill,
     Skill,
 )
 from analyzer.roadmap import RoadmapGenerator
@@ -274,3 +276,48 @@ class TestCompareRoles:
         result = compare_roles(self._request({}))
         deep = next(r for r in result.roles if r.slug == "deep")
         assert deep.first_phase == ["A"]
+
+
+class TestPlan:
+    def _request(self, demonstrated: dict[str, int]) -> PlanRequest:
+        # skill-service sends ids in `prerequisites`, not slugs.
+        ids = {"a": "id-a", "b": "id-b", "c": "id-c", "d": "id-d"}
+        prereqs = {"b": ["id-a"], "c": ["id-b"]}
+        return PlanRequest(
+            role={"slug": "deep", "name": "Deep"},
+            skills=[
+                ServiceSkill(
+                    id=ids[slug],
+                    slug=slug,
+                    name=slug.upper(),
+                    subcategory="Core" if slug in ("a", "b") else "Applied",
+                    level=demonstrated.get(slug, 0),
+                    requiredLevel=3,
+                    weight=3,
+                    prerequisites=prereqs.get(slug, []),
+                )
+                for slug in ids
+            ],
+        )
+
+    def test_resolves_prerequisite_ids_into_ordering(self):
+        result = plan(self._request({}))
+        order = [p.skills[0].slug for p in result.phases]
+        assert order.index("a") < order.index("b") < order.index("c")
+
+    def test_response_uses_skill_services_camelcase_contract(self):
+        phase = plan(self._request({})).phases[0]
+        dumped = phase.model_dump()
+        assert "estimatedWeeks" in dumped
+        assert "gapScore" in dumped["skills"][0]
+
+    def test_phases_are_numbered_from_one_and_titled(self):
+        result = plan(self._request({}))
+        assert result.phases[0].phase == 1
+        assert all(p.title for p in result.phases)
+
+    def test_demonstrated_levels_are_read_off_the_rows(self):
+        # level lives on each row rather than a separate demonstrated map.
+        full = plan(self._request({}))
+        partial = plan(self._request({"a": 3}))
+        assert partial.readinessScore > full.readinessScore

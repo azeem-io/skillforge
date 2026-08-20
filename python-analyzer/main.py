@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 
-from analyzer.analyzer import SkillAnalyzer, compare_roles
+from analyzer.analyzer import SkillAnalyzer, compare_roles, plan
 from analyzer.models import (
     AnalysisRequest,
     AnalysisResponse,
     ComparisonRequest,
     ComparisonResponse,
     Gap,
+    PlanRequest,
+    PlanResponse,
     Roadmap,
 )
 
@@ -36,6 +38,12 @@ def gaps(request: AnalysisRequest) -> list[Gap]:
 def roadmap(request: AnalysisRequest) -> Roadmap:
     analyzer = SkillAnalyzer(request)
     return analyzer.analyze().roadmap
+
+
+@app.post("/plan", response_model=PlanResponse)
+def plan_route(request: PlanRequest) -> PlanResponse:
+    """skill-service's shape. /roadmap keeps ai-service's."""
+    return plan(request)
 
 
 @app.post("/compare", response_model=ComparisonResponse)

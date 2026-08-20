@@ -41,7 +41,9 @@ export async function requestRoadmap(
   if (!env.pythonAnalyzerUrl) return null;
 
   try {
-    const response = await fetch(new URL("/roadmap", env.pythonAnalyzerUrl), {
+    // /plan, not /roadmap: /roadmap speaks ai-service's shape. /plan is the
+    // endpoint that takes SkillRow and returns the phases below unchanged.
+    const response = await fetch(new URL("/plan", env.pythonAnalyzerUrl), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ role, skills }),

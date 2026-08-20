@@ -2,13 +2,15 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
+# Build context is the repo root so one compose file builds every service.
+
 RUN adduser --disabled-password --gecos "" --uid 10001 app
 
-COPY requirements.txt .
+COPY python-analyzer/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY analyzer/ ./analyzer/
-COPY main.py .
+COPY python-analyzer/analyzer/ ./analyzer/
+COPY python-analyzer/main.py .
 
 USER app
 EXPOSE 8085
