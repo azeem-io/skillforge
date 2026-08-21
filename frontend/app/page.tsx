@@ -90,7 +90,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="sticky top-0 z-10">
+      <header className="border-border/60 sticky top-0 z-10 border-b">
         <div className="bg-background/80 supports-[backdrop-filter]:bg-background/60 absolute inset-0 backdrop-blur-md" />
         <div className="relative mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4">
           <span className="flex items-center gap-2">
@@ -180,7 +180,9 @@ export default async function Home() {
                 ["3", "views, one taxonomy"],
               ].map(([figure, label]) => (
                 <div key={label}>
-                  <dt className="font-mono text-3xl font-semibold">{figure}</dt>
+                  <dt className="font-mono text-4xl font-semibold tracking-tight tabular-nums">
+                    {figure}
+                  </dt>
                   <dd className="text-muted-foreground mt-1 text-sm">
                     {label}
                   </dd>
@@ -204,9 +206,9 @@ export default async function Home() {
               {STEPS.map((step, i) => (
                 <li
                   key={step.title}
-                  className="bg-card relative rounded-xl border p-6"
+                  className="bg-card hover:border-border-strong/50 relative rounded-xl border p-6 shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-sm"
                 >
-                  <span className="text-muted-dim font-mono text-sm">
+                  <span className="font-mono text-sm font-medium text-teal-600 tabular-nums dark:text-teal-400">
                     0{i + 1}
                   </span>
                   <step.icon className="text-foreground mt-4 size-5" />
@@ -248,7 +250,7 @@ export default async function Home() {
               {FEATURES.map((feature) => (
                 <div
                   key={feature.title}
-                  className="bg-card hover:border-border-strong/50 rounded-xl border p-6 transition-colors"
+                  className="bg-card hover:border-border-strong/50 rounded-xl border p-6 shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-sm"
                 >
                   <feature.icon
                     className={`size-5 ${feature.accent ? "text-ai" : "text-foreground"}`}
