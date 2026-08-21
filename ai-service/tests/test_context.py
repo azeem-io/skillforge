@@ -1,4 +1,4 @@
-from main import StudentContext, student_summary
+from main import StudentContext, assessment_catalog, student_summary
 
 ATTEMPT = {
     "slug": "python-fundamentals",
@@ -49,3 +49,41 @@ def test_unfinished_attempt_renders_without_a_score():
     )
     assert "- Git\n" in summary
     assert "scored" not in summary
+
+
+def test_no_catalog_supplied_adds_nothing():
+    assert assessment_catalog(None) == ""
+    assert assessment_catalog(StudentContext()) == ""
+
+
+def test_catalog_lists_every_assessment_as_a_link():
+    context = StudentContext.model_validate(
+        {
+            "available_assessments": [
+                {"slug": "python-advanced", "title": "Python: Algorithms & Craft"},
+                {"slug": "databases-design-operations", "title": "Databases: Design & Operations"},
+            ]
+        }
+    )
+    catalog = assessment_catalog(context)
+    assert "[Python: Algorithms & Craft](/assessments/python-advanced)" in catalog
+    assert (
+        "[Databases: Design & Operations](/assessments/databases-design-operations)"
+        in catalog
+    )
+
+
+def test_catalog_entry_without_a_title_falls_back_to_the_slug():
+    context = StudentContext.model_validate(
+        {"available_assessments": [{"slug": "git-fundamentals"}]}
+    )
+    assert "[git-fundamentals](/assessments/git-fundamentals)" in assessment_catalog(
+        context
+    )
+
+
+def test_catalog_entry_without_a_slug_is_skipped():
+    context = StudentContext.model_validate(
+        {"available_assessments": [{"title": "No slug here"}]}
+    )
+    assert assessment_catalog(context) == ""
