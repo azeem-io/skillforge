@@ -180,8 +180,16 @@ the agent actually called.
 | GET | `/api/ai/health` | — | `{ ok, service, chunks }` |
 
 `context` is the student payload the Next routes assemble: `skills`, `edges`,
-`requirements`, `demonstrated`, `roles` and `target_role`. `k` is how many chunks
-to retrieve, default 4.
+`requirements`, `demonstrated`, `roles`, `target_role` and `recent_assessments`.
+`k` is how many chunks to retrieve, default 4.
+
+`recent_assessments` is the last three completed sittings as
+`{ slug, title, score, maxScore, completedAt }`, the most recent one carrying a
+`weakest` array of `{ name, correct, total }` — the three worst skills of its
+breakdown. It is what lets `/chat` answer "how did I do?" from the graded result
+rather than from a skill level, which cannot tell a test from a self-reported
+claim. Only `/chat` sends it — `/agent` works from its tools, which do not
+cover attempt history yet.
 
 ### The agent's tools
 
