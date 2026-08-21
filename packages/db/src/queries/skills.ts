@@ -17,6 +17,7 @@ export type SkillRow = {
   name: string;
   subcategory: string;
   category: string;
+  description: string | null;
   mastery: Mastery;
   level: number;
   requiredLevel: number;
@@ -67,6 +68,7 @@ export async function roleSkillGraph(
       name: skills.name,
       parentId: skills.parentId,
       categoryId: skills.categoryId,
+      description: skills.description,
     })
     .from(skills);
 
@@ -113,6 +115,7 @@ export async function roleSkillGraph(
       name: s.name,
       subcategory: byId.get(s.parentId ?? "")?.name ?? "",
       category: byId.get(s.categoryId ?? "")?.name ?? "",
+      description: s.description,
       mastery: "gap",
       level: demonstrated[s.slug] ?? 0,
       requiredLevel: req?.requiredLevel ?? 2,

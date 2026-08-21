@@ -1,47 +1,92 @@
-import dagre from "dagre";
+import ELK from "elkjs/lib/elk.bundled.js";
 import type { Edge, Node } from "@xyflow/react";
 
-export const NODE_W = 224;
-export const NODE_H = 72;
+export const NODE_W = 216;
+export const NODE_H = 64;
 
-export function layoutGraph(
+const elk = new ELK();
+
+const FLOW: Record<string, string> = {
+  "elk.algorithm": "layered",
+  "elk.direction": "RIGHT",
+  "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
+  "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
+  "elk.layered.spacing.nodeNodeBetweenLayers": "72",
+  "elk.spacing.nodeNode": "18",
+  "elk.layered.spacing.edgeNodeBetweenLayers": "24",
+};
+
+/**
+ * One compound box per group, stacked top to bottom, with each group's chains
+ * flowing left to right inside it. Keeps categories in their own horizontal
+ * band instead of crossing-minimisation interleaving unrelated skills.
+ * Cross-group prerequisite edges still route between the bands.
+ */
+export async function layoutGraph(
   nodes: Node[],
   edges: Edge[],
-  direction: "LR" | "TB" = "LR",
-): Node[] {
-  const g = new dagre.graphlib.Graph();
-  g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, nodesep: 26, ranksep: 110 });
+  groupOf?: (node: Node) => string,
+): Promise<Node[]> {
+  if (nodes.length === 0) return nodes;
 
-  nodes.forEach((n) => g.setNode(n.id, { width: NODE_W, height: NODE_H }));
-  edges.forEach((e) => g.setEdge(e.source, e.target));
-  dagre.layout(g);
+  const groups = new Map<string, Node[]>();
+  for (const node of nodes) {
+    const key = groupOf?.(node) ?? "";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(node);
+  }
 
-  return nodes.map((n) => {
-    const { x, y } = g.node(n.id);
-    return { ...n, position: { x: x - NODE_W / 2, y: y - NODE_H / 2 } };
+  const grouped = groupOf && groups.size > 1;
+
+  const laid = await elk.layout({
+    id: "root",
+    layoutOptions: grouped
+      ? {
+          "elk.algorithm": "layered",
+          "elk.direction": "DOWN",
+          "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+          "elk.spacing.nodeNode": "56",
+          "elk.layered.spacing.nodeNodeBetweenLayers": "56",
+        }
+      : FLOW,
+    children: grouped
+      ? [...groups.entries()].map(([key, members]) => ({
+          id: `group:${key}`,
+          layoutOptions: {
+            ...FLOW,
+            "elk.padding": "[top=24,left=24,bottom=24,right=24]",
+          },
+          children: members.map((n) => ({
+            id: n.id,
+            width: NODE_W,
+            height: NODE_H,
+          })),
+        }))
+      : nodes.map((n) => ({ id: n.id, width: NODE_W, height: NODE_H })),
+    edges: edges.map((e) => ({
+      id: e.id,
+      sources: [e.source],
+      targets: [e.target],
+    })),
   });
-}
 
-// Rank = phase. Same longest-path layering the Python service will own once
-// python-analyzer is wired; kept here so the roadmap lens renders before then.
-export function rankOf(nodes: Node[], edges: Edge[]): Map<string, number> {
-  const incoming = new Map<string, string[]>();
-  nodes.forEach((n) => incoming.set(n.id, []));
-  edges.forEach((e) => incoming.get(e.target)?.push(e.source));
-
-  const rank = new Map<string, number>();
-  const visit = (id: string, seen: Set<string>): number => {
-    if (rank.has(id)) return rank.get(id)!;
-    if (seen.has(id)) return 0;
-    seen.add(id);
-    const parents = incoming.get(id) ?? [];
-    const r = parents.length
-      ? Math.max(...parents.map((p) => visit(p, seen))) + 1
-      : 0;
-    rank.set(id, r);
-    return r;
+  const position = new Map<string, { x: number; y: number }>();
+  const walk = (
+    children: { id: string; x?: number; y?: number; children?: unknown }[],
+    dx: number,
+    dy: number,
+  ) => {
+    for (const child of children) {
+      const x = dx + (child.x ?? 0);
+      const y = dy + (child.y ?? 0);
+      if (child.children) {
+        walk(child.children as typeof children, x, y);
+      } else {
+        position.set(child.id, { x, y });
+      }
+    }
   };
-  nodes.forEach((n) => visit(n.id, new Set()));
-  return rank;
+  walk((laid.children ?? []) as Parameters<typeof walk>[0], 0, 0);
+
+  return nodes.map((n) => ({ ...n, position: position.get(n.id) ?? n.position }));
 }

@@ -331,3 +331,28 @@
 ::-webkit-scrollbar-track {
   background-color: transparent;
 }
+/* React Flow. Layout and spotlight changes glide instead of teleporting.
+   Scoped to nodes and edges only — transitioning the viewport would make
+   panning and zooming smear. Dragging is exempt or the node lags the cursor.
+   The prefers-reduced-motion block above overrides all of this. */
+.react-flow__node {
+  transition:
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 280ms ease;
+}
+.react-flow__node.dragging {
+  transition: none;
+}
+.react-flow__edge {
+  transition: opacity 280ms ease;
+}
+
+@keyframes skill-node-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+.skill-node-enter {
+  animation: skill-node-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
