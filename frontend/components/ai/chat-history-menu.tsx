@@ -1,6 +1,6 @@
 "use client";
 
-import { History } from "lucide-react";
+import { History, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { clearThreads, switchTo, type Thread } from "./chat-store";
+import { clearThreads, deleteThread, switchTo, type Thread } from "./chat-store";
 
 function relativeTime(ts: number) {
   const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
@@ -47,6 +47,20 @@ export function ChatHistoryMenu({ threads }: { threads: Thread[] }) {
             <span className="text-muted-foreground shrink-0 text-xs">
               {relativeTime(t.updatedAt)}
             </span>
+            <button
+              type="button"
+              aria-label={`Delete "${t.title}"`}
+              title="Delete this conversation"
+              className="text-muted-foreground hover:text-destructive shrink-0 rounded p-0.5"
+              onClick={(event) => {
+                // Stops the click reaching the item's own onSelect, so
+                // deleting a thread never also switches into it first.
+                event.stopPropagation();
+                deleteThread(t.id);
+              }}
+            >
+              <X className="size-3.5" />
+            </button>
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />

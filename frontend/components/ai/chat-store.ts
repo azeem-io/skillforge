@@ -195,6 +195,14 @@ export function clearThreads() {
   emit();
 }
 
+/** Removes one past conversation. The active thread isn't in `threads`, so
+ *  this can never delete the conversation currently on screen. */
+export function deleteThread(threadId: string) {
+  state = { ...state, threads: state.threads.filter((t) => t.id !== threadId) };
+  persist();
+  emit();
+}
+
 async function ask(
   question: string,
   history: { role: string; content: string }[],
