@@ -22,7 +22,7 @@ depends on a hardcoded student.
 | View skill gaps | `/graph`, `/tree`, `/dashboard` | done |
 | Generate AI roadmap | `/roadmap` → python-analyzer `/plan`, persisted | done |
 | Ask RAG assistant | `/assistant` → ai-service `/chat` | done |
-| Career Agent analyses profile | ai-service `/agent`, five tools | done |
+| Career Agent analyses profile | ai-service `/agent`, six tools | done |
 | Deployment | `docker-compose.yml`, `kubernetes/`, `terraform/` | compose done, see gap below |
 
 ## Done
@@ -122,15 +122,16 @@ depends on a hardcoded student.
 - [x] RAG: heading-aware chunking, fastembed embeddings, in-memory cosine
       search over 53 chunks. *Not* pgvector — a linear scan beats a round trip
       at this size. Revisit if the corpus grows.
-- [x] **Career Planning Agent, 5 tools**, `/agent` endpoint. Four call
+- [x] **Career Planning Agent, 6 tools**, `/agent` endpoint. Four call
       python-analyzer (`/analyze`, `/gaps`, `/roadmap`, `/compare`), one
-      searches the embedded corpus. None return canned text.
-      The PDF names four; `compare_target_roles` is ours on top.
+      searches the embedded corpus, one reads the student's graded attempts.
+      None return canned text. The PDF names four; `compare_target_roles` and
+      `get_assessment_history` are ours on top.
 - [x] `/expand` for the wand — returns structured sub-skills
 - [x] **5 endpoints**: `/health` `/search` `/chat` `/agent` `/expand`.
       `/search` returns retrieval with no generation, which makes it easy to
       show a judge what RAG actually retrieved.
-- [x] **38 tests passing**, Dockerfile, README
+- [x] **45 tests passing**, Dockerfile, README
 - [x] Embeds the whole corpus at boot before opening the port, so the first
       question is not the one that pays for the model load
 

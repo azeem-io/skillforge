@@ -140,7 +140,7 @@ The PDF's required demo, and where each step lives:
 | View skill gaps | `/graph`, `/dashboard` — mastery from real levels |
 | Generate AI roadmap | `/roadmap` → python-analyzer `/plan` |
 | Ask RAG assistant | the assistant → ai-service `/chat` |
-| Career Agent analyses profile | ai-service `/agent`, five tools |
+| Career Agent analyses profile | ai-service `/agent`, six tools |
 | Deployment | compose, kubernetes/, terraform/ |
 
 A step that only works for a hardcoded student does not count as working.

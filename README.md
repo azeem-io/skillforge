@@ -97,8 +97,9 @@ cosine similarity. Answers cite sources as `[1]`, `[2]`, and the UI renders each
 one as a hoverable superscript linked to the retrieved chunk.
 
 **Agentic** — the Career Planning Agent at `/ai/agent` runs a tool-calling loop
-over five tools: `analyze_student_skills`, `generate_skill_gap`, `create_roadmap`,
-`compare_target_roles` and `search_learning_resources`. Ask it *"Analyze my
+over six tools: `analyze_student_skills`, `generate_skill_gap`, `create_roadmap`,
+`compare_target_roles`, `search_learning_resources` and
+`get_assessment_history`. Ask it *"Analyze my
 profile and tell me what I should learn next"* and it retrieves your skills,
 computes the gaps through python-analyzer, and recommends seeded resources. The
 tools it called are shown under each answer.

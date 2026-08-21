@@ -261,7 +261,7 @@ def chat(request: ChatRequest) -> dict[str, Any]:
 
 @router.post("/agent")
 def agent(request: AgentRequest) -> dict[str, Any]:
-    """The Career Planning Agent. Five tools, real actions against real data."""
+    """The Career Planning Agent. Six tools, real actions against real data."""
     tools = ToolBox(retriever=retriever(), context=request.context.model_dump())
     history = [t.model_dump() for t in request.history[-MAX_HISTORY:]]
     try:

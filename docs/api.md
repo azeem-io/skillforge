@@ -188,12 +188,13 @@ the agent actually called.
 `weakest` array of `{ name, correct, total }` — the three worst skills of its
 breakdown. It is what lets `/chat` answer "how did I do?" from the graded result
 rather than from a skill level, which cannot tell a test from a self-reported
-claim. Only `/chat` sends it — `/agent` works from its tools, which do not
-cover attempt history yet.
+claim. `/agent` is sent the same field but never renders it into the prompt —
+it reaches the data through `get_assessment_history`, so a conversation that
+never asks about a score never pays for one.
 
 ### The agent's tools
 
-`/agent` runs a DeepSeek tool-calling loop. Five tools, four of them named by the
+`/agent` runs a DeepSeek tool-calling loop. Six tools, four of them named by the
 problem statement:
 
 | Tool | Does |
@@ -203,6 +204,7 @@ problem statement:
 | `create_roadmap` | Calls python-analyzer `/roadmap` — phases from the topological sort |
 | `compare_target_roles` | Ranks every seeded role against what the student has |
 | `search_learning_resources` | Seeded `resources` rows for the skills in question |
+| `get_assessment_history` | The student's graded sittings and the weakest skills of the latest |
 
 The model chooses which to call and in what order; it never computes a number
 itself. Readiness percentages, gap counts and phase ordering come from the

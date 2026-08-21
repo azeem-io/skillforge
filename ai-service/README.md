@@ -8,7 +8,7 @@ Generation, retrieval and the Career Planning Agent.
 |---|---|
 | Generative AI | `/chat` and `/expand` — DeepSeek via the OpenAI-compatible SDK |
 | RAG | `service/retrieval.py` — the knowledge base is embedded and searched before any answer |
-| Agentic AI | `service/agent.py` — five tools performing real actions |
+| Agentic AI | `service/agent.py` — six tools performing real actions |
 
 ## Endpoints
 
@@ -26,12 +26,18 @@ show what RAG actually retrieved.
 | `create_roadmap` | POSTs to python-analyzer `/roadmap` |
 | `compare_target_roles` | POSTs to python-analyzer `/compare` — scores every role at once, best fit first |
 | `search_learning_resources` | Cosine search over the embedded knowledge base |
+| `get_assessment_history` | Reads the graded attempts the caller supplied in `context` |
 
-Four call a real service; one searches a real corpus. None return canned text.
+Four call a real service, one searches a real corpus, one reads the student's
+own results. None return canned text.
 
-The PDF names four tools. `compare_target_roles` is the extra one — it answers
-"is this the right goal for me?", which is the question a student asks before
-any of the other four are worth running.
+The PDF names four tools. `compare_target_roles` is one extra — it answers "is
+this the right goal for me?", the question a student asks before any of the
+other four are worth running. `get_assessment_history` is the other: a
+demonstrated level cannot say whether it came from a test or from a form, and
+"how did I do?" is the first thing anyone asks after finishing a quiz. It is a
+tool rather than prompt context so the attempts only cost tokens when they are
+actually asked for.
 
 ## Embeddings
 

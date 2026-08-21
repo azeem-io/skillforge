@@ -166,6 +166,71 @@ class TestCompareTargetRoles:
         assert http.calls == []
 
 
+class TestAssessmentHistory:
+    ATTEMPTS = [
+        {
+            "slug": "python-fundamentals",
+            "title": "Python Fundamentals",
+            "score": 7,
+            "max_score": 10,
+            "completed_at": "2026-08-21T09:31:00.000Z",
+            "weakest": [
+                {"name": "NumPy", "correct": 1, "total": 3},
+                {"name": "Pandas", "correct": 2, "total": 4},
+            ],
+        },
+        {
+            "slug": "git-fundamentals",
+            "title": "Git Fundamentals",
+            "score": 9,
+            "max_score": 10,
+            "completed_at": "2026-08-14T12:00:00.000Z",
+            "weakest": [],
+        },
+    ]
+
+    def _box(self, attempts=None):
+        return ToolBox(
+            retriever=Retriever(load_chunks(KB), StubEmbedder()),
+            context={"recent_assessments": attempts if attempts is not None else self.ATTEMPTS},
+            http=StubHttp(),
+            analyzer_url="http://analyzer",
+        )
+
+    def test_returns_the_sittings_newest_first(self):
+        attempts = self._box().get_assessment_history()["attempts"]
+        assert [a["assessment"] for a in attempts] == [
+            "Python Fundamentals",
+            "Git Fundamentals",
+        ]
+        assert attempts[0]["score"] == 7
+        assert attempts[0]["max_score"] == 10
+
+    def test_carries_the_weakest_skills_of_the_latest(self):
+        weakest = self._box().get_assessment_history()["attempts"][0]["weakest_skills"]
+        assert weakest[0] == {"skill": "NumPy", "correct": 1, "total": 3}
+
+    def test_respects_limit(self):
+        assert len(self._box().get_assessment_history(limit=1)["attempts"]) == 1
+
+    def test_a_nonsense_limit_still_returns_one(self):
+        assert len(self._box().get_assessment_history(limit=0)["attempts"]) == 1
+
+    def test_says_none_taken_rather_than_returning_nothing(self):
+        # An empty list has to read as "took none", or the model fills the
+        # silence with a score it made up.
+        result = self._box(attempts=[]).get_assessment_history()
+        assert result["attempts"] == []
+        assert "not completed an assessment" in result["note"]
+
+    def test_missing_from_context_is_not_an_error(self):
+        assert toolbox().get_assessment_history()["attempts"] == []
+
+    def test_dispatch_passes_the_limit_through(self):
+        out = json.loads(self._box().dispatch("get_assessment_history", '{"limit": 1}'))
+        assert len(out["attempts"]) == 1
+
+
 class TestSchemas:
     def test_every_tool_is_declared(self):
         names = {s["function"]["name"] for s in SCHEMAS}
@@ -175,6 +240,7 @@ class TestSchemas:
             "create_roadmap",
             "compare_target_roles",
             "search_learning_resources",
+            "get_assessment_history",
         }
 
     def test_every_schema_has_a_description(self):

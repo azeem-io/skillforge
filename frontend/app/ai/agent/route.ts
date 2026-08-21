@@ -7,7 +7,7 @@ const AI_SERVICE = process.env.AI_SERVICE_URL ?? "http://localhost:8084";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { roleSlug, demonstrated } = await assistantStudent();
+  const { roleSlug, demonstrated, recentAssessments } = await assistantStudent();
   const context = await studentContext(demonstrated, roleSlug ?? undefined);
 
   try {
@@ -17,7 +17,9 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         question: body.question,
         history: historyFrom(body),
-        context,
+        // Carried on the request but kept out of the prompt: the agent only
+        // pays for the attempts if it calls get_assessment_history.
+        context: { ...context, recent_assessments: recentAssessments },
       }),
       signal: AbortSignal.timeout(90_000),
     });
