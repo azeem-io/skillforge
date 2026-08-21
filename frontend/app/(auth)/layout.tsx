@@ -8,7 +8,9 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
           <Sparkles className="size-4" />
         </div>
-        <span className="text-lg font-semibold tracking-tight">SkillForge</span>
+        <span className="font-heading text-lg font-semibold tracking-tight">
+          SkillForge
+        </span>
       </Link>
 
       <main className="bg-card w-full max-w-sm rounded-lg border p-6 shadow-sm">

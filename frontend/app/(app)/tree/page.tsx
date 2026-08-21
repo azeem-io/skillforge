@@ -22,7 +22,7 @@ export default async function TreePage() {
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
       <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Skill Tree</h1>
+          <h1 className="text-2xl font-semibold">Skill Tree</h1>
           <p className="text-muted-foreground text-sm">
             The whole taxonomy, you at the root. The Skill Graph shows what{" "}
             {role.name} needs; this shows where that sits in everything there is

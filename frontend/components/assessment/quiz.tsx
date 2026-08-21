@@ -102,8 +102,8 @@ export function Quiz({
     <div className="space-y-6" onKeyDown={onKeyDown}>
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
-          <p className="text-muted-foreground text-sm tabular-nums">
+          <h1 className="text-xl font-semibold">{title}</h1>
+          <p className="text-muted-foreground font-mono text-sm">
             {index + 1} of {questions.length}
           </p>
         </div>

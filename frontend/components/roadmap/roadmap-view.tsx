@@ -62,7 +62,7 @@ export function RoadmapView({
                     {roadmap.roleName}
                   </CardTitle>
                   {roadmap.readinessScore !== null && (
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="font-mono">
                       {roadmap.readinessScore}% ready
                     </Badge>
                   )}

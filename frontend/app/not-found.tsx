@@ -8,7 +8,7 @@ export default function NotFound() {
     <main className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
       <Compass className="text-muted-foreground size-8" aria-hidden />
       <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold">
           That page isn&apos;t here
         </h1>
         <p className="text-muted-foreground max-w-sm text-sm">

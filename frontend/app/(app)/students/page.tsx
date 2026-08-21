@@ -43,7 +43,7 @@ export default async function StudentsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold">
           {isAdmin ? "All users" : "My students"}
         </h1>
         <p className="text-muted-foreground text-sm">
@@ -98,7 +98,7 @@ export default async function StudentsPage() {
                 {student.readiness !== null ? (
                   <>
                     <Progress className="mt-1 h-1.5" value={student.readiness} />
-                    <p className="text-muted-foreground mt-1 text-xs tabular-nums">
+                    <p className="text-muted-foreground mt-1 font-mono text-xs">
                       {student.readiness}% ready · {student.demonstrated} skills
                     </p>
                   </>

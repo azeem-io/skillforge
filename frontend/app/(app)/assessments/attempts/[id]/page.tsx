@@ -35,7 +35,7 @@ export default async function AttemptPage({
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Result</h1>
+          <h1 className="text-2xl font-semibold">Result</h1>
           <p className="text-muted-foreground text-sm">
             Your weakest skills are listed first — those are the ones the roadmap
             will schedule next.

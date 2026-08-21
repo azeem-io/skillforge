@@ -117,7 +117,7 @@ function Chips({
           {d.mastery === "locked" && <Lock className="size-3 shrink-0" />}
           <span>{d.name}</span>
           {withLevel && d.requiredLevel > 0 && (
-            <span className="tabular-nums opacity-70">
+            <span className="font-mono opacity-70">
               {d.level}/{d.requiredLevel}
             </span>
           )}
@@ -211,7 +211,7 @@ export function TreeDetail({
               <span className="text-muted-foreground">
                 Weight for {roleName}
               </span>
-              <span className="tabular-nums">{node.weight} of 5</span>
+              <span className="font-mono">{node.weight} of 5</span>
             </div>
           </div>
         ) : (

@@ -27,7 +27,7 @@ export function Legend({
           <span className={cn("size-2 rounded-full", MASTERY_DOT[m])} />
           <span className="text-muted-foreground">{MASTERY_LABEL[m]}</span>
           {counts?.[m] !== undefined && (
-            <span className="font-medium tabular-nums">{counts[m]}</span>
+            <span className="font-mono font-medium">{counts[m]}</span>
           )}
         </span>
       ))}
