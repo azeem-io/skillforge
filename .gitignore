@@ -11,8 +11,6 @@ out/
 *.tsbuildinfo
 
 # env
-.env
-.env.local
 .env.*.local
 !.env.example
 
@@ -53,3 +51,4 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 skillforge-work-split.md
+config.bat
