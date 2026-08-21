@@ -16,4 +16,12 @@ else
   echo "migrate: SEED_ON_START is not true, skipping seed"
 fi
 
+# The demo account, and the only step that invents people rather than
+# reference data. Off by default: a real deployment should not ship an admin
+# whose password is written down in .env.example.
+if [ "${SEED_DEMO:-false}" = "true" ]; then
+  echo "migrate: seeding the demo account"
+  bun src/seed/demo.ts
+fi
+
 echo "migrate: done"

@@ -12,8 +12,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { BreakdownRow } from "@/components/assessment/result-card";
 import { ApiError } from "@/lib/api";
-import { requireStaff, studentDetail } from "@/lib/student";
+import { requireStaff, studentAttempts, studentDetail } from "@/lib/student";
 
 export const dynamic = "force-dynamic";
 
@@ -41,8 +42,13 @@ export default async function StudentDetailPage({
     throw error;
   });
 
+  // A panel that cannot load must not take the profile down with it — the
+  // authorization here is the same join that already let the page render.
+  const history = await studentAttempts(userId).catch(() => null);
+
   const { profile, skills } = detail;
   const byAssessment = skills.filter((s) => s.source === "assessment").length;
+  const completed = history?.attempts.filter((a) => a.completedAt) ?? [];
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
@@ -88,6 +94,72 @@ export default async function StudentDetailPage({
           </CardHeader>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Assessments</CardTitle>
+          <CardDescription>
+            Every sitting, most recent first. Scores are graded evidence — this
+            is where the levels below came from.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!history && (
+            <p className="text-muted-foreground text-sm">
+              Assessment history could not be loaded just now.
+            </p>
+          )}
+
+          {history && completed.length === 0 && (
+            <p className="text-muted-foreground text-sm">
+              No assessment taken yet. Nothing here is graded evidence until
+              one is.
+            </p>
+          )}
+
+          {completed.map((attempt) => {
+            const ratio =
+              attempt.maxScore && attempt.score !== null
+                ? attempt.score / attempt.maxScore
+                : 0;
+            return (
+              <div
+                key={attempt.id}
+                className="flex flex-wrap items-center gap-3 rounded-md border p-3"
+              >
+                <span className="min-w-40 flex-1 text-sm font-medium">
+                  {attempt.title}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  {attempt.completedAt &&
+                    new Date(attempt.completedAt).toLocaleDateString(undefined, {
+                      dateStyle: "medium",
+                    })}
+                </span>
+                <div className="w-28">
+                  <Progress className="h-1.5" value={ratio * 100} />
+                </div>
+                <span className="w-16 text-right font-mono text-xs">
+                  {attempt.score}/{attempt.maxScore}
+                </span>
+              </div>
+            );
+          })}
+
+          {history && history.breakdown.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                Weakest skills in the most recent sitting
+              </p>
+              <ul className="space-y-1.5">
+                {history.breakdown.slice(0, 6).map((entry) => (
+                  <BreakdownRow key={entry.slug} entry={entry} />
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {profile.education && (
         <Card>

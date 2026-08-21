@@ -1,0 +1,64 @@
+# Generation, retrieval and the agent. The knowledge base ships inside the
+# image — no volume, no ConfigMap — so a pod either has the corpus it was built
+# with or it does not start.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-service
+  namespace: skillforge
+spec:
+  selector:
+    app: ai-service
+  ports:
+    - port: 8084
+      targetPort: 8084
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-service
+  namespace: skillforge
+spec:
+  # One, unlike the rest. Each replica embeds the whole corpus at boot and
+  # holds the index in memory, so a second one pays that cost again and shares
+  # nothing. Scale this out only behind a shared vector store.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-service
+  template:
+    metadata:
+      labels:
+        app: ai-service
+    spec:
+      containers:
+        - name: ai-service
+          image: skillforge/ai-service:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - configMapRef: { name: skillforge-config }
+            # DEEPSEEK_API_KEY. Without it the service still starts and still
+            # retrieves; /chat, /agent, /expand and /narrate answer 503.
+            - secretRef: { name: skillforge-secrets }
+          # The port does not open until the corpus is embedded, which is about
+          # 75s on a warm image. A startupProbe, not a long initialDelay: it
+          # buys the boot a five-minute budget without making every later
+          # liveness failure wait five minutes too.
+          startupProbe:
+            httpGet: { path: /health, port: 8084 }
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: { path: /health, port: 8084 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8084 }
+            periodSeconds: 20
+          # The embedding model and its ONNX runtime dominate this, not the
+          # corpus — a few hundred chunks of markdown are nothing beside the
+          # weights.
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            limits: { memory: 1536Mi }

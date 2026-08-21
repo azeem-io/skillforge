@@ -3,9 +3,11 @@
 What is built, what is not, and who owns what. Update the boxes as things land —
 this is how Azeem and Awaim stay in sync.
 
-Last updated: 2026-08-21, after the two new assessments (Data Analysis, Cloud
-& Security) and a pass that re-checked every line against the requirements PDF
-— see `TODO.md`'s "Submission checklist" section for that audit in full.
+Last updated: 2026-08-21, after the demo account, roadmap narration, the two
+missing Kubernetes manifests and assessment results in the mentor view. Before
+that: the new assessments and a pass that re-checked every line against the
+requirements PDF — see `TODO.md`'s "Submission checklist" section for that
+audit in full.
 
 Every counted number below was read off the running system, not estimated: seed
 counts from Postgres, test counts from `pytest`, endpoint lists from the routers.
@@ -46,7 +48,10 @@ depends on a hardcoded student.
 - [x] Migration `0000_init.sql`, applied and verified against Postgres 17
 - [x] Seed, verified in the live database: **3 categories, 8 subcategories,
       124 skills, 144 prerequisite edges, 4 target roles, 92 role requirements,
-      56 resources, 8 assessments, 80 questions**
+      56 resources, 15 assessments, 150 questions** — 7 second-sitting
+      assessments added on top of the original one-per-subcategory set, going
+      deeper into skills the fundamentals sitting didn't reach. Needs a
+      `bun run db:seed` to land in a given environment.
 - [x] Seed validates on run: cycle detection, dangling refs, unknown slugs,
       MCQ choice/index range
 - [x] Deterministic ids from slugs, so re-seeding updates rows in place instead
@@ -83,9 +88,11 @@ depends on a hardcoded student.
 
 ### Deployment — Awaim
 - [x] `docker-compose.yml`, `docker/Caddyfile`, `docker/migrate.{Dockerfile,sh}`
-- [x] `kubernetes/` — 12 manifests: namespace, config, postgres, migrate job,
-      auth-service, profile-api, skill-service, api-gateway, frontend,
-      uploads PVC, ingress, network policy
+- [x] `kubernetes/` — 14 manifests: namespace, config, postgres, migrate job,
+      auth-service, profile-api, skill-service, python-analyzer, ai-service,
+      api-gateway, frontend, uploads PVC, ingress, network policies. Every
+      service in the compose file has a `Deployment`; ai-service runs one
+      replica because each one embeds the corpus at boot and shares nothing.
 - [x] `terraform/` — `main.tf`, `variables.tf`, `outputs.tf`, `cloud-init.yaml`,
       `terraform.tfvars.example`
 - [x] `scripts/setup.sh` — one command from a fresh clone, safe to re-run;
@@ -106,6 +113,9 @@ depends on a hardcoded student.
 - [x] `/assistant` — multi-turn RAG assistant with retrieved sources
 - [x] `/students`, `/students/[userId]` — mentor and admin dashboard,
       role management and mentor assignment
+- [x] `/students/[userId]` shows the student's graded sittings and the
+      per-skill breakdown of the most recent, through
+      `GET /api/skills/students/:userId/attempts`
 - [x] All of it reads the signed-in student through the gateway
 - [x] Expand wand wired to ai-service `/expand`, with optimistic ghost nodes
 
@@ -122,7 +132,7 @@ depends on a hardcoded student.
 ### ai-service — Azeem
 - [x] DeepSeek client (OpenAI-compatible, `base_url` swapped)
 - [x] RAG: heading-aware chunking, fastembed embeddings, in-memory cosine
-      search over 53 chunks. *Not* pgvector — a linear scan beats a round trip
+      search over 140 chunks. *Not* pgvector — a linear scan beats a round trip
       at this size. Revisit if the corpus grows.
 - [x] **Career Planning Agent, 6 tools**, `/agent` endpoint. Four call
       python-analyzer (`/analyze`, `/gaps`, `/roadmap`, `/compare`), one
@@ -130,10 +140,11 @@ depends on a hardcoded student.
       None return canned text. The PDF names four; `compare_target_roles` and
       `get_assessment_history` are ours on top.
 - [x] `/expand` for the wand — returns structured sub-skills
-- [x] **5 endpoints**: `/health` `/search` `/chat` `/agent` `/expand`.
-      `/search` returns retrieval with no generation, which makes it easy to
-      show a judge what RAG actually retrieved.
-- [x] **45 tests passing**, Dockerfile, README
+- [x] **6 endpoints**: `/health` `/search` `/chat` `/agent` `/expand`
+      `/narrate`. `/search` returns retrieval with no generation, which makes
+      it easy to show a judge what RAG actually retrieved; `/narrate` is the
+      only one whose output is written to the database.
+- [x] **57 tests passing**, Dockerfile, README
 - [x] Embeds the whole corpus at boot before opening the port, so the first
       question is not the one that pays for the model load
 
@@ -142,7 +153,12 @@ depends on a hardcoded student.
 - [x] `rag/knowledge-base/roadmaps/sequencing-principles.md`
 - [x] `rag/knowledge-base/roadmaps/common-questions.md`
 - [x] `rag/knowledge-base/projects/project-selection.md`
-- [x] `rag/knowledge-base/skills/foundations.md`
+- [x] `rag/knowledge-base/skills/` — seven reference docs, one per taxonomy
+      subcategory (`foundations`, `web-development`, `databases`, `devops`,
+      `machine-learning`, `data-analysis`, `cloud-and-security`), so every
+      branch of the skill tree has grounding for `/search`,
+      `search_learning_resources` and `/chat` citations, not just the eight
+      skills `foundations.md` started with
 - [x] Ships inside the ai-service image — a submission deliverable, and small
       enough that a volume would only add a failure mode
 
@@ -152,6 +168,35 @@ depends on a hardcoded student.
       from `phases()` in `packages/db` when it is not. Either way no model
       decides ordering; the response reports which source ran.
 - [x] Regenerating archives the previous roadmap rather than deleting it
+
+### Demo account — either
+- [x] `bun run db:seed:demo` — `packages/db/src/seed/demo.ts`. A populated
+      student, a mentor joined to them by a `mentorships` row, and an admin, so
+      an instance nobody has registered on still shows a working system.
+      **demo@example.com / mentor@example.com / admin@example.com, password
+      `skillforge-demo-2026`.**
+- [x] Nothing is reimplemented: passwords go through auth-service's
+      `hashPassword`, the four simulated sittings are graded by skill-service's
+      own grader and scheduled by its FSRS module, and the roadmap is laid out
+      by the same `phases()` the route uses. Re-running updates in place.
+- [x] Runs from `setup.sh` locally and from the migrate container in compose
+      and Kubernetes, both gated on `SEED_DEMO` (default true — turn it off for
+      anything that is not a demo, the password is public)
+
+### Roadmap narration — Azeem
+- [x] ai-service **`/narrate`** — one narration and one rationale per phase,
+      grounded in the knowledge base, called by skill-service after the phases
+      are settled. Verified against the live DeepSeek API: about 5s for a
+      seven-phase plan.
+- [x] `backend/skill-service/src/narrator.ts` — 20s budget, fails soft. An
+      unreachable or unconfigured ai-service leaves `narration` and `rationale`
+      null and changes nothing else about the plan; the response says
+      `narrated: false`.
+- [x] A rationale for a phase number that was not sent is dropped rather than
+      stored — the one way a model could otherwise reshape a plan it was only
+      asked to describe
+- [x] The narration renders in the `--ai` gold block on `/roadmap`, which is
+      the token reserved for model output
 
 ### Documentation — either
 - [x] `README.md` — setup, architecture, AI explanation
@@ -165,33 +210,10 @@ Nothing mid-flight right now — see **Next** for what's queued.
 
 ## Next
 
-- [ ] **Roadmap narration and phase rationales** — Azeem.
-      Plumbed end to end and never populated: `narration` on `roadmaps`,
-      `rationale` on `roadmap_phases`, both fields present in
-      `python-analyzer/analyzer/models.py`, both persisted by skill-service,
-      both always null because nothing generates the prose. Prose only —
-      never ordering. This is the PDF's own Generative AI example ("the AI
-      generates a roadmap") and the feature isn't actually producing that
-      prose yet, even though the chat assistant and agent separately satisfy
-      the Generative AI / Agentic AI checklist items.
-- [ ] **Verify against the live DeepSeek API** — needs a real `DEEPSEEK_API_KEY`
-- [ ] **Seed a populated demo account** — either. A fresh instance is empty, so
-      a judge who does not register sees nothing. Must not insert an argon2id
-      hash by hand: `backend/auth-service/src/password.ts` exports
-      `hashPassword`, and `setup.sh` runs `db:seed` before any service starts,
-      so this belongs in a separate `db:seed:demo` script.
 - [ ] Deploy to Coolify — Awaim
 - [ ] Demo video (2–3 min) and presentation (5–7 min) — either
 
 ## Known issues
-
-**Kubernetes is missing two services.** `kubernetes/01-config.yaml` sets
-`AI_SERVICE_URL` and `PYTHON_ANALYZER_URL`, but no manifest deploys either one —
-`Deployment` kinds exist only for auth-service, profile-api, skill-service,
-api-gateway and frontend. On Kubernetes the assistant, the agent, the wand and
-the analyzer-backed roadmap would all fail; compose has them and is what we
-demo. Either add the two manifests or say plainly in the submission that
-Kubernetes covers the Node tier.
 
 **Duplicated logic.** `packages/db/src/queries/skills.ts` computes gaps and
 phases in TypeScript; `python-analyzer` computes the same thing in Python. The

@@ -4,6 +4,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import { api, apiOrNull } from "@/lib/api";
+import type { AttemptSummary, SkillBreakdown } from "@/lib/assessment-types";
 import type { Resource } from "@/lib/resources";
 import type { SkillRow, TreeSkill } from "@skillforge/db";
 
@@ -121,6 +122,19 @@ export function mentorships() {
       mentorEmail: string;
     }[];
   }>("/api/profile/mentorships");
+}
+
+/**
+ * A student's sittings, for a mentor or an admin. The authorization is a
+ * `mentorships` join in skill-service, the same rule profile-api enforces over
+ * the profile itself — this call fails with 403 for a mentor who is not theirs.
+ */
+export function studentAttempts(userId: string) {
+  return api<{
+    attempts: AttemptSummary[];
+    latestId: string | null;
+    breakdown: SkillBreakdown[];
+  }>(`/api/skills/students/${encodeURIComponent(userId)}/attempts`);
 }
 
 export function studentDetail(userId: string) {

@@ -23,7 +23,7 @@ What a judge can already do, end to end, against a real account.
 | Student profile, projects, certifications | `/profile` → profile-api |
 | CV upload with inline preview (pdf/png/jpeg) | `/profile`, sandboxed frame |
 | Self-reported skill claims | `/profile`, `source: self_reported` |
-| Assessments — recall, cloze, MCQ, with search | `/assessments`, 8 areas, 80 questions |
+| Assessments — recall, cloze, MCQ, with search | `/assessments`, 15 sittings / 8 areas, 150 questions |
 | Per-skill breakdown, worst-first | `/assessments/attempts/[id]` |
 | FSRS spaced repetition | `skill_state`, `skill-service/src/scheduler.ts` |
 | Skill graph — prerequisite DAG | `/graph`, React Flow + elk |
@@ -33,41 +33,22 @@ What a judge can already do, end to end, against a real account.
 | Career agent, 6 tools | ai-service `/agent` |
 | Mentor and admin dashboard | `/students`, role + mentorship management |
 | Staff curate the resource library | `/resources`, mentor/admin only, `skill-service` |
-| Compose, Kubernetes, Terraform | `docker-compose.yml`, `kubernetes/`, `terraform/` |
+| Roadmap narration and per-phase rationale, written by DeepSeek | `/roadmap` → ai-service `/narrate` |
+| Assessment history and per-skill breakdown in the mentor view | `/students/[userId]` → `GET /api/skills/students/:userId/attempts` |
+| A populated demo student, mentor and admin | `bun run db:seed:demo`, `SEED_DEMO` in compose |
+| Compose, Kubernetes (every service), Terraform | `docker-compose.yml`, `kubernetes/`, `terraform/` |
 
 ---
 
 ## Next up — high payoff, small cost
 
-**Seed a populated demo account** · M
-A fresh instance is empty, so a judge who does not register sees nothing. Needs
-a `db:seed:demo` script separate from `db:seed`, because `setup.sh` seeds before
-any service starts. Must call `hashPassword` from
-`backend/auth-service/src/password.ts` rather than writing an argon2id hash by
-hand. **The single highest-payoff item on this list** — it changes the first
-thirty seconds of every demo.
-
-**Roadmap narration and phase rationales** · M
-`roadmaps.narration` and `roadmap_phases.rationale` are plumbed end to end and
-always null — the columns exist, python-analyzer's models carry the fields,
-skill-service persists them, nothing generates the prose. Prose only; ordering
-stays computed. This is the most visible "the AI did something" surface we have
-already paid for and are not using.
-
 **Deploy to Coolify** · M
 The compose file is the deploy target. Until a judge can open a URL, the
 deployment deliverable is a directory of YAML.
 
-**Two Kubernetes manifests** · S
-`kubernetes/01-config.yaml` sets `AI_SERVICE_URL` and `PYTHON_ANALYZER_URL`, but
-no `Deployment` exists for either. On Kubernetes the assistant, agent, wand and
-analyzer-backed roadmap all fail. Either add them or say plainly that Kubernetes
-covers the Node tier.
-
-**Assessment results in the mentor view** · S
-A mentor can already read a student's rows (`requireReadAccess` is a real
-`mentorships` join), but `/students/[userId]` does not show attempts. The data
-and the authorization both exist.
+**Demo video and presentation** · M
+2–3 minutes and 5–7 minutes, both named in the PDF's submission list. The
+8-point outline it gives is in `TODO.md`.
 
 ---
 
@@ -125,7 +106,7 @@ Read before re-proposing. Longer rationale in `docs/decisions.md`.
 | Idea | Why not |
 |---|---|
 | Real CI/CD pipeline | Bonus, not mandatory; `docs/cicd.md` covers the requirement |
-| pgvector for RAG | 53 chunks — a linear scan beats a round trip. Revisit past a few hundred |
+| pgvector for RAG | 140 chunks — a linear scan beats a round trip. Revisit past a few hundred |
 | De-duplicating TS/Python gap logic | Known, documented, they agree today; skill-service already prefers the analyzer |
 | Tightening auth rate limits | Loose is the right failure mode while judging |
 | Broadening past tech careers | The brief says technology; the graph is more convincing dense and narrow |
