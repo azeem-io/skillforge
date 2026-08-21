@@ -66,6 +66,28 @@ export async function requireTargetRole() {
   return { profile, roleSlug: profile.targetRoleSlug };
 }
 
+export type SavedRoadmap = {
+  id: string;
+  status: string;
+  readinessScore: number | null;
+  narration: string | null;
+  generatedAt: string;
+  roleSlug: string;
+  roleName: string;
+  phases: {
+    phase: number;
+    title: string;
+    rationale: string | null;
+    estimatedWeeks: number | null;
+    skills: { slug: string; name: string; gapScore: number | null }[];
+  }[];
+};
+
+/** The last roadmap this student generated, or null if they never have. */
+export function savedRoadmap() {
+  return api<{ roadmap: SavedRoadmap | null }>("/api/skills/roadmap");
+}
+
 export type RosterStudent = {
   userId: string;
   name: string | null;
