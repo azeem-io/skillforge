@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { FileText, Loader2, Upload } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -77,15 +77,6 @@ export function CvUpload({ cvUploadId }: { cvUploadId: string | null }) {
           )}
           {cvUploadId ? "Replace CV" : "Upload CV"}
         </Button>
-
-        {cvUploadId && (
-          <a
-            href={`/api/profile/uploads/${cvUploadId}`}
-            className="text-primary inline-flex items-center gap-1.5 text-sm hover:underline"
-          >
-            <FileText className="size-4" /> Download current CV
-          </a>
-        )}
       </div>
 
       <p className="text-muted-foreground text-xs">

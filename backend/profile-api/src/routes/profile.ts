@@ -3,6 +3,7 @@ import {
   skills,
   studentSkills,
   targetRoles,
+  uploads,
   users,
 } from "@skillforge/db/schema";
 import { body, requireUser } from "@skillforge/service-kit";
@@ -30,10 +31,17 @@ async function readProfile(userId: string) {
       targetRoleSlug: targetRoles.slug,
       targetRoleName: targetRoles.name,
       cvUploadId: profiles.cvUploadId,
+      // Joined rather than fetched separately: the UI needs the type to decide
+      // whether the CV renders as an image or a PDF, and an id alone does not
+      // say. One round trip either way.
+      cvFilename: uploads.filename,
+      cvMimeType: uploads.mimeType,
+      cvSizeBytes: uploads.sizeBytes,
     })
     .from(users)
     .leftJoin(profiles, eq(profiles.userId, users.id))
     .leftJoin(targetRoles, eq(targetRoles.id, profiles.targetRoleId))
+    .leftJoin(uploads, eq(uploads.id, profiles.cvUploadId))
     .where(eq(users.id, userId));
 
   if (!row) throw new HTTPException(404, { message: "No such user" });

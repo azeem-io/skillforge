@@ -21,6 +21,10 @@ export type Profile = {
   targetRoleSlug: string | null;
   targetRoleName: string | null;
   cvUploadId: string | null;
+  /** Null whenever cvUploadId is — they come from the same join. */
+  cvFilename: string | null;
+  cvMimeType: string | null;
+  cvSizeBytes: number | null;
 };
 
 export type StudentSkill = {

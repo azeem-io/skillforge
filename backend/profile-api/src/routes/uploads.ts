@@ -24,6 +24,13 @@ const ALLOWED = new Map([
   ["image/jpeg", ".jpg"],
 ]);
 
+/**
+ * Types `?inline=1` will render rather than force a download. A subset of
+ * ALLOWED, named separately so widening the upload allowlist later is not
+ * silently also a decision to render the new type in a frame.
+ */
+const PREVIEWABLE = new Set(["application/pdf", "image/png", "image/jpeg"]);
+
 uploadRoutes.post("/uploads", async (c) => {
   const actor = requireUser(c);
 
@@ -115,12 +122,31 @@ uploadRoutes.get("/uploads/:id", async (c) => {
     throw new HTTPException(410, { message: "File is no longer on disk" });
   }
 
+  // `attachment` stays the default: a PDF rendered in the origin's own context
+  // is a script execution surface. `?inline=1` is the opt-in the CV preview
+  // uses, and it is only safe because of the sandbox header below.
+  const inline = c.req.query("inline") === "1" && PREVIEWABLE.has(row.mimeType);
+  const disposition = inline ? "inline" : "attachment";
+
   return new Response(file.stream(), {
     headers: {
       "content-type": row.mimeType,
-      // `attachment` rather than `inline`: a PDF rendered in the origin's own
-      // context is a script execution surface.
-      "content-disposition": `attachment; filename="${encodeURIComponent(row.filename)}"`,
+      "content-disposition": `${disposition}; filename="${encodeURIComponent(row.filename)}"`,
+      // Opaque origin, but not a dead one. `allow-scripts` is required: every
+      // browser PDF viewer is itself script-driven (pdf.js, PDFium), so a bare
+      // `sandbox` renders the viewer chrome around a permanently blank page.
+      // What must never be added is `allow-same-origin` — withholding it is
+      // what keeps the frame in an origin that shares no cookies, no storage
+      // and no DOM with the app, so a PDF's own script has nothing to reach
+      // for. The two tokens together would undo the sandbox entirely.
+      ...(inline
+        ? {
+            "content-security-policy": "sandbox allow-scripts",
+            // The type came off our own allowlist at upload time; refuse to let
+            // a browser re-guess it into something executable.
+            "x-content-type-options": "nosniff",
+          }
+        : {}),
     },
   });
 });
