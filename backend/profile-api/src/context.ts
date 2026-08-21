@@ -1,8 +1,6 @@
-import { createDb } from "@skillforge/db";
-import { mentorships } from "@skillforge/db/schema";
+import { canReadStudent, createDb } from "@skillforge/db";
 import { requireUser, type Identity, type IdentityVars } from "@skillforge/service-kit";
 import { serviceEnv } from "@skillforge/service-kit";
-import { and, eq } from "drizzle-orm";
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
@@ -26,28 +24,15 @@ export type Vars = IdentityVars;
  * Authorization re-checked at the data layer, per CLAUDE.md — the gateway
  * proves *who* is calling and nothing more.
  *
- * A mentor's access is a join against `mentorships`, not a comparison against
- * the string "mentor": holding the role grants nothing on its own, only the
- * pairing does.
+ * The rule itself is `canReadStudent` in packages/db, because skill-service
+ * enforces the same one over a student's attempts.
  */
 export async function requireReadAccess(
   c: Context<Vars>,
   userId: string,
 ): Promise<Identity> {
   const actor = requireUser(c);
-  if (actor.id === userId || actor.role === "admin") return actor;
-
-  if (actor.role === "mentor") {
-    const [pair] = await db
-      .select({ mentorId: mentorships.mentorId })
-      .from(mentorships)
-      .where(
-        and(eq(mentorships.mentorId, actor.id), eq(mentorships.studentId, userId)),
-      )
-      .limit(1);
-    if (pair) return actor;
-  }
-
+  if (await canReadStudent(db, actor, userId)) return actor;
   throw new HTTPException(403, { message: "Forbidden" });
 }
 

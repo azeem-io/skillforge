@@ -1,7 +1,11 @@
 import "server-only";
 
 import { api } from "@/lib/api";
-import type { AttemptResult, AttemptSummary } from "@/lib/assessment-types";
+import type {
+  AssessmentSummary,
+  AttemptResult,
+  AttemptSummary,
+} from "@/lib/assessment-types";
 import { me, roleGraph } from "@/lib/student";
 
 export type Turn = { role: "user" | "assistant"; content: string };
@@ -15,6 +19,10 @@ export type AssessmentRecap = {
   completedAt: string | null;
   weakest?: { name: string; correct: number; total: number }[];
 };
+
+/** Every assessment that exists, not just ones this student has sat — so the
+ *  assistant can link one without a slug list hardcoded in ai-service. */
+export type AssessmentCatalogEntry = { slug: string; title: string };
 
 /** Rides on every message, so: three sittings, and one breakdown for the last. */
 const RECENT_ATTEMPTS = 3;
@@ -33,15 +41,34 @@ export async function assistantStudent() {
       roleSlug: null,
       demonstrated: {} as Record<string, number>,
       recentAssessments: [] as AssessmentRecap[],
+      availableAssessments: await assessmentCatalog(),
     };
   }
 
   const roleSlug = profile.targetRoleSlug;
-  const [demonstrated, recentAssessments] = await Promise.all([
+  const [demonstrated, recentAssessments, availableAssessments] = await Promise.all([
     roleSlug ? demonstratedFor(roleSlug) : {},
     recentAttempts(),
+    assessmentCatalog(),
   ]);
-  return { roleSlug, demonstrated, recentAssessments };
+  return { roleSlug, demonstrated, recentAssessments, availableAssessments };
+}
+
+/**
+ * The full catalog, slug and title only — what the assistant is allowed to
+ * link to. Fetched fresh per request rather than duplicated as a constant, so
+ * it can never drift from what `/assessments` actually offers.
+ */
+async function assessmentCatalog(): Promise<AssessmentCatalogEntry[]> {
+  try {
+    const { assessments } = await api<{ assessments: AssessmentSummary[] }>(
+      "/api/skills/assessments",
+    );
+    return assessments.map(({ slug, title }) => ({ slug, title }));
+  } catch {
+    // An assistant that can't link an assessment beats one that 500s over it.
+    return [];
+  }
 }
 
 async function demonstratedFor(roleSlug: string) {

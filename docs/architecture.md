@@ -117,8 +117,10 @@ service would mean the gap calculation — a join between `student_skills` and
 ## Deployment
 
 `docker-compose.yml` is both local development and production, deployed with
-Coolify on a Contabo VPS. `kubernetes/` describes the same system for a cluster;
-`terraform/` provisions or adopts the VPS that actually runs it.
+Coolify on a Contabo VPS. `kubernetes/` describes the same system for a cluster
+— every service in the compose file has a `Deployment`, ai-service on one
+replica because each replica embeds the corpus at boot and shares nothing with
+the others. `terraform/` provisions or adopts the VPS that actually runs it.
 
 Only Caddy publishes ports. Postgres has no `ports:` entry at all — publishing
 5432 on a VPS exposes the database to the internet, and a firewall rule is a

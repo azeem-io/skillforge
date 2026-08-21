@@ -20,6 +20,15 @@ need() {
   command -v "$1" >/dev/null 2>&1 || die "$1 is not installed. $2"
 }
 
+# A value from .env, or the fallback when the key is absent or empty. Compose
+# reads the file itself; this is for the parts of the script that print or
+# branch on what is in it.
+env_value() {
+  local value
+  value=$(grep -E "^$1=" .env 2>/dev/null | tail -1 | cut -d= -f2-)
+  printf '%s' "${value:-$2}"
+}
+
 bold "Checking prerequisites"
 need docker "Install Docker: https://docs.docker.com/engine/install/"
 docker compose version >/dev/null 2>&1 || die "The docker compose plugin is missing."
@@ -136,6 +145,12 @@ if [ "$MODE" = "--local" ]; then
   bold "Database"
   bun run db:migrate
   bun run db:seed
+  # The demo account. Opt out with SEED_DEMO=false in .env — its password is
+  # public. Read from .env, not the shell, because that is where the seed
+  # itself reads DEMO_PASSWORD from.
+  if [ "$(env_value SEED_DEMO true)" = "true" ]; then
+    bun run db:seed:demo
+  fi
 
   bold "Python services"
   # ai-service and python-analyzer are FastAPI, not part of the bun workspace,
@@ -204,6 +219,7 @@ if [ "$MODE" = "--local" ]; then
     "import os; from fastembed import TextEmbedding; TextEmbedding(model_name=os.environ.get('EMBEDDING_MODEL', 'BAAI/bge-small-en-v1.5'))"
 
   bold "Ready"
+  demo_password=$(env_value DEMO_PASSWORD skillforge-demo-2026)
   cat <<MSG
   ai-service and python-analyzer are running in the background (logs and pid
   files under .run/). Stop them with:
@@ -214,6 +230,12 @@ if [ "$MODE" = "--local" ]; then
 
     bun run dev:services   # auth, gateway, profile, skills
     bun run dev            # the frontend on :3000
+
+  Sign in as the seeded demo student, or register your own account:
+
+    demo@example.com / ${demo_password}
+
+  mentor@example.com and admin@example.com, same password, are the other roles.
 
 MSG
   exit 0
@@ -244,6 +266,7 @@ for service in postgres python-analyzer ai-service auth-service profile-api skil
 done
 
 bold "Ready"
+demo_password=$(env_value DEMO_PASSWORD skillforge-demo-2026)
 cat <<MSG
   http://localhost:3000                    the app
   http://localhost:3000/api/skills/roles   through the gateway
@@ -251,6 +274,13 @@ cat <<MSG
   Need HTTPS on this box (no Coolify in front)? Add Caddy with
     docker compose --profile edge up -d
   It signs for localhost with its own CA, so expect one browser warning.
+
+  Sign in as the seeded demo student, or register your own account:
+
+    demo@example.com / ${demo_password}
+
+  mentor@example.com and admin@example.com, same password, are the other roles.
+  Set SEED_DEMO=false in .env to leave a deployment empty instead.
 
   docker compose logs -f <service>    follow a service
   docker compose down                stop, keeping the database volume

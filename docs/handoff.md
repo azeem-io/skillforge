@@ -7,59 +7,72 @@ Then `CLAUDE.md` for the hard rules, `docs/status.md` for what's built,
 This file is a snapshot, not a standing doc — the next session that ships
 something should update it or delete it, not let it go stale.
 
-## Last shipped (commit `4a64a15`, pushed to `main`)
+## Last shipped (uncommitted in the working tree, 2026-08-21)
 
-The assistant had three bugs, reported by the user directly:
+Four items off the previous handoff's list. All four are verified against the
+running system, not just typechecked.
 
-1. **Chat history leaked across accounts.** It lived in one unscoped
-   `localStorage` key plus a JS module singleton — sign out, sign in as
-   someone else in the same tab (a client-side nav, not a reload), and the
-   old account's transcript was still there. Fixed by scoping storage per
-   `userId` and resetting in-memory state on account mismatch. See
-   `frontend/components/ai/chat-store.ts`'s `ensureUser`.
-2. **No retry on a failed send.** Added a retry icon on failed turns that
-   re-asks the same question in place — no duplicate bubble. See `retry()` in
-   the same file, wired into `chat-thread.tsx`.
-3. **No session history.** Lightweight version, not full CRUD: "New chat"
-   now archives the old thread instead of discarding it; a history icon
-   lists past conversations by first-question + relative time, click to
-   switch back; "Clear history" wipes the archive. See
-   `chat-history-menu.tsx`.
+1. **A populated demo account.** `bun run db:seed:demo` →
+   `packages/db/src/seed/demo.ts`. A student with four graded sittings, a
+   portfolio and a roadmap; a mentor joined to them by a `mentorships` row; an
+   admin. **demo@ / mentor@ / admin@example.com, password
+   `skillforge-demo-2026`.** It reimplements nothing — auth-service's
+   `hashPassword`, skill-service's grader and FSRS scheduler, and the same
+   `phases()` the roadmap route uses, which is why `gapScore` / `phaseTitle` /
+   `phaseWeeks` moved into `packages/db` beside it. Runs from `setup.sh` and
+   from the migrate container, gated on `SEED_DEMO` (default true; the password
+   is public, so turn it off for anything real). Verified: idempotent across
+   re-runs, all three accounts sign in against auth-service, and it runs inside
+   the built migrate image.
 
-All three verified live via `claude-in-chrome`: two real accounts, sequential
-in one browser (that's the actual repro shape — no second browser needed), a
-patched `fetch` to force one failure for the retry test. `typecheck` and
-`lint` clean.
+2. **Roadmap narration and phase rationales.** ai-service `/narrate` writes
+   `roadmaps.narration` and `roadmap_phases.rationale` and nothing else;
+   `backend/skill-service/src/narrator.ts` calls it after the phases are
+   settled, on a 20s budget, and fails soft. Verified against the live DeepSeek
+   API — a seven-phase plan narrated in about 5s — and on the failure path,
+   where an unreachable ai-service still saves the roadmap in 0.3s with
+   `narrated: false`. The prose renders in the `--ai` gold block on `/roadmap`.
 
-**Known concurrent work at the time this landed:** another session
-(`skillforge-8c`) was in parallel on new assessment categories (Data
-Analysis, Cloud & Security), search on `/assessments`, a responsive pass,
-self-hosted fonts, and a Dockerfile fix for a build break in
-`assistant/page.tsx` (a `"use client"` file can't export `metadata` in
-Next 16 — they split it into a server page + `assistant-chat.tsx`, which
-this work built on top of rather than redoing). Check `docs/status.md`'s
-"Last updated" line and `git log` to see what's landed since.
+3. **The two missing Kubernetes manifests.** `06a-python-analyzer.yaml`,
+   `06b-ai-service.yaml`, plus two NetworkPolicies for the AI tier.
+   `kubeconform -strict` against 1.31: 26 resources in 14 files, all valid.
+   ai-service runs one replica with a five-minute startupProbe, because each
+   replica embeds the corpus at boot and shares nothing with the others.
+
+4. **Assessment results in the mentor view.** `/students/[userId]` now renders
+   the student's sittings and the per-skill breakdown of the most recent, via
+   `GET /api/skills/students/:userId/attempts`. The mentorship rule now lives
+   once, in `canReadStudent` in `packages/db/src/queries/access.ts`, and both
+   profile-api and skill-service enforce it. Verified through the rendered
+   page as the demo mentor, and on every authorization path: mentor with a
+   row 200, admin 200, mentor without a row 403, another student 403,
+   anonymous 401.
+
+Checks at the time of writing: `bun run typecheck` clean, ai-service 57 tests,
+python-analyzer 37 tests, `docker compose --profile edge config -q` clean.
+
+**Concurrent work.** Two other sessions were in this same working tree. One
+landed `2ca4600` (seven more assessments, six new RAG skill docs, a
+self-updating assessment catalogue for the assistant); the other was building
+`frontend/app/page.tsx` into a landing page and had already landed the
+Coolify-ready compose, the CI gates and `docs/deploy.md`. Check `git log` and
+`docs/status.md`'s "Last updated" line before assuming anything here is the
+newest state.
 
 ## What's left, in priority order
 
-Straight from `docs/features.md`'s "Next up" section — read that file for
-the full list and the reasoning, this is just the top of it:
+1. **Deploy to Coolify** (M) — `docs/deploy.md` is the runbook and the compose
+   file is Coolify-ready; what is missing is a URL a judge can open. Needs the
+   VPS and the Coolify credentials, so it cannot be done from a session alone.
+   With `SEED_DEMO=true` the deployed instance comes up populated.
+2. **Demo video (2–3 min) and presentation (5–7 min)** (M) — both named in the
+   PDF's submission list; its 8-point outline is in `TODO.md`.
 
-1. **Seed a populated demo account** (M) — a fresh instance is empty for any
-   judge who doesn't register. Called out there as the single highest-payoff
-   item outstanding.
-2. **Roadmap narration and phase rationales** (M) — `narration`/`rationale`
-   columns are wired end to end and always null. The most visible "the AI
-   did something" surface that's paid for and unused.
-3. **Deploy to Coolify** (M) — the compose file is the deploy target; until
-   a judge can open a URL, deployment is a directory of YAML.
-4. **Two Kubernetes manifests** (S) — no `Deployment` for `ai-service` or
-   `python-analyzer`, so the assistant/agent/wand/analyzer-backed roadmap
-   all fail on Kubernetes.
-5. **Assessment results in the mentor view** (S) — the data and the
-   authorization both already exist; `/students/[userId]` just doesn't
-   render attempts yet.
+After those, `docs/features.md` → "Worth building" is the queue. The honest
+gap against the brief is assessment authoring for staff: the PDF's Core Users
+says mentors and admins create assessments, and only the resource half is
+built.
 
-Before starting any of these: `docs/decisions.md` has settled calls (e.g.
-why pgvector isn't used, why auth rate limits stay loose) — don't re-propose
-something already rejected there.
+Before starting any of these: `docs/decisions.md` has settled calls (why
+pgvector isn't used, why auth rate limits stay loose, why a model never orders
+roadmap phases) — don't re-propose something already rejected there.

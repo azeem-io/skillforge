@@ -176,6 +176,42 @@ export function phases(rows: SkillRow[]): SkillRow[][] {
   return out.filter(Boolean);
 }
 
+/** (requiredLevel - level) x weight. Bounded by the smallint column the score
+ *  is stored in and by the 1-5 scale both operands share. */
+export function gapScore(row: SkillRow): number {
+  return Math.max(0, row.requiredLevel - row.level) * row.weight;
+}
+
+/**
+ * A phase is named after what it is about, not after its number — the number
+ * is already its own column, and "Phase 3: Machine Learning" repeated four
+ * times down a roadmap tells a student nothing. A rank of the topological sort
+ * usually spans two or three subcategories, so the two commonest are named.
+ */
+export function phaseTitle(rows: SkillRow[], phase: number): string {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    counts.set(row.subcategory, (counts.get(row.subcategory) ?? 0) + 1);
+  }
+  const ranked = [...counts]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([name]) => name)
+    .filter(Boolean);
+
+  if (ranked.length === 0) return `Phase ${phase}`;
+  if (ranked.length === 1) return ranked[0]!;
+  return `${ranked[0]} and ${ranked[1]}`;
+}
+
+/** One week per level of gap, halved for parallel study, clamped to a term. */
+export function phaseWeeks(rows: SkillRow[]): number {
+  const levels = rows.reduce(
+    (total, row) => total + Math.max(0, row.requiredLevel - row.level),
+    0,
+  );
+  return Math.min(12, Math.max(1, Math.round(levels / 2)));
+}
+
 export type TreeSkill = {
   id: string;
   slug: string;

@@ -35,7 +35,10 @@ console.log(
   `[${SERVICE}] listening on :${env.port}` +
     (env.pythonAnalyzerUrl
       ? `, analyzer at ${env.pythonAnalyzerUrl}`
-      : ", no analyzer configured (roadmap uses the local layering)"),
+      : ", no analyzer configured (roadmap uses the local layering)") +
+    (env.aiServiceUrl
+      ? `, ai-service at ${env.aiServiceUrl}`
+      : ", no ai-service configured (roadmaps save without narration)"),
 );
 
 export default { port: env.port, fetch: app.fetch };

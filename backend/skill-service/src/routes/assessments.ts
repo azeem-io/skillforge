@@ -14,7 +14,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
-import { db, type Vars } from "../context";
+import { db, requireReadAccess, type Vars } from "../context";
 import { isCorrect, outcomesBySkill, type GradableQuestion } from "../grading";
 import {
   gradeFromRatio,
@@ -386,9 +386,8 @@ assessmentRoutes.get("/attempts/:id", async (c) => {
   return c.json({ result: await readAttempt(c.req.param("id"), actor.id) });
 });
 
-assessmentRoutes.get("/attempts", async (c) => {
-  const actor = requireUser(c);
-  const rows = await db
+function listAttempts(userId: string) {
+  return db
     .select({
       id: attempts.id,
       slug: assessments.slug,
@@ -399,8 +398,35 @@ assessmentRoutes.get("/attempts", async (c) => {
     })
     .from(attempts)
     .innerJoin(assessments, eq(assessments.id, attempts.assessmentId))
-    .where(eq(attempts.userId, actor.id))
+    .where(eq(attempts.userId, userId))
     .orderBy(desc(attempts.startedAt))
     .limit(50);
-  return c.json({ attempts: rows });
+}
+
+assessmentRoutes.get("/attempts", async (c) => {
+  const actor = requireUser(c);
+  return c.json({ attempts: await listAttempts(actor.id) });
+});
+
+/**
+ * One student's sittings, for a mentor or an admin. The list plus the per-skill
+ * breakdown of the most recent one, which is what a mentor is actually looking
+ * for — a score says how it went, the breakdown says what to coach.
+ *
+ * Answers and explanations stay out of it: reading a student's own paper is
+ * their route, and a mentor needs the shape of the result, not the responses.
+ */
+assessmentRoutes.get("/students/:userId/attempts", async (c) => {
+  const userId = c.req.param("userId");
+  await requireReadAccess(c, userId);
+
+  const rows = await listAttempts(userId);
+  const latest = rows.find((row) => row.completedAt);
+  const detail = latest ? await readAttempt(latest.id, userId) : null;
+
+  return c.json({
+    attempts: rows,
+    latestId: latest?.id ?? null,
+    breakdown: detail?.breakdown ?? [],
+  });
 });

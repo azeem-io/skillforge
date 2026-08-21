@@ -1,4 +1,12 @@
-import { phases as layerLocally, readiness, roleSkillGraph, type SkillRow } from "@skillforge/db";
+import {
+  gapScore,
+  phases as layerLocally,
+  phaseTitle,
+  phaseWeeks,
+  readiness,
+  roleSkillGraph,
+  type SkillRow,
+} from "@skillforge/db";
 import {
   profiles,
   roadmapPhases,
@@ -15,45 +23,10 @@ import { z } from "zod";
 
 import { requestRoadmap, type AnalyzerPhase } from "../analyzer";
 import { db, type Vars } from "../context";
+import { requestNarration } from "../narrator";
 import { demonstratedLevels } from "./taxonomy";
 
 export const roadmapRoutes = new Hono<Vars>();
-
-/** (requiredLevel - level) x weight. Bounded by the smallint column and by the
- *  1-5 scale both operands share. */
-function gapScore(row: SkillRow): number {
-  return Math.max(0, row.requiredLevel - row.level) * row.weight;
-}
-
-/**
- * A phase is named after what it is about, not after its number — the number
- * is already its own column, and "Phase 3: Machine Learning" repeated four
- * times down a roadmap tells a student nothing. A rank of the topological sort
- * usually spans two or three subcategories, so the two commonest are named.
- */
-function titleFor(rows: SkillRow[], phase: number): string {
-  const counts = new Map<string, number>();
-  for (const row of rows) {
-    counts.set(row.subcategory, (counts.get(row.subcategory) ?? 0) + 1);
-  }
-  const ranked = [...counts]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([name]) => name)
-    .filter(Boolean);
-
-  if (ranked.length === 0) return `Phase ${phase}`;
-  if (ranked.length === 1) return ranked[0]!;
-  return `${ranked[0]} and ${ranked[1]}`;
-}
-
-/** One week per level of gap, halved for parallel study, clamped to a term. */
-function estimateWeeks(rows: SkillRow[]): number {
-  const levels = rows.reduce(
-    (total, row) => total + Math.max(0, row.requiredLevel - row.level),
-    0,
-  );
-  return Math.min(12, Math.max(1, Math.round(levels / 2)));
-}
 
 const Generate = z.object({ roleSlug: z.string().min(1).optional() });
 
@@ -63,8 +36,8 @@ const Generate = z.object({ roleSlug: z.string().min(1).optional() });
  * packages/db — the longest-path layering already in the repo, marked there as
  * moving to RoadmapGenerator once that service lands.
  *
- * Either way no model decides ordering. `narration` and `rationale` stay null
- * here for ai-service to fill.
+ * Either way no model decides ordering. Once the phases are settled they go to
+ * ai-service, which writes `narration` and `rationale` and nothing else.
  */
 roadmapRoutes.post("/roadmap", async (c) => {
   const actor = requireUser(c);
@@ -109,8 +82,8 @@ roadmapRoutes.post("/roadmap", async (c) => {
     ? analyzed.phases
     : layerLocally(graph.skills).map((rows, index) => ({
         phase: index + 1,
-        title: titleFor(rows, index + 1),
-        estimatedWeeks: estimateWeeks(rows),
+        title: phaseTitle(rows, index + 1),
+        estimatedWeeks: phaseWeeks(rows),
         skills: rows
           .slice()
           .sort((a, b) => gapScore(b) - gapScore(a))
@@ -129,6 +102,31 @@ roadmapRoutes.post("/roadmap", async (c) => {
 
   const readinessScore = analyzed?.readinessScore ?? readiness(graph.skills);
 
+  // Prose, after the structure is settled and never before. Null when
+  // ai-service cannot answer, which leaves the columns null and the plan
+  // unchanged — the frontend already reads a missing rationale as "nothing
+  // blocks these".
+  const prose = await requestNarration({
+    role: graph.role.name,
+    readiness: readinessScore,
+    phases: computed.map((phase) => {
+      const rows = phase.skills
+        .map((entry) => bySlug.get(entry.slug))
+        .filter((row): row is SkillRow => Boolean(row));
+      return {
+        phase: phase.phase,
+        title: phase.title ?? phaseTitle(rows, phase.phase),
+        estimatedWeeks: phase.estimatedWeeks ?? phaseWeeks(rows),
+        skills: rows.map((row) => row.name),
+      };
+    }),
+    strengths: graph.skills
+      .filter((row) => row.level > 0)
+      .sort((a, b) => b.level - a.level || a.name.localeCompare(b.name))
+      .slice(0, 8)
+      .map((row) => `${row.name} at level ${row.level}`),
+  });
+
   const roadmapId = await db.transaction(async (tx) => {
     // Previous roadmaps are archived, not deleted: regenerating later should
     // show movement, not overwrite the evidence of it.
@@ -144,7 +142,7 @@ roadmapRoutes.post("/roadmap", async (c) => {
         targetRoleId: role.id,
         status: "active",
         readinessScore,
-        narration: analyzed?.narration ?? null,
+        narration: prose?.narration ?? analyzed?.narration ?? null,
       })
       .returning({ id: roadmaps.id });
 
@@ -158,9 +156,9 @@ roadmapRoutes.post("/roadmap", async (c) => {
         .values({
           roadmapId: created!.id,
           phase: phase.phase,
-          title: phase.title ?? titleFor(rows, phase.phase),
-          rationale: phase.rationale ?? null,
-          estimatedWeeks: phase.estimatedWeeks ?? estimateWeeks(rows),
+          title: phase.title ?? phaseTitle(rows, phase.phase),
+          rationale: prose?.rationales[phase.phase] ?? phase.rationale ?? null,
+          estimatedWeeks: phase.estimatedWeeks ?? phaseWeeks(rows),
         })
         .returning({ id: roadmapPhases.id });
 
@@ -188,7 +186,11 @@ roadmapRoutes.post("/roadmap", async (c) => {
   });
 
   return c.json(
-    { roadmap: await readRoadmap(roadmapId, actor.id), source: analyzed ? "python-analyzer" : "local" },
+    {
+      roadmap: await readRoadmap(roadmapId, actor.id),
+      source: analyzed ? "python-analyzer" : "local",
+      narrated: Boolean(prose?.narration),
+    },
     201,
   );
 });

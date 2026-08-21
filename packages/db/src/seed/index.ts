@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import { createDb } from "../client";
 import {
   assessments,
@@ -11,6 +9,7 @@ import {
   targetRoles,
 } from "../schema/index";
 import { ASSESSMENTS } from "./assessments";
+import { idFor } from "./ids";
 import { CATEGORIES, SKILLS } from "./taxonomy";
 import { RESOURCES } from "./resources";
 import { ROLES } from "./roles";
@@ -19,19 +18,6 @@ const url = process.env.DATABASE_URL;
 if (!url) {
   console.error("DATABASE_URL is not set.");
   process.exit(1);
-}
-
-// Deterministic ids from slugs, so re-seeding updates rows instead of
-// orphaning anything that references them.
-function idFor(kind: string, slug: string): string {
-  const h = createHash("sha1").update(`${kind}:${slug}`).digest("hex");
-  return [
-    h.slice(0, 8),
-    h.slice(8, 12),
-    `5${h.slice(13, 16)}`,
-    ((parseInt(h.slice(16, 18), 16) & 0x3f) | 0x80).toString(16) + h.slice(18, 20),
-    h.slice(20, 32),
-  ].join("-");
 }
 
 function validate() {
