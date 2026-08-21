@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -32,14 +32,43 @@ export function Quiz({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const answerInput = useRef<HTMLInputElement>(null);
+
   const question = questions[index];
   const answered = Object.values(responses).filter(Boolean).length;
   const isLast = index === questions.length - 1;
+
+  // Refocus on every question, not just the first: without this the caret is
+  // left on the Next button and each question costs a click before it can be
+  // typed into. Recall and cloze are typed, so the input is where a sitting
+  // actually happens.
+  useEffect(() => {
+    answerInput.current?.focus();
+  }, [index]);
 
   if (!question) return null;
 
   function setResponse(value: string) {
     setResponses((current) => ({ ...current, [question!.id]: value }));
+  }
+
+  function next() {
+    setIndex((value) => Math.min(questions.length - 1, value + 1));
+  }
+
+  /**
+   * Enter advances, and on the last question submits. Held on the wrapper so
+   * it covers the radio group too — an MCQ answered with the arrow keys should
+   * not need the mouse to move on.
+   */
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Enter" || event.shiftKey) return;
+    event.preventDefault();
+    if (isLast) {
+      if (!pending) void submit();
+    } else {
+      next();
+    }
   }
 
   async function submit() {
@@ -70,7 +99,7 @@ export function Quiz({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" onKeyDown={onKeyDown}>
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
@@ -122,6 +151,7 @@ export function Quiz({
           <div className="space-y-2">
             <Label htmlFor={`answer-${question.id}`}>Your answer</Label>
             <Input
+              ref={answerInput}
               id={`answer-${question.id}`}
               value={responses[question.id] ?? ""}
               onChange={(event) => setResponse(event.target.value)}
@@ -155,15 +185,16 @@ export function Quiz({
             Submit assessment
           </Button>
         ) : (
-          <Button
-            onClick={() =>
-              setIndex((value) => Math.min(questions.length - 1, value + 1))
-            }
-          >
+          <Button onClick={next}>
             Next <ChevronRight className="size-4" />
           </Button>
         )}
       </div>
+
+      <p className="text-muted-foreground text-xs">
+        Press <kbd className="rounded border px-1">Enter</kbd> to{" "}
+        {isLast ? "submit" : "go to the next question"}.
+      </p>
 
       {isLast && answered < questions.length && (
         <p className="text-muted-foreground text-sm">
