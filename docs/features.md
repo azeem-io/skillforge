@@ -29,7 +29,7 @@ What a judge can already do, end to end, against a real account.
 | Skill graph — prerequisite DAG | `/graph`, React Flow + elk |
 | Skill tree — the whole taxonomy | `/tree`, d3 circle packing |
 | Roadmap — layered, persisted, archived on regen | `/roadmap` → python-analyzer `/plan` |
-| RAG assistant with cited sources | `/assistant` → ai-service `/chat` |
+| RAG assistant with cited sources, retry on failure, past-chat switcher | `/assistant` → ai-service `/chat` |
 | Career agent, 6 tools | ai-service `/agent` |
 | Mentor and admin dashboard | `/students`, role + mentorship management |
 | Compose, Kubernetes, Terraform | `docker-compose.yml`, `kubernetes/`, `terraform/` |

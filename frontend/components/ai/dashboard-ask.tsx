@@ -14,9 +14,9 @@ import { useChat } from "./use-chat";
  * the assistant page, so the answer lands in the conversation rather than in a
  * card they then have to leave behind.
  */
-export function DashboardAsk() {
+export function DashboardAsk({ userId }: { userId: string }) {
   const router = useRouter();
-  const { busy, messages } = useChat();
+  const { busy, messages } = useChat(userId);
 
   function ask(text: string) {
     send(text);

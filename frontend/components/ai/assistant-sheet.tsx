@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/sheet";
 import { ChatComposer } from "./chat-composer";
 import { ChatEmpty, ChatThread } from "./chat-thread";
+import { ChatHistoryMenu } from "./chat-history-menu";
 import { reset, send, setOpen } from "./chat-store";
 import { useChat } from "./use-chat";
 
-export function AssistantSheet() {
-  const { messages, busy, open } = useChat();
+export function AssistantSheet({ userId }: { userId: string }) {
+  const { messages, threads, busy, open } = useChat(userId);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -46,6 +47,7 @@ export function AssistantSheet() {
             </SheetDescription>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            <ChatHistoryMenu threads={threads} />
             {messages.length > 0 && (
               <Button
                 variant="ghost"
@@ -75,7 +77,7 @@ export function AssistantSheet() {
           {messages.length === 0 ? (
             <ChatEmpty compact />
           ) : (
-            <ChatThread messages={messages} compact />
+            <ChatThread messages={messages} busy={busy} compact />
           )}
         </div>
 

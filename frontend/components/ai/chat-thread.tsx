@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, Loader2, RotateCw, Sparkles } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Answer } from "./answer";
+import { retry } from "./chat-store";
 import type { Message } from "./chat-store";
 
 function Sources({ message }: { message: Message }) {
@@ -55,7 +57,7 @@ function Sources({ message }: { message: Message }) {
               >
                 <span
                   className={cn(
-                    "flex h-4 min-w-4 items-center justify-center rounded px-1 text-[10px] leading-none font-semibold tabular-nums",
+                    "flex h-4 min-w-4 items-center justify-center rounded px-1 font-mono text-[10px] leading-none font-semibold",
                     active === i + 1
                       ? "bg-ai text-ai-foreground"
                       : "text-muted-foreground",
@@ -64,7 +66,7 @@ function Sources({ message }: { message: Message }) {
                   {i + 1}
                 </span>
                 <span className="min-w-0 flex-1 truncate">{s.source}</span>
-                <span className="text-muted-foreground tabular-nums">
+                <span className="text-muted-foreground font-mono">
                   {s.relevance.toFixed(2)}
                 </span>
               </button>
@@ -78,9 +80,11 @@ function Sources({ message }: { message: Message }) {
 
 export function ChatThread({
   messages,
+  busy = false,
   compact = false,
 }: {
   messages: Message[];
+  busy?: boolean;
   compact?: boolean;
 }) {
   const end = useRef<HTMLDivElement>(null);
@@ -111,7 +115,18 @@ export function ChatThread({
             ) : m.failed ? (
               <div className="border-destructive/40 bg-destructive/10 flex items-start gap-2 rounded-md border px-3 py-2 text-sm">
                 <AlertCircle className="text-destructive mt-0.5 size-4 shrink-0" />
-                <span>{m.content}</span>
+                <span className="flex-1">{m.content}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive size-6 shrink-0"
+                  disabled={busy}
+                  onClick={() => retry(m.id)}
+                  aria-label="Retry"
+                  title="Retry"
+                >
+                  <RotateCw className="size-3.5" />
+                </Button>
               </div>
             ) : (
               <Sources message={m} />

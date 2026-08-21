@@ -23,7 +23,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="ml-auto">
-            <AssistantSheet />
+            <AssistantSheet userId={user.userId} />
           </div>
         </header>
         <main className="flex-1 overflow-auto">{children}</main>
