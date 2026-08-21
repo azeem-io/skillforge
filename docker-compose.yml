@@ -1,6 +1,6 @@
-# The whole system, and the same file in local dev and in production. Caddy is
-# the only container that publishes ports; everything else is reachable on the
-# compose network and nowhere else.
+# The whole system, and the same file in local dev and in production. The
+# frontend publishes 3000 and Caddy (edge profile) publishes 80/443; everything
+# else is reachable on the compose network and nowhere else.
 #
 # Secrets come from a .env file beside this one, which is gitignored;
 # .env.example lists every key. Nothing here has a usable default for a
@@ -246,6 +246,10 @@ services:
       start_period: 20s
 
   caddy:
+    # Opt-in edge. Coolify brings its own proxy that already owns 80/443 on the
+    # VPS, so Caddy only runs where nothing else terminates TLS:
+    #   docker compose --profile edge up -d
+    profiles: ["edge"]
     image: caddy:2-alpine
     restart: unless-stopped
     depends_on:

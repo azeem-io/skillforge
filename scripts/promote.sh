@@ -5,10 +5,13 @@
 #
 #   ./scripts/promote.sh you@example.com admin
 #   ./scripts/promote.sh mentor@example.com mentor
+#
+# Reads the database name and user from inside the postgres container, so it
+# works wherever the stack runs — a local checkout or a Coolify deployment that
+# has no .env on disk. Point it at another compose project with
+# COMPOSE_PROJECT_NAME.
 
 set -euo pipefail
-
-cd "$(dirname "$0")/.."
 
 EMAIL="${1:-}"
 ROLE="${2:-admin}"
@@ -23,13 +26,22 @@ case "$ROLE" in
   *) echo "role must be student, mentor or admin" >&2; exit 1 ;;
 esac
 
-[ -f .env ] || { echo ".env is missing — run ./scripts/setup.sh first" >&2; exit 1; }
-# shellcheck disable=SC1091
-POSTGRES_USER=$(grep -E '^POSTGRES_USER=' .env | cut -d= -f2)
-POSTGRES_DB=$(grep -E '^POSTGRES_DB=' .env | cut -d= -f2)
+# POSTGRES_CONTAINER targets a container by name — Coolify names its compose
+# projects by UUID, so `docker compose exec` from the checkout does not resolve.
+#   POSTGRES_CONTAINER=$(docker ps -qf name=postgres) ./scripts/promote.sh you@x admin
+if [ -n "${POSTGRES_CONTAINER:-}" ]; then
+  run() { docker exec -i "$POSTGRES_CONTAINER" "$@"; }
+else
+  run() { docker compose exec -T postgres "$@"; }
+fi
 
-updated=$(docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tA \
-  -c "update users set role = '$ROLE' where email = '$EMAIL' returning email;")
+# The SQL is built in the shell with a quoted heredoc so neither bash nor the
+# container shell re-expands it; $POSTGRES_* are read inside the container.
+sql=$(cat <<SQL
+update users set role = '${ROLE}' where email = '${EMAIL//\'/\'\'}' returning email;
+SQL
+)
+updated=$(printf '%s' "$sql" | run sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -qtA')
 
 if [ -z "$updated" ]; then
   echo "no account with email $EMAIL — register in the app first" >&2

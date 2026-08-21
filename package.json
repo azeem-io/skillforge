@@ -21,6 +21,7 @@
     "dev:all": "bun run --filter '*' dev",
     "setup": "./scripts/setup.sh",
     "up": "docker compose up -d --build",
+    "up:edge": "docker compose --profile edge up -d --build",
     "down": "docker compose down"
   }
 }
