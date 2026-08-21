@@ -1,0 +1,50 @@
+# The analysis tier. No database credentials on purpose: python-analyzer is a
+# pure function of the payload it is sent — skills in, gaps and phases out —
+# which is what lets skill-service fall back to its own layering when this is
+# unreachable.
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-analyzer
+  namespace: skillforge
+spec:
+  selector:
+    app: python-analyzer
+  ports:
+    - port: 8085
+      targetPort: 8085
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-analyzer
+  namespace: skillforge
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: python-analyzer
+  template:
+    metadata:
+      labels:
+        app: python-analyzer
+    spec:
+      containers:
+        - name: python-analyzer
+          image: skillforge/python-analyzer:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8085
+          envFrom:
+            - configMapRef: { name: skillforge-config }
+          readinessProbe:
+            httpGet: { path: /health, port: 8085 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8085 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 512Mi }

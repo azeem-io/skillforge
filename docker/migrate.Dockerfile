@@ -30,6 +30,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json bun.lock ./
 COPY packages ./packages
+# The demo seed hashes with auth-service's hasher and grades with
+# skill-service's grader rather than reimplementing either, so their source has
+# to be in the image. Nothing here is started — only imported.
+COPY backend ./backend
 COPY docker/migrate.sh ./docker/migrate.sh
 
 USER bun

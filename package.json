@@ -15,6 +15,7 @@
     "db:generate": "bun run --filter @skillforge/db generate",
     "db:migrate": "bun run --filter @skillforge/db migrate",
     "db:seed": "bun run --filter @skillforge/db seed",
+    "db:seed:demo": "bun run --filter @skillforge/db seed:demo",
     "db:studio": "bun run --filter @skillforge/db studio",
     "typecheck": "bun run --filter '*' typecheck",
     "dev:services": "bun run --filter '@skillforge/auth-service' --filter '@skillforge/api-gateway' --filter '@skillforge/profile-api' --filter '@skillforge/skill-service' dev",

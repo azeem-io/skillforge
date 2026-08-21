@@ -99,6 +99,13 @@ otherwise — which renders as an all-gaps preview.
 | POST | `/api/skills/attempts/:id/submit` | `{ answers: [{ questionId, response }] }` | `{ result }` |
 | GET | `/api/skills/attempts/:id` | — | `{ result }` with answers, explanations and the per-skill breakdown |
 | GET | `/api/skills/attempts` | — | the caller's recent attempts |
+| GET | `/api/skills/students/:userId/attempts` | — | one student's attempts, plus the per-skill breakdown of the most recent |
+
+`/students/:userId/attempts` is the mentor and admin read path. Authorization is
+`canReadStudent` in `packages/db` — the same `mentorships` join profile-api
+enforces over the profile itself, not a check that the caller's role string says
+"mentor". It returns scores and the breakdown, never the answers: a mentor needs
+the shape of a result, the paper belongs to the student.
 
 `response` is a string for every question type. MCQ answers are comma-separated
 choice indices (`"2"`, or `"0,3"` when more than one is correct).
@@ -144,6 +151,13 @@ self-graded review is not evidence of a level.
 roadmap rather than deleting it, so regenerating shows movement instead of
 overwriting the evidence of it.
 
+Once the phases are settled, skill-service posts them to ai-service `/narrate`
+and stores what comes back in `roadmaps.narration` and
+`roadmap_phases.rationale` — the response reports it as `narrated: true`. The
+call is bounded at 20 seconds and fails soft: an unreachable or unconfigured
+ai-service leaves both columns null and changes nothing else about the plan.
+Ordering is never a model's to decide; see the roadmap rules in `CLAUDE.md`.
+
 ## ai-service
 
 Two prefixes reach the same service, and the difference matters.
@@ -177,11 +191,12 @@ the agent actually called.
 | POST | `/api/ai/agent` | `{ question, context, history? }` | `{ answer, steps }` |
 | POST | `/api/ai/search` | `{ query, k? }` | `{ results }` — retrieval only, no generation |
 | POST | `/api/ai/expand` | `{ skill, subcategory?, count? }` | `{ skills }` |
+| POST | `/api/ai/narrate` | `{ role, readiness?, phases, strengths? }` | `{ narration, rationales, sources }` |
 | GET | `/api/ai/health` | — | `{ ok, service, chunks }` |
 
 `context` is the student payload the Next routes assemble: `skills`, `edges`,
-`requirements`, `demonstrated`, `roles`, `target_role` and `recent_assessments`.
-`k` is how many chunks to retrieve, default 4.
+`requirements`, `demonstrated`, `roles`, `target_role`, `recent_assessments`
+and `available_assessments`. `k` is how many chunks to retrieve, default 4.
 
 `recent_assessments` is the last three completed sittings as
 `{ slug, title, score, maxScore, completedAt }`, the most recent one carrying a
@@ -191,6 +206,19 @@ rather than from a skill level, which cannot tell a test from a self-reported
 claim. `/agent` is sent the same field but never renders it into the prompt —
 it reaches the data through `get_assessment_history`, so a conversation that
 never asks about a score never pays for one.
+
+`available_assessments` is every assessment that currently exists, as
+`{ slug, title }` — not just ones this student has sat. `/chat` is the only
+consumer: it's what lets the system prompt link an assessment by slug without
+that list being hardcoded and going stale the next time one is added.
+
+`/narrate` is called by skill-service, not by the browser, and it is the only
+endpoint whose output is written to the database. It receives a plan that has
+already been computed — phases, titles, order, week estimates — and returns
+prose about it: one narration and one rationale per phase. A rationale for a
+phase number that was not sent is dropped rather than stored, which is the one
+way a model could otherwise change the shape of a plan it was only asked to
+describe.
 
 ### The agent's tools
 

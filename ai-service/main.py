@@ -127,6 +127,26 @@ class ExpandRequest(BaseModel):
     count: int = 3
 
 
+class NarratePhase(BaseModel):
+    """One rank of the analyzer's topological sort, already decided."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    phase: int
+    title: str = ""
+    estimated_weeks: int | None = Field(default=None, alias="estimatedWeeks")
+    skills: list[str] = Field(default_factory=list)
+
+
+class NarrateRequest(BaseModel):
+    role: str
+    readiness: int | None = None
+    phases: list[NarratePhase] = Field(default_factory=list)
+    # What the student has already demonstrated, strongest first. Lets the
+    # narration open from where they are instead of from zero.
+    strengths: list[str] = Field(default_factory=list)
+
+
 CHAT_SYSTEM = """You are the SkillForge career assistant, talking with a student \
 who wants a career in technology.
 
@@ -153,26 +173,93 @@ in it fits, name the topic without a link.
 - Be concrete and brief. A student wants the next action, not an essay."""
 
 
-def assessment_catalog(context: StudentContext | None) -> str:
-    """
-    Every assessment slug that actually exists, supplied per-request by the
-    frontend rather than hardcoded here — the one place CHAT_SYSTEM used to
-    hardcode a slug list that went stale the moment an assessment was added.
-    """
-    if context is None:
-        return ""
+NARRATE_SYSTEM = """You are writing the prose for a study plan that has \
+already been computed, for a student who wants a career in technology.
 
-    lines = [
-        f"- [{a.get('title') or a['slug']}](/assessments/{a['slug']})"
-        for a in context.available_assessments
-        if a.get("slug")
-    ]
-    if not lines:
-        return ""
+The phases, their order, their titles and their skills are decided. They come \
+from a topological sort of the prerequisite graph, not from you.
 
-    return "\n\nAssessments that exist right now — link only from this list:\n" + "\n".join(
-        lines
-    )
+- Never re-order, merge, split, rename, add or drop anything. Describe the \
+plan you are given, exactly as it is.
+- Never invent a number. The readiness percentage and the week estimates below \
+are the only ones that exist; quote them or leave numbers out.
+- narration: 2-4 sentences to the student. What this plan does, what it builds \
+on, what to start with. Second person, no heading, no bullet list, no markdown.
+- rationale: one sentence per phase saying why it sits where it does — what it \
+needs first, or what it opens up next. No phase numbers in the sentence, the \
+card already shows one.
+- Concrete and plain. No "embark", no "journey", no congratulating them.
+
+Reply with JSON only, no code fence:
+{"narration":"...","rationales":[{"phase":1,"rationale":"..."}]}"""
+
+
+def plan_summary(request: NarrateRequest) -> str:
+    """The computed plan as the model sees it. One line per phase, in order."""
+    lines = []
+    for phase in request.phases:
+        parts = [f"Phase {phase.phase}: {phase.title or 'untitled'}"]
+        if phase.estimated_weeks is not None:
+            parts.append(f"about {phase.estimated_weeks} weeks")
+        if phase.skills:
+            parts.append("skills: " + ", ".join(phase.skills))
+        lines.append("- " + " — ".join(parts))
+
+    header = f"Target role: {request.role}"
+    if request.readiness is not None:
+        header += f"\nReadiness against it: {request.readiness}%"
+    if request.strengths:
+        header += "\nAlready demonstrated: " + ", ".join(request.strengths)
+
+    return f"{header}\n\nThe computed plan:\n" + "\n".join(lines)
+
+
+def narration_payload(
+    parsed: dict[str, Any], phases: list[NarratePhase]
+) -> dict[str, Any]:
+    """
+    The model's object, reduced to what the roadmap can store. A rationale for
+    a phase that does not exist is dropped rather than written against nothing,
+    which is the one way a model could still change the shape of a plan it was
+    told it may only describe.
+    """
+    known = {phase.phase for phase in phases}
+    rationales = []
+    for row in parsed.get("rationales", []) or []:
+        if not isinstance(row, dict) or not row.get("rationale"):
+            continue
+        try:
+            number = int(row.get("phase"))
+        except (TypeError, ValueError):
+            continue
+        if number in known:
+            rationales.append(
+                {"phase": number, "rationale": str(row["rationale"]).strip()}
+            )
+
+    return {
+        "narration": str(parsed.get("narration") or "").strip(),
+        "rationales": rationales,
+    }
+
+
+def json_payload(message: dict[str, Any]) -> dict[str, Any]:
+    """
+    The model's reply as an object. Models fence JSON even when told not to,
+    and a fence is not a reason to fail a request.
+    """
+    raw = (message.get("content") or "").strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1].removeprefix("json").strip()
+
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        raise HTTPException(502, "model did not return valid JSON") from None
+
+    if not isinstance(parsed, dict):
+        raise HTTPException(502, "model did not return a JSON object")
+    return parsed
 
 
 def assessment_summary(attempts: list[AssessmentRecap]) -> str:
@@ -203,6 +290,28 @@ def assessment_summary(attempts: list[AssessmentRecap]) -> str:
         + "\nThese are graded results, not self-reported claims. Quote the scores "
         "as they stand and point at the weakest skills when asked what to review; "
         "a skill level on its own cannot say which questions went wrong."
+    )
+
+
+def assessment_catalog(context: StudentContext | None) -> str:
+    """
+    Every assessment slug that actually exists, supplied per-request by the
+    frontend rather than hardcoded here — the one place CHAT_SYSTEM used to
+    hardcode a slug list that went stale the moment an assessment was added.
+    """
+    if context is None:
+        return ""
+
+    lines = [
+        f"- [{a.get('title') or a['slug']}](/assessments/{a['slug']})"
+        for a in context.available_assessments
+        if a.get("slug")
+    ]
+    if not lines:
+        return ""
+
+    return "\n\nAssessments that exist right now — link only from this list:\n" + "\n".join(
+        lines
     )
 
 
@@ -344,18 +453,47 @@ def expand(request: ExpandRequest) -> dict[str, Any]:
     except RuntimeError as exc:
         raise HTTPException(503, str(exc)) from exc
 
-    raw = (message.get("content") or "").strip()
-    if raw.startswith("```"):
-        raw = raw.split("```")[1].removeprefix("json").strip()
-
-    try:
-        parsed = json.loads(raw)
-    except json.JSONDecodeError:
-        raise HTTPException(502, "model did not return valid JSON")
+    parsed = json_payload(message)
 
     return {
         "parent": request.skill,
         "sub_skills": parsed.get("sub_skills", [])[: request.count],
+        "sources": [c.citation for c, _ in results],
+    }
+
+
+@router.post("/narrate")
+def narrate(request: NarrateRequest) -> dict[str, Any]:
+    """
+    The prose on a roadmap: one narration and one rationale per phase.
+
+    Called by skill-service after the plan is computed, never before — the
+    ordering is a topological sort and the model is only ever describing it.
+    This is the one place in the app where an LLM writes into the database,
+    and it writes into two text columns.
+    """
+    if not request.phases:
+        raise HTTPException(400, "a roadmap with no phases has nothing to narrate")
+
+    results = retriever().search(
+        f"how to sequence a learning plan for {request.role}", k=3
+    )
+
+    messages = [
+        {
+            "role": "system",
+            "content": f"{NARRATE_SYSTEM}\n\n{build_context(results)}",
+        },
+        {"role": "user", "content": plan_summary(request)},
+    ]
+
+    try:
+        message = client().chat(messages)
+    except RuntimeError as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+    return {
+        **narration_payload(json_payload(message), request.phases),
         "sources": [c.citation for c, _ in results],
     }
 

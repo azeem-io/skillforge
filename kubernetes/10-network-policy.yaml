@@ -23,6 +23,47 @@ spec:
             matchLabels:
               app: api-gateway
 ---
+# The AI tier is reachable from more than the gateway, and each caller is a
+# real path: the frontend proxies the assistant and the wand under /ai/*,
+# skill-service asks for roadmap narration, and ai-service's own tools call
+# python-analyzer. Egress is unrestricted on purpose — ai-service has to reach
+# api.deepseek.com.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ai-service-from-app-only
+  namespace: skillforge
+spec:
+  podSelector:
+    matchLabels:
+      app: ai-service
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [api-gateway, frontend, skill-service]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: python-analyzer-from-app-only
+  namespace: skillforge
+spec:
+  podSelector:
+    matchLabels:
+      app: python-analyzer
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [api-gateway, ai-service, skill-service]
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

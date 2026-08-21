@@ -69,7 +69,7 @@ export function ResultCard({
             </p>
             <ul className="space-y-1.5">
               {breakdown.map((entry) => (
-                <SkillRow key={entry.slug} entry={entry} />
+                <BreakdownRow key={entry.slug} entry={entry} />
               ))}
             </ul>
           </div>
@@ -88,7 +88,12 @@ export function ResultCard({
   );
 }
 
-function SkillRow({ entry }: { entry: SkillBreakdown }) {
+/**
+ * Exported because the mentor view lists the same breakdown without the rest
+ * of the card, and two renderings of "how well did this skill go" would drift
+ * apart in what mastered looks like.
+ */
+export function BreakdownRow({ entry }: { entry: SkillBreakdown }) {
   const ratio = entry.total ? entry.correct / entry.total : 0;
   const mastery = masteryForRatio(ratio);
 

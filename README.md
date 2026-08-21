@@ -62,16 +62,29 @@ effort estimates and narration are lost.
 | `bun run db:generate` | Generate a Drizzle migration from the schema |
 | `bun run db:migrate` | Apply migrations |
 | `bun run db:seed` | Seed taxonomy, roles, resources and assessments |
+| `bun run db:seed:demo` | Seed the demo student, mentor and admin |
 | `bun run db:studio` | Drizzle Studio |
 | `bun run typecheck` | Typecheck every workspace |
 
 ## Try it
 
+Sign in as the seeded demo student — **demo@example.com**, password
+**`skillforge-demo-2026`** — for an account that already has four graded
+assessments, a portfolio and a roadmap. `mentor@example.com` and
+`admin@example.com` use the same password and show the other two roles; the
+mentor is joined to the demo student by a `mentorships` row, so they see that
+student and no one else.
+
+These credentials are public, which is the point of `SEED_DEMO`: set it to
+`false` in `.env` for any instance that is not a demo.
+
+Or start from nothing:
+
 1. Register at `/register` — passwords are at least 12 characters, hashed with
    argon2id.
 2. Set a target role on `/profile`. That is what everything measures against.
-3. Take an assessment at `/assessments` — searchable, eight areas, ten
-   questions each.
+3. Take an assessment at `/assessments` — searchable, 15 sittings across eight
+   areas, ten questions each.
 4. The result scores **per skill**, writes your proficiency levels and starts a
    spaced-repetition schedule for each one.
 5. `/graph` and `/roadmap` now reflect what you actually demonstrated. `/tree`
@@ -86,16 +99,20 @@ effort estimates and narration are lost.
 Three distinct capabilities, deliberately kept separate.
 
 **Generative** — `/roadmap` asks python-analyzer for the phase structure, then
-DeepSeek writes the `narration` and per-phase `rationale` prose. The model never
+ai-service `/narrate` has DeepSeek write the `narration` and per-phase
+`rationale` prose. The model never
 decides ordering: phases are a rank of the topological sort over the prerequisite
 DAG, computed in `RoadmapGenerator`. This is what stops an AI roadmap reading
 generic, and it is why the same student always gets the same sequence.
 
 **RAG** — `rag/knowledge-base/` is a markdown corpus of career guides, sequencing
-principles, project selection and skill foundations. ai-service chunks it on
-headings at boot, embeds with `fastembed` (ONNX, no PyTorch) and retrieves by
-cosine similarity. Answers cite sources as `[1]`, `[2]`, and the UI renders each
-one as a hoverable superscript linked to the retrieved chunk.
+principles, project selection and a skill reference for every taxonomy
+subcategory — Programming Languages, Web Development, Version Control,
+Databases, Data Analysis, Machine Learning, DevOps, Cloud and Security.
+ai-service chunks it on headings at boot, embeds with `fastembed` (ONNX, no
+PyTorch) and retrieves by cosine similarity. Answers cite sources as `[1]`,
+`[2]`, and the UI renders each one as a hoverable superscript linked to the
+retrieved chunk.
 
 **Agentic** — the Career Planning Agent at `/ai/agent` runs a tool-calling loop
 over six tools: `analyze_student_skills`, `generate_skill_gap`, `create_roadmap`,

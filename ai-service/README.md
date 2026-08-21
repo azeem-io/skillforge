@@ -6,16 +6,25 @@ Generation, retrieval and the Career Planning Agent.
 
 | Requirement | Where |
 |---|---|
-| Generative AI | `/chat` and `/expand` — DeepSeek via the OpenAI-compatible SDK |
+| Generative AI | `/chat`, `/expand` and `/narrate` — DeepSeek via the OpenAI-compatible SDK |
 | RAG | `service/retrieval.py` — the knowledge base is embedded and searched before any answer |
 | Agentic AI | `service/agent.py` — six tools performing real actions |
 
 ## Endpoints
 
 `GET /health` · `POST /search` · `POST /chat` · `POST /agent` · `POST /expand`
+· `POST /narrate`
 
 `/search` returns retrieval results with no generation, which makes it easy to
 show what RAG actually retrieved.
+
+`/narrate` is the one endpoint whose output is written to the database, and the
+only caller is skill-service. It receives a roadmap that has already been
+computed — phases, order, titles, week estimates — and returns prose about it:
+`roadmaps.narration` and one `roadmap_phases.rationale` per phase. A rationale
+for a phase number it was not sent is dropped rather than stored, because
+writing it is the one way a model could reshape a plan it was only asked to
+describe.
 
 ## The agent's tools
 
@@ -60,7 +69,7 @@ Running from a local venv instead, the download does happen once —
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements-dev.txt
-.venv/bin/pytest                      # 45 tests, no key or network needed
+.venv/bin/pytest                      # 57 tests, no key or network needed
 KNOWLEDGE_BASE_PATH=../rag/knowledge-base \
   .venv/bin/uvicorn main:app --reload --port 8084
 ```

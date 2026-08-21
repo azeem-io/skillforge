@@ -188,12 +188,66 @@ repo, marked there as moving to `RoadmapGenerator` once that service lands. The
 response says which ran, in `source`.
 
 The rule that no model decides phase ordering is unaffected: the fallback is a
-topological sort in TypeScript, not a prompt. `narration` and `rationale` stay
-null for ai-service to fill.
+topological sort in TypeScript, not a prompt. `narration` and `rationale` are
+filled afterwards by ai-service — see the next entry.
 
 The alternative — 503 until python-analyzer exists — was rejected because it
 makes the roadmap undemoable for as long as that service is unwritten, and the
 fallback is code Azeem already committed.
+
+## Roadmap prose: written last, and only into two columns
+
+`POST /api/skills/roadmap` computes the phases, then posts the finished plan to
+ai-service `/narrate` and stores what comes back in `roadmaps.narration` and
+`roadmap_phases.rationale`. Nothing else in the response is a model's.
+
+Ordering was never on the table — the PDF's own example is "the AI generates a
+roadmap", and a topological sort is what makes that roadmap correct. But a plan
+with no prose is a table of skill names, and the columns for the prose already
+existed, unused. So the model describes a decision it did not make.
+
+Three things keep that honest:
+
+- The call happens **after** the structure is settled, and is given the phases
+  as facts — titles, order, week estimates, skill names — with an instruction
+  not to re-order, merge, rename, add or drop any of them.
+- A rationale for a phase number that was not sent is **dropped**, not stored.
+  Writing it would be the one way a model could still change the shape of a
+  plan it was only asked to describe.
+- It **fails soft**, on a 20 second budget. An unreachable or unconfigured
+  ai-service leaves both columns null and changes nothing else; the response
+  says `narrated: false`, and the roadmap still saves. A roadmap that could not
+  be generated because a model was slow would be a worse product than a roadmap
+  with no prose.
+
+The narration renders in the `--ai` gold block on `/roadmap`, which is the token
+reserved for model output — a student can see exactly which sentences a model
+wrote and which numbers it did not.
+
+## The demo account is seeded through the services' own code
+
+`bun run db:seed:demo` (`packages/db/src/seed/demo.ts`) creates a populated
+student, a mentor joined to them by a `mentorships` row, and an admin. A fresh
+instance is otherwise empty, and a judge who does not register sees an app with
+nothing in it.
+
+It is a second script rather than part of `db:seed` because the two run at
+different times and mean different things: the catalogue is reference data every
+install needs and is seeded before any service starts, the demo account is
+people, and only on an instance that wants them.
+
+It reimplements nothing. Passwords go through auth-service's `hashPassword`,
+the four simulated sittings are graded by skill-service's `isCorrect` and
+scheduled by its FSRS module, and the roadmap is laid out by the same `phases()`
+the route uses — which is why `gapScore`, `phaseTitle` and `phaseWeeks` moved
+from the route into `packages/db` beside it. A demo account hashed by a second
+hasher or graded by a second grader would be a demo of those instead of of the
+app. It is also why `docker/migrate.Dockerfile` copies `backend/` into an image
+that starts none of it.
+
+The credentials are public — they are in `.env.example`, in `README.md` and
+printed by `setup.sh` — so `SEED_DEMO` gates the whole thing and anything that
+is not a demo turns it off.
 
 ## Assessment scoring writes evidence, and knows what not to overwrite
 
@@ -238,4 +292,4 @@ The `add-service` skill says to validate with `kubectl apply --dry-run=client`,
 which needs a live cluster to fetch the OpenAPI schema — there is none here, and
 it fails before checking anything. `kubeconform -strict` validates against real
 1.31 schemas offline and additionally rejects unknown fields, which is what
-catches a mistyped key. 20 resources, all valid.
+catches a mistyped key. 26 resources across 14 files, all valid.
