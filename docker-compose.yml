@@ -203,8 +203,6 @@ services:
       AUTH_SERVICE_URL: http://auth-service:8081
       PROFILE_API_URL: http://profile-api:8082
       SKILL_SERVICE_URL: http://skill-service:8083
-      # Not running yet. The route exists so adding the service is a one-line
-      # change here rather than a change to the gateway.
       AI_SERVICE_URL: http://ai-service:8084
       PYTHON_ANALYZER_URL: http://python-analyzer:8085
       PORT: 8080

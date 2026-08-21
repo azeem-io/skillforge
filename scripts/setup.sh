@@ -27,6 +27,9 @@ ok "docker $(docker version --format '{{.Server.Version}}' 2>/dev/null || echo '
 if [ "$MODE" = "--local" ]; then
   need bun "Install Bun: https://bun.sh"
   ok "bun $(bun --version)"
+  need python3 "Install Python 3: https://www.python.org/downloads/"
+  ok "python3 $(python3 --version | cut -d' ' -f2)"
+  need curl "Install curl."
 fi
 
 bold "Environment"
@@ -119,9 +122,61 @@ if [ "$MODE" = "--local" ]; then
   bun run db:migrate
   bun run db:seed
 
+  bold "Python services"
+  # ai-service and python-analyzer are FastAPI, not part of the bun workspace,
+  # so `bun run dev:services` never touches them — without this step they just
+  # aren't running locally, and anything that calls them (the assistant, the
+  # roadmap) fails with a connection error, not an obviously-related one.
+  run_dir="$ROOT/.run"
+  mkdir -p "$run_dir"
+
+  start_python_service() {
+    local name="$1" dir="$2" port="$3" wait_secs="${4:-60}"
+    if curl -sf --max-time 1 "http://localhost:${port}/health" >/dev/null 2>&1; then
+      ok "$name already running on :${port}"
+      return
+    fi
+    if [ ! -d "$dir/.venv" ]; then
+      python3 -m venv "$dir/.venv"
+    fi
+    "$dir/.venv/bin/pip" install -q -r "$dir/requirements.txt"
+    (
+      cd "$dir"
+      set -a; source "$ROOT/.env"; set +a
+      # Only ai-service reads this; python-analyzer ignores it. The Dockerfile
+      # default (/app/knowledge-base) doesn't exist on the host.
+      export KNOWLEDGE_BASE_PATH="$ROOT/rag/knowledge-base"
+      nohup "$dir/.venv/bin/uvicorn" main:app --port "$port" \
+        >"$run_dir/${name}.log" 2>&1 &
+      echo $! >"$run_dir/${name}.pid"
+    )
+    printf '  waiting for %s' "$name"
+    for _ in $(seq 1 "$wait_secs"); do
+      if curl -sf --max-time 1 "http://localhost:${port}/health" >/dev/null 2>&1; then
+        printf '\n'; ok "$name started on :${port}"; return
+      fi
+      printf '.'; sleep 1
+    done
+    printf '\n'
+    die "$name did not become healthy on :${port} — see $run_dir/${name}.log"
+  }
+
+  # python-analyzer first: ai-service's own tools call it for gaps/roadmaps.
+  start_python_service python-analyzer "$ROOT/python-analyzer" 8085
+  # ai-service embeds the whole knowledge base at boot before it opens the
+  # port (see its README) — the compose healthcheck gives it a 60s start
+  # period on a *warm* image for the same reason, so a cold local venv
+  # downloading the embedding model needs more slack than the default.
+  start_python_service ai-service "$ROOT/ai-service" 8084 120
+
   bold "Ready"
-  cat <<'MSG'
-  Start everything with four terminals, or one:
+  cat <<MSG
+  ai-service and python-analyzer are running in the background (logs and pid
+  files under .run/). Stop them with:
+
+    kill \$(cat .run/ai-service.pid) \$(cat .run/python-analyzer.pid)
+
+  Start everything else with four terminals, or one:
 
     bun run dev:services   # auth, gateway, profile, skills
     bun run dev            # the frontend on :3000
