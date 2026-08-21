@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Background,
   Controls,
   MarkerType,
   ReactFlow,
   ReactFlowProvider,
+  useReactFlow,
   type Edge,
   type Node,
 } from "@xyflow/react";
@@ -14,21 +15,25 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { categoryIndex, categoryOrder } from "@/lib/category";
-import { MASTERY_DOT, MASTERY_LABEL, type Mastery } from "@/lib/mastery";
+import { type Mastery } from "@/lib/mastery";
 import { layoutGraph } from "./layout";
+import { Legend } from "./legend";
 import { SkillNode } from "./skill-node";
+import { SkillPanel } from "./skill-panel";
 
 const nodeTypes = { skill: SkillNode };
-const MASTERY_ORDER: Mastery[] = ["mastered", "progress", "gap", "locked"];
 
 export type GraphSkill = {
   id: string;
+  slug?: string;
   name: string;
   subcategory: string;
   category: string;
+  description?: string | null;
   mastery: Mastery;
   level: number;
   requiredLevel: number;
+  weight?: number;
   prerequisites: string[];
   aiGenerated?: boolean;
   loading?: boolean;
@@ -39,12 +44,28 @@ type Mode = "explore" | "roadmap";
 function GraphInner({
   skills: initial,
   mode,
+  highlight,
 }: {
   skills: GraphSkill[];
   mode: Mode;
+  highlight?: string[] | null;
 }) {
   const [skills, setSkills] = useState(initial);
   const [error, setError] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { fitView } = useReactFlow();
+
+  useEffect(() => setSkills(initial), [initial]);
+
+  const select = useCallback(
+    (id: string | null) => {
+      setSelectedId(id);
+      if (id) {
+        fitView({ nodes: [{ id }], duration: 500, padding: 0.4, maxZoom: 1.1 });
+      }
+    },
+    [fitView],
+  );
 
   const onExpand = useCallback(
     async (id: string) => {
@@ -113,18 +134,33 @@ function GraphInner({
     [skills],
   );
 
-  const { nodes, edges } = useMemo(() => {
+  const { rawNodes, edges, spotlightIds } = useMemo(() => {
     const visible =
       mode === "roadmap"
         ? skills.filter((s) => s.mastery === "gap" || s.mastery === "locked")
         : skills;
     const ids = new Set(visible.map((s) => s.id));
 
+    // Slugs arrive from the saved roadmap; drop any not on screen so an
+    // out-of-date plan cannot spotlight nothing.
+    const wanted = highlight
+      ? new Set(
+          visible
+            .filter((s) => s.slug && highlight.includes(s.slug))
+            .map((s) => s.id),
+        )
+      : null;
+    const spotlight = wanted && wanted.size > 0 ? wanted : null;
+
     const built: Node[] = visible.map((s) => ({
       id: s.id,
       type: "skill",
       position: { x: 0, y: 0 },
-      data: { ...s, categoryIndex: categoryIndex(s.category, order), onExpand },
+      data: {
+        ...s,
+        categoryIndex: categoryIndex(s.category, order),
+        dimmed: spotlight ? !spotlight.has(s.id) : false,
+      },
     }));
 
     const builtEdges: Edge[] = visible.flatMap((s) =>
@@ -134,21 +170,71 @@ function GraphInner({
           id: `${p}-${s.id}`,
           source: p,
           target: s.id,
-          animated: s.aiGenerated,
+          // Dashed motion only while the model is generating; a finished
+          // suggestion settles into a solid AI-tinted edge.
+          animated: Boolean(s.loading),
           markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
-          style: { strokeWidth: 1.5 },
+          style: {
+            strokeWidth: 1.5,
+            ...(s.aiGenerated ? { stroke: "var(--ai)" } : {}),
+            opacity:
+              spotlight && !(spotlight.has(p) && spotlight.has(s.id))
+                ? 0.12
+                : 1,
+          },
         })),
     );
 
-    return { nodes: layoutGraph(built, builtEdges, "LR"), edges: builtEdges };
-  }, [skills, mode, onExpand, order]);
+    return {
+      rawNodes: built,
+      edges: builtEdges,
+      spotlightIds: spotlight ? [...spotlight] : null,
+    };
+  }, [skills, mode, order, highlight]);
+
+  // ELK is async, so positions land in state a beat after the data does. The
+  // CSS transition on .react-flow__node is what turns that update into a
+  // glide — existing nodes drift to their new places instead of jumping.
+  const [nodes, setNodes] = useState<Node[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    layoutGraph(rawNodes, edges, (n) => String(n.data.category ?? "")).then(
+      (laid) => {
+        if (!cancelled) setNodes(laid);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [rawNodes, edges]);
+
+  // The camera follows the spotlight. fitView's duration is what turns the
+  // move into a glide instead of a cut.
+  const spotlightKey = spotlightIds?.join() ?? "";
+  useEffect(() => {
+    if (nodes.length === 0) return;
+    const target = spotlightIds
+      ? { nodes: spotlightIds.map((id) => ({ id })), padding: 0.3 }
+      : { padding: 0.15 };
+    const timer = setTimeout(() => fitView({ ...target, duration: 600 }), 60);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotlightKey, nodes.length === 0, fitView]);
+
+  const byId = useMemo(() => new Map(skills.map((s) => [s.id, s])), [skills]);
+  const selected = selectedId ? (byId.get(selectedId) ?? null) : null;
+  const expanding = selectedId
+    ? skills.some((s) => s.id.startsWith(`${selectedId}::ai`) && s.loading)
+    : false;
 
   return (
     <div className="relative h-full w-full">
       <ReactFlow
-        nodes={nodes}
+        nodes={nodes.map((n) => ({ ...n, selected: n.id === selectedId }))}
         edges={edges}
         nodeTypes={nodeTypes}
+        onNodeClick={(_, node) => select(node.id)}
+        onPaneClick={() => setSelectedId(null)}
         fitView
         minZoom={0.1}
         maxZoom={1.6}
@@ -161,22 +247,24 @@ function GraphInner({
         <Controls showInteractive={false} />
       </ReactFlow>
 
-      <div className="bg-card/90 absolute top-3 left-3 rounded-md border p-3 text-xs backdrop-blur">
-        <div className="mb-2 font-medium">
-          {mode === "roadmap" ? "To learn" : "Mastery"} · {nodes.length} skills
-        </div>
-        <ul className="space-y-1.5">
-          {MASTERY_ORDER.map((m) => (
-            <li key={m} className="flex items-center gap-2">
-              <span className={`size-2.5 rounded-full ${MASTERY_DOT[m]}`} />
-              <span className="text-muted-foreground">{MASTERY_LABEL[m]}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="text-muted-foreground mt-2 border-t pt-2">
-          Hover a node for the <span className="text-ai font-medium">wand</span>
-        </p>
-      </div>
+      {selected && (
+        <SkillPanel
+          skill={selected}
+          categoryIndex={categoryIndex(selected.category, order)}
+          prerequisites={selected.prerequisites
+            .map((p) => byId.get(p))
+            .filter((s): s is GraphSkill => Boolean(s))}
+          unlocks={skills.filter((s) =>
+            s.prerequisites.includes(selected.id),
+          )}
+          expanding={expanding}
+          onSelect={select}
+          onExpand={onExpand}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
+
+      <Legend className={selected ? "left-1/3" : undefined} />
 
       {error && (
         <div className="bg-destructive text-destructive-foreground absolute right-3 bottom-3 max-w-md rounded-md px-3 py-2 text-xs">
@@ -190,13 +278,15 @@ function GraphInner({
 export function SkillGraph({
   skills,
   mode = "explore",
+  highlight,
 }: {
   skills: GraphSkill[];
   mode?: Mode;
+  highlight?: string[] | null;
 }) {
   return (
     <ReactFlowProvider>
-      <GraphInner skills={skills} mode={mode} />
+      <GraphInner skills={skills} mode={mode} highlight={highlight} />
     </ReactFlowProvider>
   );
 }

@@ -8,7 +8,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { hierarchy, pack, type HierarchyCircularNode } from "d3-hierarchy";
-import { Lock, Maximize2, Search, X } from "lucide-react";
+import { Maximize2, Search, X } from "lucide-react";
 
 import {
   CATEGORY_BAR,
@@ -16,6 +16,7 @@ import {
   categoryIndex,
   categoryOrder,
 } from "@/lib/category";
+import { Legend } from "@/components/graph/legend";
 import {
   MASTERY_CIRCLE,
   MASTERY_DOT,
@@ -459,38 +460,13 @@ export function SkillTree({
           )}
         </div>
 
-        <div className="bg-card/90 absolute bottom-3 left-3 rounded-md border p-3 text-xs backdrop-blur">
-          <div className="mb-2 font-medium">Colour · where you stand</div>
-          <ul className="space-y-1.5">
-            {ORDER.map((m) => (
-              <li key={m} className="flex items-center gap-2">
-                {m === "locked" ? (
-                  <Lock className="text-mastery-locked-fg size-2.5 shrink-0" />
-                ) : (
-                  <span className={`size-2.5 rounded-full ${MASTERY_DOT[m]}`} />
-                )}
-                <span className="text-muted-foreground">
-                  {MASTERY_LABEL[m]}
-                </span>
-                <span className="ml-auto pl-3 tabular-nums">{counts[m]}</span>
-              </li>
-            ))}
-            <li className="flex items-center gap-2 opacity-50">
-              <span className="bg-muted border-border size-2.5 rounded-full border" />
-              <span className="text-muted-foreground">Outside your goal</span>
-              <span className="ml-auto pl-3 tabular-nums">
-                {counts.unrelated}
-              </span>
-            </li>
-          </ul>
-          <p className="text-muted-foreground mt-2 border-t pt-2">
-            <span className="text-foreground font-medium">Size</span> · how much{" "}
-            {roleName} needs it
-          </p>
-          <p className="text-muted-foreground mt-2 border-t pt-2 leading-relaxed">
-            Click to zoom · drag to pan · scroll to scale
-          </p>
-        </div>
+        <Legend counts={counts}>
+          <span className="flex items-center gap-1.5 opacity-60">
+            <span className="bg-muted border-border size-2 rounded-full border" />
+            <span className="text-muted-foreground">Outside goal</span>
+            <span className="font-medium tabular-nums">{counts.unrelated}</span>
+          </span>
+        </Legend>
       </div>
 
       <aside className="overflow-auto border-t p-4 lg:border-t-0 lg:border-l">
