@@ -82,7 +82,7 @@ export function requireRole(
 }
 
 /**
- * The rule from CLAUDE.md, in one place: a student reads and writes their own
+ * The authorization rule, in one place: a student reads and writes their own
  * rows; an admin reads anyone's. A mentor is deliberately *not* covered here —
  * mentor access is a join against `mentorships`, which needs the database, so
  * it lives in the service that owns the table.

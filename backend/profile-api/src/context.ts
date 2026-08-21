@@ -21,7 +21,7 @@ export const db = createDb(env.databaseUrl);
 export type Vars = IdentityVars;
 
 /**
- * Authorization re-checked at the data layer, per CLAUDE.md — the gateway
+ * Authorization re-checked at the data layer — the gateway
  * proves *who* is calling and nothing more.
  *
  * The rule itself is `canReadStudent` in packages/db, because skill-service

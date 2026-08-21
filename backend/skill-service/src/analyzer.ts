@@ -3,9 +3,7 @@ import type { SkillRow } from "@skillforge/db";
 import { env } from "./context";
 
 /**
- * The contract with python-analyzer. Written down here because the service
- * does not exist yet — Azeem owns it, and this is the shape `RoadmapGenerator`
- * has to return for the roadmap to persist without changing anything below.
+ * The contract with python-analyzer's `RoadmapGenerator`.
  *
  * `phase` is a rank of the topological sort: skills sharing one can be learned
  * in parallel. Ordering is the analyzer's to decide, never a model's.

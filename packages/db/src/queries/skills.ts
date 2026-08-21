@@ -39,8 +39,8 @@ export function listRoles(db: Database) {
 
 /**
  * Everything a role requires plus the transitive prerequisites, each tagged
- * with a mastery state. `demonstrated` maps skill slug to level 1-5 and stands
- * in for studentSkills until profile-api can supply it.
+ * with a mastery state. `demonstrated` maps skill slug to level 1-5; a skill
+ * the student has never demonstrated is simply absent.
  */
 export async function roleSkillGraph(
   db: Database,
@@ -153,7 +153,8 @@ export function readiness(rows: SkillRow[]): number {
   return total ? Math.round((earned / total) * 100) : 0;
 }
 
-/** Longest-path layering. Moves to RoadmapGenerator once python-analyzer lands. */
+/** Longest-path layering. Mirrored by `RoadmapGenerator` in python-analyzer,
+ *  which serves the same ranks when it is reachable; change both. */
 export function phases(rows: SkillRow[]): SkillRow[][] {
   const todo = rows.filter(
     (r) => r.mastery === "gap" || r.mastery === "locked",

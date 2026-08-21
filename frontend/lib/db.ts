@@ -2,8 +2,8 @@ import "server-only";
 
 import { createDb } from "@skillforge/db";
 
-// Temporary. Reads move behind skill-service and the frontend calls the
-// gateway instead; the row shapes the pages consume stay the same.
+// The last direct database read in the frontend: /ai/agent assembles the
+// analyzer payload here. Every page goes through the gateway.
 const url = process.env.DATABASE_URL;
 
 const globalForDb = globalThis as unknown as {

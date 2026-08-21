@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-// Temporary: the frontend will call the gateway, not ai-service directly, once
-// api-gateway exists. Same request shape either way.
 const AI_SERVICE = process.env.AI_SERVICE_URL ?? "http://localhost:8084";
 
 export async function POST(request: Request) {

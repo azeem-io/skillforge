@@ -233,6 +233,7 @@ instead of overwriting the evidence of it.
 
 ## Making changes
 
-Follow `.claude/skills/db-change/SKILL.md`. Typechecking does not prove a check
+Generate the migration, then apply it against a real Postgres before
+committing. Typechecking does not prove a check
 constraint is valid SQL — every migration is verified against a real Postgres,
 and the constraint is proven to bite by inserting a row that should fail.

@@ -56,3 +56,7 @@ skillforge-work-split.md
 
 # stray env backups — one of these shipped a live API key once
 *.bak
+
+# next dev writes these into frontend/ on every run
+AGENTS.md
+frontend/CLAUDE.md

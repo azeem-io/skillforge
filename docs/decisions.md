@@ -53,7 +53,7 @@ requirement graph, and pgvector keeps the door open for the RAG corpus to move
 into the same database later. The PS-03-specific service diagram (`auth
 service / profile API / AI service` → `python analyzer / skill service`) never
 names a database at all, and it is that diagram — not the generic one — that
-`docs/architecture.md` and `CLAUDE.md` say we match exactly.
+`docs/architecture.md` and `CONTRIBUTING.md` say we match exactly.
 
 ## Deployment: Coolify on Contabo
 

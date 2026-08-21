@@ -1,7 +1,8 @@
-# SkillForge
+# Contributing
 
 AI-powered student skills and career development platform. Hackathon project,
-2-person team. Read this before writing any code.
+2-person team. Read this before writing any code — the rules below are the ones
+that are load-bearing, not preferences.
 
 ## Running it
 
@@ -57,15 +58,17 @@ Everyone registers as a student. The first admin is made from outside the app:
 - **Nothing in `(app)` renders for an anonymous visitor.** The layout calls
   `requireUser()`. Every page inside is one student's data.
 - **Never hardcode a student.** Skills come from `studentSkills` via the
-  gateway, the goal from `profiles.targetRoleId`. There is no demo student.
+  gateway, the goal from `profiles.targetRoleId`. The seeded demo account is
+  ordinary rows like anyone else's — no code path knows its id.
 - Auth is re-verified at the data layer on every protected route and action,
   never in middleware alone.
 - The roadmap's structure is computed by the Python service. The LLM writes
-  prose into `narration` and `rationale` columns only. Never let a model decide
+  prose into `narration` and `rationale` columns only, through ai-service
+  `/narrate`, and only after the phases are settled. Never let a model decide
   phase ordering.
 - Comments only where the reason is not inferable from the code. No prose
   headers explaining a module's philosophy.
-- Commit messages are one line. No body, no co-author trailer.
+- Commit messages are one line. No body.
 
 ## Architecture
 
@@ -211,22 +214,10 @@ system — judges ask.
 ## Forbidden
 
 - CSS Modules, styled-components, any CSS system that is not Tailwind v4
-- Copying code out of `/home/azeem/work/keystone-web` — it is a work repo.
-  Reference it for patterns only.
-- Shipping Keystone's `skills.json` / `tags.json`. Harvest names, not files.
 - Supabase, Vercel — we self-host on Coolify. Postgres lives in the compose.
 - `npm install` inside a workspace folder. Install from the repo root.
-- Committing another agent's in-progress files. Stage by path, not `git add -A`.
-
-## Skills
-
-`.claude/skills/` — invoke by name.
-
-| Skill | Use when |
-|---|---|
-| `db-change` | Changing the Drizzle schema |
-| `ui-component` | Building any UI |
-| `add-service` | Adding or wiring a backend service |
+- `git add -A`. Two people share this tree; stage by path so you commit only
+  your own work.
 
 ## Decisions and status
 
