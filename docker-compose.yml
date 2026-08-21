@@ -219,11 +219,12 @@ services:
       dockerfile: frontend/Dockerfile
     image: ${IMAGE_PREFIX:-skillforge}/frontend:${IMAGE_TAG:-local}
     restart: unless-stopped
-    # Published so http://localhost:3000 works without Caddy's self-signed
-    # certificate in the way. next.config.ts rewrites /api/* to the gateway, so
-    # this is the whole app, not a partial one. Caddy on 443 is the real entry.
+    # Published on loopback only: http://localhost:3000 works for local dev,
+    # but on a VPS the raw IP must not serve an unencrypted copy of the app.
+    # Docker publishes straight past ufw, so the binding is the firewall.
+    # Coolify's proxy reaches the container over the compose network instead.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       api-gateway:
         condition: service_healthy
