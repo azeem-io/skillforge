@@ -12,16 +12,28 @@ graph and the student's demonstrated levels, this returns the analysis.
 | `RoadmapGenerator` | Gaps to ordered phases with effort estimates |
 | `SkillAnalyzer` | Facade — `calculate_score()`, `identify_gaps()`, `recommend_topics()` |
 
+Two module-level functions sit beside them, each serving one caller's shape:
+`plan()` for skill-service and `compare_roles()` for the agent's
+`compare_target_roles` tool.
+
 ## Endpoints
 
-`GET /health` · `POST /analyze` · `POST /gaps` · `POST /roadmap` · `POST /score`
+`GET /health` · `POST /analyze` · `POST /gaps` · `POST /roadmap` · `POST /plan`
+· `POST /compare` · `POST /score`
+
+Mounted twice: bare paths for ai-service and skill-service, and under
+`/api/analysis` for the gateway.
+
+**`/roadmap` and `/plan` are not the same endpoint.** `/roadmap` speaks
+ai-service's `AnalysisRequest`; `/plan` speaks skill-service's `SkillRow`.
+Two shapes on purpose — changing one does not change the other.
 
 ## Local
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements-dev.txt
-.venv/bin/pytest
+.venv/bin/pytest                      # 37 tests
 .venv/bin/uvicorn main:app --reload --port 8085
 ```
 
