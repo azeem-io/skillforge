@@ -8,7 +8,7 @@ Generation, retrieval and the Career Planning Agent.
 |---|---|
 | Generative AI | `/chat` and `/expand` — DeepSeek via the OpenAI-compatible SDK |
 | RAG | `service/retrieval.py` — the knowledge base is embedded and searched before any answer |
-| Agentic AI | `service/agent.py` — four tools performing real actions |
+| Agentic AI | `service/agent.py` — five tools performing real actions |
 
 ## Endpoints
 
@@ -24,9 +24,14 @@ show what RAG actually retrieved.
 | `analyze_student_skills` | POSTs the student's graph to python-analyzer `/analyze` |
 | `generate_skill_gap` | POSTs to python-analyzer `/gaps`, weighted and ranked |
 | `create_roadmap` | POSTs to python-analyzer `/roadmap` |
+| `compare_target_roles` | POSTs to python-analyzer `/compare` — scores every role at once, best fit first |
 | `search_learning_resources` | Cosine search over the embedded knowledge base |
 
-Three call a real service; one searches a real corpus. None return canned text.
+Four call a real service; one searches a real corpus. None return canned text.
+
+The PDF names four tools. `compare_target_roles` is the extra one — it answers
+"is this the right goal for me?", which is the question a student asks before
+any of the other four are worth running.
 
 ## Embeddings
 
@@ -35,15 +40,21 @@ DeepSeek exposes no embeddings endpoint, so retrieval embeds locally with
 few dozen chunks, so a linear scan beats a round trip to a vector database.
 pgvector is the move if the corpus outgrows memory.
 
-The model downloads on first embed, which is why the container healthcheck has a
-40s start period.
+The image pulls the model at build time into `/opt/fastembed`, so a container
+never waits on HuggingFace and works with no outbound access to anything but
+DeepSeek. The healthcheck's 40s start period covers embedding the corpus, not a
+download.
+
+Running from a local venv instead, the download does happen once —
+`scripts/setup.sh --local` pulls it before starting the service and pins
+`FASTEMBED_CACHE_PATH` outside `/tmp` so it survives a reboot.
 
 ## Local
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements-dev.txt
-.venv/bin/pytest                      # 30 tests, no key or network needed
+.venv/bin/pytest                      # 33 tests, no key or network needed
 KNOWLEDGE_BASE_PATH=../rag/knowledge-base \
   .venv/bin/uvicorn main:app --reload --port 8084
 ```
