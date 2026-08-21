@@ -38,7 +38,7 @@ export default async function RoadmapPage() {
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
       <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Roadmap</h1>
+          <h1 className="text-2xl font-semibold">Roadmap</h1>
           <p className="text-muted-foreground text-sm">
             {current
               ? `${current.phases.length} phases, about ${totalWeeks} weeks at 8 hours a week.`

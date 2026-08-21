@@ -119,7 +119,7 @@ export function SkillPanel({
                 <p className="text-muted-foreground text-xs font-medium">
                   Level
                 </p>
-                <p className="text-xs tabular-nums">
+                <p className="font-mono text-xs">
                   {skill.level} / {skill.requiredLevel} required
                 </p>
               </div>

@@ -22,7 +22,7 @@ export default async function GraphPage() {
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
       <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Skill Graph</h1>
+          <h1 className="text-2xl font-semibold">Skill Graph</h1>
           <p className="text-muted-foreground text-sm">
             Every skill {role.name} requires, plus their prerequisites. Hover a
             node for the expand wand.

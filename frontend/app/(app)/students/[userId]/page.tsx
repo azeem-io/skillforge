@@ -53,7 +53,7 @@ export default async function StudentDetailPage({
       </Button>
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold">
           {profile.name ?? profile.email}
         </h1>
         <p className="text-muted-foreground text-sm">
@@ -74,7 +74,7 @@ export default async function StudentDetailPage({
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Skills on record</CardDescription>
-            <CardTitle className="text-lg tabular-nums">
+            <CardTitle className="font-mono text-lg">
               {skills.length}
             </CardTitle>
           </CardHeader>
@@ -82,7 +82,7 @@ export default async function StudentDetailPage({
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Assessed</CardDescription>
-            <CardTitle className="text-lg tabular-nums">
+            <CardTitle className="font-mono text-lg">
               {byAssessment}
             </CardTitle>
           </CardHeader>
@@ -127,7 +127,7 @@ export default async function StudentDetailPage({
               <div className="w-28">
                 <Progress className="h-1.5" value={(skill.level / 5) * 100} />
               </div>
-              <span className="text-muted-foreground w-16 text-right text-xs tabular-nums">
+              <span className="text-muted-foreground w-16 text-right font-mono text-xs">
                 level {skill.level}
               </span>
               {skill.evidence && (

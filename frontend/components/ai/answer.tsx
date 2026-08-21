@@ -31,7 +31,7 @@ function Cite({
       aria-label={`Source ${n}`}
       className={cn(
         "relative -top-[0.35em] mx-px inline-block rounded-sm px-[0.2em] align-baseline",
-        "text-[0.68em] leading-none font-semibold tabular-nums transition-colors",
+        "font-mono text-[0.68em] leading-none font-semibold transition-colors",
         active ? "bg-ai text-ai-foreground" : "text-ai/70 hover:text-ai",
       )}
     >

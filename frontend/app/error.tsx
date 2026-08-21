@@ -23,7 +23,7 @@ export default function Error({
     <main className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
       <TriangleAlert className="text-destructive size-8" aria-hidden />
       <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold">
           Something broke on our side
         </h1>
         <p className="text-muted-foreground max-w-md text-sm">

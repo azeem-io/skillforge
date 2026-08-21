@@ -48,7 +48,7 @@ export function ResultCard({
             </CardDescription>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-semibold tabular-nums">
+            <p className="font-mono text-2xl font-semibold tracking-tight">
               {score}
               <span className="text-muted-foreground text-base">/{max}</span>
             </p>
@@ -102,7 +102,7 @@ function SkillRow({ entry }: { entry: SkillBreakdown }) {
         <span className="truncate">{entry.name}</span>
       </span>
       <span className="flex shrink-0 items-center gap-2">
-        <span className="text-muted-foreground tabular-nums">
+        <span className="text-muted-foreground font-mono">
           {entry.correct}/{entry.total}
         </span>
         <Badge className={MASTERY_CHIP[mastery]} variant="secondary">

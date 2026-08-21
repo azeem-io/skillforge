@@ -59,7 +59,7 @@ export function AppSidebar({
           <div className="bg-primary text-primary-foreground flex size-7 shrink-0 items-center justify-center rounded-md">
             <Sparkles className="size-4" />
           </div>
-          <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+          <span className="font-heading text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
             SkillForge
           </span>
         </div>

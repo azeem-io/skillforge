@@ -464,7 +464,7 @@ export function SkillTree({
           <span className="flex items-center gap-1.5 opacity-60">
             <span className="bg-muted border-border size-2 rounded-full border" />
             <span className="text-muted-foreground">Outside goal</span>
-            <span className="font-medium tabular-nums">{counts.unrelated}</span>
+            <span className="font-mono font-medium">{counts.unrelated}</span>
           </span>
         </Legend>
       </div>
