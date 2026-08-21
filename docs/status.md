@@ -3,7 +3,9 @@
 What is built, what is not, and who owns what. Update the boxes as things land —
 this is how Azeem and Awaim stay in sync.
 
-Last updated: 2026-08-21, after the graph rework and the roadmap persisting.
+Last updated: 2026-08-21, after the two new assessments (Data Analysis, Cloud
+& Security) and a pass that re-checked every line against the requirements PDF
+— see `TODO.md`'s "Submission checklist" section for that audit in full.
 
 Every counted number below was read off the running system, not estimated: seed
 counts from Postgres, test counts from `pytest`, endpoint lists from the routers.
@@ -44,7 +46,7 @@ depends on a hardcoded student.
 - [x] Migration `0000_init.sql`, applied and verified against Postgres 17
 - [x] Seed, verified in the live database: **3 categories, 8 subcategories,
       124 skills, 144 prerequisite edges, 4 target roles, 92 role requirements,
-      56 resources, 6 assessments, 60 questions**
+      56 resources, 8 assessments, 80 questions**
 - [x] Seed validates on run: cycle detection, dangling refs, unknown slugs,
       MCQ choice/index range
 - [x] Deterministic ids from slugs, so re-seeding updates rows in place instead
@@ -99,7 +101,7 @@ depends on a hardcoded student.
 - [x] `/tree` — d3 circle packing, student at the root, click-to-focus zoom,
       breadcrumb, search across all three altitudes
 - [x] `/profile` — profile fields, skill claims, projects, certifications,
-      CV upload (pdf/png/jpeg, 5 MB cap)
+      CV upload with inline sandboxed preview (pdf/png/jpeg, 5 MB cap)
 - [x] `/assessments`, `/assessments/[slug]`, `/assessments/attempts/[id]`
 - [x] `/assistant` — multi-turn RAG assistant with retrieved sources
 - [x] `/students`, `/students/[userId]` — mentor and admin dashboard,
@@ -159,13 +161,7 @@ depends on a hardcoded student.
 
 ## In progress
 
-- [ ] **Learning resource library** — staff create resources, covering the PDF's
-      "mentor/admin can create learning resources". Built but **uncommitted**:
-      `backend/skill-service/src/routes/resources.ts` (`GET`/`POST`/`DELETE`),
-      `frontend/app/(app)/resources/page.tsx`,
-      `frontend/components/staff/resource-library.tsx`, `frontend/lib/resources.ts`,
-      plus edits to `skill-service/src/index.ts`, `app-sidebar.tsx` and
-      `lib/student.ts`. Assessment authoring is deliberately out of scope.
+Nothing mid-flight right now — see **Next** for what's queued.
 
 ## Next
 
@@ -174,20 +170,16 @@ depends on a hardcoded student.
       `rationale` on `roadmap_phases`, both fields present in
       `python-analyzer/analyzer/models.py`, both persisted by skill-service,
       both always null because nothing generates the prose. Prose only —
-      never ordering.
-- [ ] **The assistant does not know you took an assessment** — Azeem.
-      `lib/ai-context.ts` sends only `{ roleSlug, demonstrated }`, so "how did
-      I do?" gets a generic answer. The data already exists behind
-      `GET /api/skills/attempts` and `/attempts/:id`; no schema change needed.
-      Highest-value remaining functional gap — see `TODO.md` for the full plan.
+      never ordering. This is the PDF's own Generative AI example ("the AI
+      generates a roadmap") and the feature isn't actually producing that
+      prose yet, even though the chat assistant and agent separately satisfy
+      the Generative AI / Agentic AI checklist items.
 - [ ] **Verify against the live DeepSeek API** — needs a real `DEEPSEEK_API_KEY`
 - [ ] **Seed a populated demo account** — either. A fresh instance is empty, so
       a judge who does not register sees nothing. Must not insert an argon2id
       hash by hand: `backend/auth-service/src/password.ts` exports
       `hashPassword`, and `setup.sh` runs `db:seed` before any service starts,
       so this belongs in a separate `db:seed:demo` script.
-- [ ] **CV preview** — Awaim. `GET /uploads/:id` already serves the bytes with
-      the stored content-type; the profile page only links to it.
 - [ ] Deploy to Coolify — Awaim
 - [ ] Demo video (2–3 min) and presentation (5–7 min) — either
 

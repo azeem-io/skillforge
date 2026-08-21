@@ -24,10 +24,13 @@ export type SeedAssessment = {
 };
 
 /**
- * The six areas the requirements PDF names, one assessment each. Question
- * ordinals are positional — reordering this array renumbers them, and the
- * upsert in seed/index.ts keys on (assessment, ordinal), so append rather than
- * insert if attempt history already exists.
+ * One assessment per subcategory. The first six are the areas the
+ * requirements PDF names; Data Analysis and Cloud and Security cover the
+ * remaining two seeded subcategories so every branch of the taxonomy has a
+ * sitting, not just the six the PDF calls out by name. Question ordinals are
+ * positional — reordering this array renumbers them, and the upsert in
+ * seed/index.ts keys on (assessment, ordinal), so append rather than insert
+ * if attempt history already exists.
  */
 export const ASSESSMENTS: SeedAssessment[] = [
   {
@@ -657,6 +660,241 @@ export const ASSESSMENTS: SeedAssessment[] = [
           "Foreign key relationships",
         ],
         correct: [0],
+      },
+    ],
+  },
+  {
+    slug: "data-analysis-fundamentals",
+    title: "Data Analysis",
+    description:
+      "NumPy and pandas, cleaning and exploring a dataset, the statistics underneath a claim, and getting a result in front of someone.",
+    skill: "data-analysis",
+    questions: [
+      {
+        type: "mcq",
+        question:
+          "Which library provides fast n-dimensional array operations in Python?",
+        skill: "numpy",
+        difficulty: 1,
+        choices: ["NumPy", "Pandas", "Matplotlib", "Requests"],
+        correct: [0],
+      },
+      {
+        type: "recall",
+        question:
+          "Which pandas DataFrame method returns the first n rows, by default 5?",
+        skill: "pandas",
+        difficulty: 1,
+        answer: "head",
+      },
+      {
+        type: "cloze",
+        question:
+          "A ____ notebook mixes runnable code cells with markdown documentation, one cell at a time.",
+        skill: "jupyter",
+        difficulty: 2,
+        answer: "jupyter",
+      },
+      {
+        type: "mcq",
+        question:
+          "Which pandas method drops rows that contain missing values?",
+        skill: "data-cleaning",
+        difficulty: 2,
+        choices: ["dropna", "fillna", "drop_duplicates", "isna"],
+        correct: [0],
+        explanation:
+          "`fillna` keeps the row and substitutes a value instead; `isna` only flags them.",
+      },
+      {
+        type: "mcq",
+        question: "Which measure of central tendency is most sensitive to outliers?",
+        skill: "descriptive-statistics",
+        difficulty: 2,
+        choices: ["Mean", "Median", "Mode", "Range"],
+        correct: [0],
+        explanation:
+          "The median only cares about the middle position, so a handful of extreme values can't drag it.",
+      },
+      {
+        type: "cloze",
+        question:
+          "Two events are ____ if the occurrence of one does not change the probability of the other.",
+        skill: "probability",
+        difficulty: 3,
+        answer: "independent",
+      },
+      {
+        type: "mcq",
+        question:
+          "A hypothesis test returns a p-value below your significance threshold. What do you conclude?",
+        skill: "hypothesis-testing",
+        difficulty: 3,
+        choices: [
+          "Reject the null hypothesis",
+          "Accept the null hypothesis",
+          "Reject the alternative hypothesis",
+          "The sample size was too small to conclude anything",
+        ],
+        correct: [0],
+      },
+      {
+        type: "recall",
+        question:
+          "Which Matplotlib function creates a new figure and a grid of axes in one call?",
+        skill: "matplotlib",
+        difficulty: 3,
+        answer: "subplots|plt.subplots",
+      },
+      {
+        type: "mcq",
+        question:
+          "Which SQL clause groups rows sharing a value so an aggregate can be computed per group?",
+        skill: "sql-for-analytics",
+        difficulty: 2,
+        choices: ["GROUP BY", "ORDER BY", "WHERE", "PARTITION"],
+        correct: [0],
+      },
+      {
+        type: "mcq",
+        question:
+          "In time series data, a pattern that repeats on a fixed calendar interval — daily, weekly, yearly — is called:",
+        skill: "time-series-analysis",
+        difficulty: 4,
+        choices: ["Seasonality", "Trend", "White noise", "Autocorrelation"],
+        correct: [0],
+        explanation:
+          "Trend is the long-run direction; seasonality is the part that repeats on a clock.",
+      },
+    ],
+  },
+  {
+    slug: "cloud-security-fundamentals",
+    title: "Cloud & Security",
+    description:
+      "Cloud computing primitives, and the practices that keep a deployed service and its data from being the easy target.",
+    skill: "cloud-and-security",
+    questions: [
+      {
+        type: "mcq",
+        question: "In cloud computing, what does 'elasticity' mean?",
+        skill: "cloud-fundamentals",
+        difficulty: 1,
+        choices: [
+          "Capacity scales up or down automatically with demand",
+          "Servers are physically portable",
+          "Data is stored in more than one format",
+          "Downtime is guaranteed to be zero",
+        ],
+        correct: [0],
+      },
+      {
+        type: "cloze",
+        question:
+          "In a serverless platform, compute is provisioned only while a ____ is actually running, not continuously.",
+        skill: "serverless",
+        difficulty: 2,
+        answer: "function",
+      },
+      {
+        type: "mcq",
+        question: "An IAM policy primarily controls:",
+        skill: "iam",
+        difficulty: 2,
+        choices: [
+          "Which identities can perform which actions on which resources",
+          "How fast a network connection is",
+          "How data is compressed at rest",
+          "Which region a server runs in",
+        ],
+        correct: [0],
+      },
+      {
+        type: "mcq",
+        question:
+          "A service needs a database password at deploy time. Where should it come from?",
+        skill: "secrets-management",
+        difficulty: 3,
+        choices: [
+          "A secrets manager or injected environment variable, never the repo",
+          "Committed in plaintext next to the code that uses it",
+          "A comment in the Dockerfile",
+          "A shared spreadsheet the team keeps updated",
+        ],
+        correct: [0],
+      },
+      {
+        type: "recall",
+        question: "Which port does HTTPS use by default?",
+        skill: "https-tls",
+        difficulty: 2,
+        answer: "443",
+      },
+      {
+        type: "mcq",
+        question: "Encryption 'at rest' protects data:",
+        skill: "data-encryption",
+        difficulty: 3,
+        choices: [
+          "While it sits on disk or in a backup",
+          "Only while it travels over the network",
+          "Only inside application memory",
+          "Only during the nightly backup job",
+        ],
+        correct: [0],
+        explanation: "Data moving over the wire is 'in transit', a separate property.",
+      },
+      {
+        type: "mcq",
+        question:
+          "Why hash a password with a per-user salt instead of hashing it alone?",
+        skill: "password-hashing",
+        difficulty: 3,
+        choices: [
+          "It stops a precomputed rainbow table from matching every user at once",
+          "It makes the hash reversible if the password is forgotten",
+          "It speeds up the login check",
+          "It removes the need for a slow hash algorithm",
+        ],
+        correct: [0],
+      },
+      {
+        type: "mcq",
+        question: "Authentication answers which question?",
+        skill: "authentication",
+        difficulty: 2,
+        choices: [
+          "Who is this?",
+          "What is this identity allowed to do?",
+          "Is this connection encrypted?",
+          "Is this input well-formed?",
+        ],
+        correct: [0],
+        explanation: "Authorization is the one that answers \"what are they allowed to do\".",
+      },
+      {
+        type: "mcq",
+        question:
+          "A signed-in user requests another user's private data by editing the URL's id. Which control should stop them?",
+        skill: "authorization",
+        difficulty: 3,
+        choices: [
+          "A server-side check that the resource belongs to the caller",
+          "A stronger password policy",
+          "TLS on the connection",
+          "Rate limiting the endpoint",
+        ],
+        correct: [0],
+        explanation:
+          "This is the OWASP class \"broken access control\" — being logged in isn't the same as being allowed.",
+      },
+      {
+        type: "recall",
+        question:
+          "What is the name of the OWASP list ranking the most critical web application security risks?",
+        skill: "owasp-top-ten",
+        difficulty: 4,
+        answer: "OWASP Top Ten|OWASP Top 10|Top Ten|Top 10",
       },
     ],
   },

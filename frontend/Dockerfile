@@ -62,7 +62,6 @@ ENV HOSTNAME=0.0.0.0
 # frontend/server.js inside it and static assets have to be placed by hand.
 COPY --from=build /app/frontend/.next/standalone ./
 COPY --from=build /app/frontend/.next/static ./frontend/.next/static
-COPY --from=build /app/frontend/public ./frontend/public
 
 USER node
 EXPOSE 3000

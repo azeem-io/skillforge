@@ -1,6 +1,7 @@
 # SkillForge — remaining work (PS-03)
 
-Audited against the requirements PDF. 18 deliverables: 12 done, 3 partial, 3 missing.
+Audited against the requirements PDF, most recently 2026-08-21 — see
+"Submission checklist" below for the full deliverable-by-deliverable pass.
 Deploy, demo video and presentation are handled separately — not in this list.
 
 ## P0 — the real functional gap
@@ -61,9 +62,9 @@ Deploy, demo video and presentation are handled separately — not in this list.
 
 ## P1 — worth doing
 
-- [~] Let mentors/admins create learning resources. PDF Core Users says mentor/
+- [x] Let mentors/admins create learning resources. PDF Core Users says mentor/
       admin can "create learning resources, create assessments, and recommend
-      resources". **Built, not yet committed** — in the working tree as
+      resources". Shipped and committed (`3d2e15c`) —
       `backend/skill-service/src/routes/resources.ts` (GET/POST/DELETE),
       `frontend/app/(app)/resources/page.tsx`,
       `frontend/components/staff/resource-library.tsx`, `frontend/lib/resources.ts`,
@@ -83,7 +84,9 @@ Deploy, demo video and presentation are handled separately — not in this list.
       DATABASE_URL shapes (with port, without, with query string, passwordless).
       Password drift now guarded the same way the port already was, by comparing
       `docker inspect` against .env.
-- [ ] A .jpeg or pdf preview for CV etc
+- [x] A .jpeg or pdf preview for CV — shipped (`6772f9a`),
+      `components/profile/cv-preview.tsx`, sandboxed iframe for pdf, `<img>`
+      for images
 
 ## P2 — small polish, drop freely
 
@@ -109,6 +112,80 @@ Deploy, demo video and presentation are handled separately — not in this list.
       with `vh` the canvas is taller than the visible viewport while a mobile
       browser's URL bar is showing. A real device pass is still unticked; see
       `docs/features.md` under Polish.
+
+## Submission checklist — audited against the LoopLab PDF (2026-08-21)
+
+Re-read `Skillforge.pdf` in full (Hackathon Format, PS-03's own spec, the
+Submission Structure, the Final Submission Checklist and the judging rubric)
+and walked every line against the running repo. This is the one place that
+maps every PDF-named deliverable to its actual state — items already tracked
+elsewhere just point there instead of duplicating.
+
+**Missing outright:**
+- [ ] **Live application / deployment URL.** The PDF lists it under both
+      "Submission for PS-03" and the Final Checklist's DevOps section.
+      Tracked in `docs/status.md` → Next, as "Deploy to Coolify — Awaim".
+- [ ] **Demo video (2–3 min) and presentation (5–7 min).** Both named in the
+      Submission list and the Documentation checklist; the PDF gives the
+      8-point presentation outline (problem → SDG → solution → live demo →
+      AI/RAG/Agent → architecture → DevOps → future potential). Tracked in
+      `docs/status.md` → Next. Neither exists yet — no slides, no recording.
+- [x] **LICENSE file.** The Submission Structure's repo tree names it
+      explicitly; `package.json` already declared `"license": "MIT"` with
+      nothing to back it. Added `LICENSE` (MIT) at the repo root.
+
+**Partially met:**
+- [ ] **Kubernetes manifests.** The PDF asks for them generically; ours cover
+      auth-service, profile-api, skill-service, api-gateway and frontend but
+      not ai-service or python-analyzer, even though
+      `kubernetes/01-config.yaml` sets both services' URLs. Full detail in
+      `docs/status.md` → Known issues, and `docs/features.md` → Next up.
+- [~] **Architecture diagram / database schema as image files.** The
+      Submission Structure's tree names `docs/architecture.png` and
+      `docs/database-schema.png` specifically; we instead have the same
+      content as `mermaid` blocks inside `docs/architecture.md` and
+      `docs/schema.md`, which GitHub renders inline as diagrams. Judges
+      reading the repo on GitHub see the actual diagrams either way — this is
+      a format mismatch against the PDF's suggested tree, not a missing
+      deliverable. Exporting static PNGs alongside the `.md` sources is a
+      cosmetic nice-to-have, not a functional gap; low priority.
+- [ ] **Roadmap narration/rationale prose.** This is the PDF's own worked
+      Generative AI example on PS-03's page ("I know Python... what should I
+      learn next?" → "The AI generates a roadmap"). The columns are plumbed
+      and always null — full detail in `docs/status.md` → Next. The Generative
+      AI / RAG / Agentic AI checklist boxes are independently satisfied by the
+      chat assistant, `/search` and the 6-tool agent, so this doesn't block
+      the AI section of the rubric, but it's the most literal reading of that
+      one example and is worth doing before judging.
+
+**Explicitly approved deviation, now written down where a judge can find it:**
+- [x] **MongoDB → PostgreSQL.** The PDF's *generic* cross-problem-statement
+      architecture diagram names MongoDB; PS-03's own service diagram doesn't
+      name a database at all, and that's the one `docs/architecture.md` and
+      `CLAUDE.md` say we match exactly. Organizers gave explicit permission to
+      substitute a different data store that does the same job. Recorded in
+      `docs/decisions.md` under "Database: self-hosted Postgres, not
+      Supabase" so it reads as a documented, approved call rather than a
+      silent requirement miss.
+
+**Docs corrected today, no longer contradicting the running system:**
+- `docs/architecture.md` — the system diagram marked `ai-service` and
+  `python-analyzer` as dashed/"not built yet" and drew both writing to
+  Postgres; neither has been true for a while (both are fully built per
+  `docs/status.md`, and neither service holds a `DATABASE_URL`).
+- `docs/status.md` — "In progress" still listed the mentor/admin resource
+  library as uncommitted (it shipped in `3d2e15c`); "Next" still listed the
+  assistant's assessment-awareness work as undone (it's the completed P0 item
+  above) and CV preview as unbuilt (shipped in `6772f9a`).
+- `docs/features.md` / `README.md` — both said "six areas, sixty questions"
+  for `/assessments`; now eight areas / eighty questions, matching the new
+  Data Analysis and Cloud & Security assessments added alongside this audit.
+
+Rubric-wise, none of the above touches the largest line items (Core
+Functionality 20, AI/RAG/Agentic 30, Docker+K8s+Terraform 10) — the gaps that
+remain are the deploy/video/presentation trio everyone already knows about,
+plus the two-service Kubernetes gap and the roadmap prose, both already on
+someone's plate.
 
 ## Deliberately not doing
 
