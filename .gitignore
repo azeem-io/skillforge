@@ -53,3 +53,6 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 skillforge-work-split.md
+
+# stray env backups — one of these shipped a live API key once
+*.bak
