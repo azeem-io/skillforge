@@ -38,6 +38,7 @@ npm-debug.log*
 uploads/
 .cache/
 coverage/
+.run/
 
 # terraform
 .terraform/
