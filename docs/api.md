@@ -144,11 +144,73 @@ self-graded review is not evidence of a level.
 roadmap rather than deleting it, so regenerating shows movement instead of
 overwriting the evidence of it.
 
+## ai-service
+
+Two prefixes reach the same service, and the difference matters.
+
+- **`/ai/*`** — Next route handlers. They assemble the signed-in student's
+  context server-side, then call ai-service. **This is what the UI calls.** The
+  browser never states what a student has demonstrated.
+- **`/api/ai/*`** — the gateway forwarding to ai-service unchanged. Raw service
+  access, used for testing.
+
+### What the UI calls
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| POST | `/ai/chat` | `{ question, history? }` | `{ answer, sources }` |
+| POST | `/ai/agent` | `{ question, history? }` | `{ answer, steps }` |
+| POST | `/ai/expand` | `{ skill, subcategory?, count? }` | `{ skills }` |
+
+`history` is the last 10 text turns as `{ role, content }`, trimmed client-side
+and re-validated server-side. Tool-call frames never leave the server.
+
+`sources` is `[{ source, relevance }]` — the retrieved chunks, in citation
+order, so `[1]` in the answer is `sources[0]`. `steps` is `[{ tool }]`, the tools
+the agent actually called.
+
+### ai-service itself — `/api/ai/*`
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| POST | `/api/ai/chat` | `{ question, k?, context?, history? }` | `{ answer, sources }` |
+| POST | `/api/ai/agent` | `{ question, context, history? }` | `{ answer, steps }` |
+| POST | `/api/ai/search` | `{ query, k? }` | `{ results }` — retrieval only, no generation |
+| POST | `/api/ai/expand` | `{ skill, subcategory?, count? }` | `{ skills }` |
+| GET | `/api/ai/health` | — | `{ ok, service, chunks }` |
+
+`context` is the student payload the Next routes assemble: `skills`, `edges`,
+`requirements`, `demonstrated`, `roles` and `target_role`. `k` is how many chunks
+to retrieve, default 4.
+
+### The agent's tools
+
+`/agent` runs a DeepSeek tool-calling loop. Five tools, four of them named by the
+problem statement:
+
+| Tool | Does |
+|---|---|
+| `analyze_student_skills` | Current levels, per-category strength, readiness inputs |
+| `generate_skill_gap` | Calls python-analyzer `/gaps` — weighted gaps against the target role |
+| `create_roadmap` | Calls python-analyzer `/roadmap` — phases from the topological sort |
+| `compare_target_roles` | Ranks every seeded role against what the student has |
+| `search_learning_resources` | Seeded `resources` rows for the skills in question |
+
+The model chooses which to call and in what order; it never computes a number
+itself. Readiness percentages, gap counts and phase ordering come from the
+analyzer or not at all — the system prompt forbids guessing them, because a model
+inventing a readiness score would contradict the dashboard.
+
 ## The python-analyzer contract
 
 skill-service calls `POST {PYTHON_ANALYZER_URL}/roadmap` with a 4s timeout and
-falls back to a local topological layering on any failure. The service is not
-built yet; this is the shape it has to return.
+falls back to a local topological layering on any failure. This is the shape it
+returns.
+
+python-analyzer also serves `/analyze`, `/gaps`, `/score`, `/compare` and
+`/plan`. `/roadmap` speaks ai-service's `AnalysisRequest`; `/plan` speaks
+skill-service's `SkillRow`. The two shapes are deliberate — changing one does
+not change the other.
 
 Request:
 
