@@ -26,10 +26,10 @@ const spaceGrotesk = localFont({
   fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
 });
 
-const jetbrainsMono = localFont({
-  src: "./fonts/JetBrainsMono-Variable.woff2",
-  variable: "--font-jetbrains-mono",
-  weight: "100 800",
+const geistMono = localFont({
+  src: "./fonts/GeistMono-Variable.woff2",
+  variable: "--font-geist-mono",
+  weight: "100 900",
   display: "swap",
   fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
 });
@@ -44,7 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geist.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${geist.variable} ${spaceGrotesk.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
