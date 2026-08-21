@@ -79,9 +79,14 @@ if [ "$MODE" = "--local" ]; then
   # it so the container we start or reuse actually matches what migrate/seed
   # will connect to.
   db_url=$(grep -E '^DATABASE_URL=' .env | cut -d= -f2-)
-  pg_port=$(printf '%s' "$db_url" | sed -E 's#.*:([0-9]+)/[^/]*$#\1#')
+  # -n plus p, not a bare s///: a URL with no port does not match, and a bare
+  # s/// passes its input through, which would set pg_port to the whole URL.
+  pg_port=$(printf '%s' "$db_url" | sed -nE 's#.*:([0-9]+)/[^/?]*([?].*)?$#\1#p')
   pg_port=${pg_port:-5432}
   pg_password=$(grep -E '^POSTGRES_PASSWORD=' .env | cut -d= -f2-)
+  # Only as a fallback: a password inside the URL is percent-encoded, and the
+  # container needs the decoded byte string.
+  pg_password=${pg_password:-$(printf '%s' "$db_url" | sed -nE 's#^[^:]+://[^:/@]+:([^@]*)@.*#\1#p')}
 
   if [ -z "$(docker ps -q -f name=^skillforge-postgres$)" ]; then
     if [ -n "$(docker ps -aq -f name=^skillforge-postgres$)" ]; then
@@ -110,6 +115,16 @@ if [ "$MODE" = "--local" ]; then
     die "skillforge-postgres is published on :${actual_port} but DATABASE_URL in .env points at :${pg_port}. Update DATABASE_URL's port in .env (and frontend/.env.local) to ${actual_port}, or 'docker rm -f skillforge-postgres' and re-run to recreate it on :${pg_port}."
   fi
 
+  # Same failure shape as the port check, one step later: a container created
+  # from an older .env keeps its original password, and the regenerated one in
+  # DATABASE_URL then fails as a bare 28P01 from migrate.
+  actual_password=$(docker inspect skillforge-postgres \
+    --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null \
+    | sed -nE 's/^POSTGRES_PASSWORD=(.*)$/\1/p' | head -1)
+  if [ -n "$actual_password" ] && [ "$actual_password" != "$pg_password" ]; then
+    die "skillforge-postgres was created with a different password than DATABASE_URL in .env carries. Either restore the old password in .env (and frontend/.env.local), or 'docker rm -f skillforge-postgres' and re-run to recreate it — that drops the existing database."
+  fi
+
   printf '  waiting for Postgres'
   for _ in $(seq 1 30); do
     if docker exec skillforge-postgres pg_isready -U skillforge -d skillforge >/dev/null 2>&1; then
@@ -130,8 +145,13 @@ if [ "$MODE" = "--local" ]; then
   run_dir="$ROOT/.run"
   mkdir -p "$run_dir"
 
+  # fastembed defaults its cache to $TMPDIR/fastembed_cache, so every reboot
+  # re-downloads the embedding model. The Dockerfile pins it to /opt/fastembed;
+  # this is the host equivalent.
+  export FASTEMBED_CACHE_PATH="${FASTEMBED_CACHE_PATH:-${XDG_CACHE_HOME:-$HOME/.cache}/fastembed}"
+
   start_python_service() {
-    local name="$1" dir="$2" port="$3" wait_secs="${4:-60}"
+    local name="$1" dir="$2" port="$3" wait_secs="${4:-60}" prewarm="${5:-}"
     if curl -sf --max-time 1 "http://localhost:${port}/health" >/dev/null 2>&1; then
       ok "$name already running on :${port}"
       return
@@ -140,6 +160,13 @@ if [ "$MODE" = "--local" ]; then
       python3 -m venv "$dir/.venv"
     fi
     "$dir/.venv/bin/pip" install -q -r "$dir/requirements.txt"
+    # Before the health clock starts, not inside startup: a cold model download
+    # is slower than any health timeout worth waiting on.
+    if [ -n "$prewarm" ]; then
+      printf '  fetching the embedding model for %s (first run only)\n' "$name"
+      ( set -a; source "$ROOT/.env"; set +a; "$dir/.venv/bin/python" -c "$prewarm" ) \
+        || die "$name could not fetch its embedding model — needs huggingface.co"
+    fi
     (
       cd "$dir"
       set -a; source "$ROOT/.env"; set +a
@@ -155,6 +182,10 @@ if [ "$MODE" = "--local" ]; then
       if curl -sf --max-time 1 "http://localhost:${port}/health" >/dev/null 2>&1; then
         printf '\n'; ok "$name started on :${port}"; return
       fi
+      if ! kill -0 "$(cat "$run_dir/${name}.pid")" 2>/dev/null; then
+        printf '\n'
+        die "$name exited during startup — see $run_dir/${name}.log"
+      fi
       printf '.'; sleep 1
     done
     printf '\n'
@@ -164,10 +195,13 @@ if [ "$MODE" = "--local" ]; then
   # python-analyzer first: ai-service's own tools call it for gaps/roadmaps.
   start_python_service python-analyzer "$ROOT/python-analyzer" 8085
   # ai-service embeds the whole knowledge base at boot before it opens the
-  # port (see its README) — the compose healthcheck gives it a 60s start
-  # period on a *warm* image for the same reason, so a cold local venv
-  # downloading the embedding model needs more slack than the default.
-  start_python_service ai-service "$ROOT/ai-service" 8084 120
+  # port (see its README), which is ~75s for the current corpus on a laptop —
+  # the compose healthcheck gives it a 60s start period on a *warm* image for
+  # the same reason. The prewarm keeps a cold model download out of that
+  # window; the rest is the embedding itself, so the budget is generous. A
+  # service that dies is caught by the pid check, not by this number.
+  start_python_service ai-service "$ROOT/ai-service" 8084 300 \
+    "import os; from fastembed import TextEmbedding; TextEmbedding(model_name=os.environ.get('EMBEDDING_MODEL', 'BAAI/bge-small-en-v1.5'))"
 
   bold "Ready"
   cat <<MSG
