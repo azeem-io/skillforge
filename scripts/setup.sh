@@ -244,13 +244,13 @@ for service in postgres python-analyzer ai-service auth-service profile-api skil
 done
 
 bold "Ready"
-site=$(grep -E '^SITE_ADDRESS=' .env | cut -d= -f2)
 cat <<MSG
-  https://${site:-localhost}          the app
-  https://${site:-localhost}/api/skills/roles   through the gateway
+  http://localhost:3000                    the app
+  http://localhost:3000/api/skills/roles   through the gateway
 
-  Caddy issues its own certificate for localhost, so the first visit shows a
-  browser warning. That is the internal CA, not a misconfiguration.
+  Need HTTPS on this box (no Coolify in front)? Add Caddy with
+    docker compose --profile edge up -d
+  It signs for localhost with its own CA, so expect one browser warning.
 
   docker compose logs -f <service>    follow a service
   docker compose down                stop, keeping the database volume

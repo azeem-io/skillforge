@@ -11,9 +11,12 @@ bun run up                  # docker compose up -d --build
 bun run down
 ```
 
-Then **http://localhost:3000** — plain HTTP, no certificate warning. Caddy also
-serves `https://localhost` on 443, which is the real entry point, but it signs
-with its own CA so a browser shows an interstitial first.
+Then **http://localhost:3000**. Caddy is opt-in (`bun run up:edge`) because
+in production Coolify's own proxy terminates TLS; locally it serves
+`https://localhost` with a self-signed certificate if you want it.
+
+Deploying: `docs/deploy.md`. CI: `.github/workflows/ci.yml`, the gates from
+`docs/cicd.md`. Production env: `./scripts/prod-env.sh <domain>`.
 
 `bun run up` passes `--build`. Without it Compose tries to *pull*
 `skillforge/*:local` from Docker Hub and fails; these images only exist locally.
@@ -40,7 +43,8 @@ Everyone registers as a student. The first admin is made from outside the app:
 - **FastAPI** for the two Python services
 - **DeepSeek** for all LLM calls (OpenAI-compatible SDK, `base_url` swapped)
 - **fastembed** for embeddings — DeepSeek has no embeddings endpoint
-- **Docker Compose** is both local dev and production. Deployed via Coolify.
+- **Docker Compose** is both local dev and production. Deployed via Coolify,
+  whose proxy fronts the stack — Caddy only runs under the `edge` profile.
 
 ## Hard rules
 

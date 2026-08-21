@@ -93,30 +93,21 @@ Rollback is `IMAGE_TAG` — build tagged images rather than `:local` and a previ
 tag is one variable away. The database is not rolled back with them; migrations
 are forward-only.
 
-## Adding a real pipeline
+## The pipeline
 
-A GitHub Actions workflow running the four gates on pull requests is the
-smallest useful version, and the one the problem statement counts as a bonus:
+`.github/workflows/ci.yml` runs the four gates on every push and pull request,
+as three parallel jobs: TypeScript, the two Python suites (a matrix), and
+`docker compose --profile edge config -q` with placeholder values. It needs no
+secrets — the Python tests stub DeepSeek and compose is validated, not started.
 
-```yaml
-# .github/workflows/ci.yml
-on: [pull_request]
-jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bun run typecheck
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
-      - run: pip install -r python-analyzer/requirements.txt && pytest python-analyzer
-      - run: pip install -r ai-service/requirements.txt && pytest ai-service
-      - run: docker compose config -q
-```
+Deploys are not a workflow step. Coolify's GitHub app redeploys on every push to
+`main`, building on the VPS itself (12 GB — the Next build is the heavy part).
+Secrets live in Coolify's environment, nowhere in GitHub. The full click path is
+in `docs/deploy.md`; `scripts/prod-env.sh <domain>` prints the environment to
+paste.
 
-Build-and-push would follow on `main`, tagging with the commit SHA and letting
-Coolify redeploy from the registry rather than building on the VPS — the Next
-build is memory-hungry and building on a small box is the slowest part of a
-deploy.
+CI reports next to the commit but does not gate the deploy — a red check and a
+successful deploy can coexist. Tightening that means moving the build into
+Actions and letting Coolify pull a tagged image (`IMAGE_PREFIX`/`IMAGE_TAG` are
+already wired into the compose file for it), which is the next step if a broken
+push ever reaches the box.
