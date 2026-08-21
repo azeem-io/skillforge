@@ -60,7 +60,7 @@ Running from a local venv instead, the download does happen once —
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements-dev.txt
-.venv/bin/pytest                      # 33 tests, no key or network needed
+.venv/bin/pytest                      # 45 tests, no key or network needed
 KNOWLEDGE_BASE_PATH=../rag/knowledge-base \
   .venv/bin/uvicorn main:app --reload --port 8084
 ```
