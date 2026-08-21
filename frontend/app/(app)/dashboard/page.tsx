@@ -61,7 +61,7 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-semibold">Dashboard</h1>
           <p className="text-muted-foreground text-sm">
             {profile.name ? `${profile.name} — working` : "Working"} toward{" "}
             <span className="text-foreground font-medium">{role.name}</span>
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
 
       {demonstrated === 0 && <FirstSteps roleName={role.name} />}
 
-      <DashboardAsk />
+      <DashboardAsk userId={profile.userId} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -88,7 +88,9 @@ export default async function DashboardPage() {
             <CardDescription>{role.summary}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="text-4xl font-semibold tabular-nums">{score}%</div>
+            <div className="font-mono text-4xl font-semibold tracking-tight">
+              {score}%
+            </div>
             <Progress value={score} />
             <p className="text-muted-foreground text-xs">
               Weighted by how much each skill matters to the role.
@@ -114,7 +116,7 @@ export default async function DashboardPage() {
                   <span className="text-sm font-medium">
                     {MASTERY_LABEL[mastery]}
                   </span>
-                  <span className="text-lg font-semibold tabular-nums">
+                  <span className="font-mono text-lg font-semibold">
                     {count}
                   </span>
                 </div>
