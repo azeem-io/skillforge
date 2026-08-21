@@ -23,7 +23,14 @@ import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
 import { FirstSteps } from "@/components/layout/first-steps";
 import { phases, readiness } from "@/lib/skills";
-import { roleGraph, roleOptions, requireTargetRole } from "@/lib/student";
+import { StaffOverview } from "@/components/staff/staff-overview";
+import {
+  mentorships,
+  requireUser,
+  roleGraph,
+  roleOptions,
+  roster,
+} from "@/lib/student";
 
 import type { Metadata } from "next";
 
@@ -35,7 +42,31 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Dashboard · SkillForge" };
 
 export default async function DashboardPage() {
-  const { profile, roleSlug } = await requireTargetRole();
+  const profile = await requireUser();
+
+  // Staff never have a target role, so every number below would be measured
+  // against nothing and they would land on the goal picker instead. Note this
+  // cannot call requireStaff(): that redirects a student to /dashboard, which
+  // is this page.
+  if (profile.role !== "student") {
+    const [{ students }, pairs] = await Promise.all([
+      roster(),
+      // Only an admin can see who mentors whom. A mentor reading their own
+      // roster already knows: it is them.
+      profile.role === "admin"
+        ? mentorships()
+        : Promise.resolve({ mentorships: [] }),
+    ]);
+    return (
+      <StaffOverview
+        staff={profile}
+        students={students}
+        mentoredIds={new Set(pairs.mentorships.map((pair) => pair.studentId))}
+      />
+    );
+  }
+
+  const roleSlug = profile.targetRoleSlug;
   const options = await roleOptions();
 
   if (!roleSlug) return <GoalPicker options={options} />;
