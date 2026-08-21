@@ -135,6 +135,11 @@ locally rather than an API.
 - `docs/cicd.md` — build, test gates, migrations, deploy and rollback
 - `docs/decisions.md` — settled decisions and why; read before re-proposing
 
+`docs/architecture.pdf`, `docs/database-schema.pdf` and `docs/api.pdf` are the
+same three documents as PDFs, diagrams rendered, for reading outside GitHub.
+The markdown is authoritative — regenerate the PDFs from it rather than editing
+them.
+
 ## Deployment
 
 `docker-compose.yml` is both local development and production, deployed with
