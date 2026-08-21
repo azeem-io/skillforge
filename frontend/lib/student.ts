@@ -4,6 +4,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import { api, apiOrNull } from "@/lib/api";
+import type { Resource } from "@/lib/resources";
 import type { SkillRow, TreeSkill } from "@skillforge/db";
 
 export type Me = {
@@ -133,4 +134,13 @@ export function studentDetail(userId: string) {
       evidence: string | null;
     }[];
   }>(`/api/profile/students/${encodeURIComponent(userId)}`);
+}
+
+/**
+ * The whole resource library, newest first. Small enough (a few dozen rows) to
+ * fetch once and filter in the browser, which is what lets the add form show
+ * what a skill already has without a round trip per selection.
+ */
+export function resourceLibrary() {
+  return api<{ resources: Resource[] }>("/api/skills/resources");
 }

@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogIn,
   Route,
+  Library,
   Sparkles,
   User,
   Users,
@@ -105,6 +106,18 @@ export function AppSidebar({
                       <span>
                         {user?.role === "admin" ? "All users" : "My students"}
                       </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Resources"
+                    isActive={pathname.startsWith("/resources")}
+                  >
+                    <Link href="/resources">
+                      <Library />
+                      <span>Resources</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
