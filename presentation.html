@@ -1,0 +1,1568 @@
+<title>SkillForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+  /* ============================================================
+     Tokens ported from frontend/app/globals.css.
+     Light is the base; dark redefines tokens only.
+     ============================================================ */
+  :root {
+    --bg:        oklch(0.986 0.006 96);
+    --bg-dim:    oklch(0.962 0.005 96);
+    --surface:   oklch(1 0 0);
+    --ink:       oklch(0.271 0.016 102.2);
+    --ink-soft:  oklch(0.505 0.019 93.5);
+    --ink-faint: oklch(0.635 0.012 96);
+    --line:      oklch(0.876 0.008 96);
+    --line-soft: oklch(0.925 0.006 96);
+
+    --teal:       oklch(0.505 0.064 195);
+    --teal-mid:   oklch(0.624 0.079 195);
+    --teal-ring:  oklch(0.746 0.094 195);
+    --teal-wash:  oklch(0.955 0.024 195);
+
+    /* Reserved for model-generated content only. Gold always means
+       "a model wrote this" — in the app and in this deck. */
+    --gold:       oklch(0.804 0.161 72.71);
+    --gold-wash:  oklch(0.968 0.030 68);
+    --gold-ink:   oklch(0.352 0.070 62);
+
+    --green:      oklch(0.755 0.128 153.5);
+    --green-wash: oklch(0.951 0.058 153.42);
+    --green-ink:  oklch(0.320 0.055 153.34);
+
+    --red:        oklch(0.623 0.199 36.66);
+    --red-wash:   oklch(0.940 0.030 24.23);
+    --red-ink:    oklch(0.330 0.095 33);
+
+    --grey:       oklch(0.809 0.025 96.6);
+    --grey-wash:  oklch(0.948 0.010 94.94);
+    --grey-ink:   oklch(0.474 0.014 96.59);
+
+    --shadow: 0 1px 2px oklch(0.271 0.016 102.2 / 0.05),
+              0 8px 24px -12px oklch(0.271 0.016 102.2 / 0.14);
+
+    --step--1: clamp(0.72rem, 0.68rem + 0.18vw, 0.82rem);
+    --step-0:  clamp(0.94rem, 0.88rem + 0.28vw, 1.08rem);
+    --step-1:  clamp(1.10rem, 1.00rem + 0.50vw, 1.38rem);
+    --step-2:  clamp(1.45rem, 1.20rem + 1.10vw, 2.10rem);
+    --step-3:  clamp(1.95rem, 1.45rem + 2.20vw, 3.20rem);
+    --step-4:  clamp(2.60rem, 1.70rem + 3.90vw, 5.20rem);
+
+    --rail: 56px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        oklch(0.145 0 0);
+      --bg-dim:    oklch(0.118 0.005 96);
+      --surface:   oklch(0.196 0.008 96);
+      --ink:       oklch(0.985 0 0);
+      --ink-soft:  oklch(0.700 0.012 96);
+      --ink-faint: oklch(0.480 0.010 96);
+      --line:      oklch(0.318 0.010 96);
+      --line-soft: oklch(0.255 0.008 96);
+
+      --teal:       oklch(0.830 0.078 195);
+      --teal-mid:   oklch(0.746 0.094 195);
+      --teal-ring:  oklch(0.624 0.079 195);
+      --teal-wash:  oklch(0.268 0.032 195);
+
+      --gold:       oklch(0.845 0.150 74);
+      --gold-wash:  oklch(0.288 0.058 70);
+      --gold-ink:   oklch(0.940 0.046 62);
+
+      --green:      oklch(0.790 0.120 153.5);
+      --green-wash: oklch(0.278 0.048 153.34);
+      --green-ink:  oklch(0.940 0.055 153.42);
+
+      --red:        oklch(0.700 0.170 34);
+      --red-wash:   oklch(0.272 0.080 33);
+      --red-ink:    oklch(0.930 0.040 24);
+
+      --grey:       oklch(0.420 0.012 96);
+      --grey-wash:  oklch(0.262 0.010 96);
+      --grey-ink:   oklch(0.720 0.012 96);
+
+      --shadow: 0 1px 2px oklch(0 0 0 / 0.4),
+                0 10px 28px -14px oklch(0 0 0 / 0.7);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg:        oklch(0.145 0 0);
+    --bg-dim:    oklch(0.118 0.005 96);
+    --surface:   oklch(0.196 0.008 96);
+    --ink:       oklch(0.985 0 0);
+    --ink-soft:  oklch(0.700 0.012 96);
+    --ink-faint: oklch(0.480 0.010 96);
+    --line:      oklch(0.318 0.010 96);
+    --line-soft: oklch(0.255 0.008 96);
+
+    --teal:       oklch(0.830 0.078 195);
+    --teal-mid:   oklch(0.746 0.094 195);
+    --teal-ring:  oklch(0.624 0.079 195);
+    --teal-wash:  oklch(0.268 0.032 195);
+
+    --gold:       oklch(0.845 0.150 74);
+    --gold-wash:  oklch(0.288 0.058 70);
+    --gold-ink:   oklch(0.940 0.046 62);
+
+    --green:      oklch(0.790 0.120 153.5);
+    --green-wash: oklch(0.278 0.048 153.34);
+    --green-ink:  oklch(0.940 0.055 153.42);
+
+    --red:        oklch(0.700 0.170 34);
+    --red-wash:   oklch(0.272 0.080 33);
+    --red-ink:    oklch(0.930 0.040 24);
+
+    --grey:       oklch(0.420 0.012 96);
+    --grey-wash:  oklch(0.262 0.010 96);
+    --grey-ink:   oklch(0.720 0.012 96);
+
+    --shadow: 0 1px 2px oklch(0 0 0 / 0.4),
+              0 10px 28px -14px oklch(0 0 0 / 0.7);
+  }
+
+  /* ============================================================ */
+
+  * { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: var(--step-0);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  /* ---------- deck shell ---------- */
+
+  .deck {
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-snap-type: y proximity;
+    scrollbar-width: none;
+  }
+  .deck::-webkit-scrollbar { display: none; }
+
+  .slide {
+    scroll-snap-align: start;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(2.2rem, 4vh, 4rem) clamp(1.1rem, 4vw, 4.5rem);
+    padding-right: calc(clamp(1.1rem, 4vw, 4.5rem) + var(--rail));
+    position: relative;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .slide > * { max-width: 1180px; width: 100%; margin-inline: auto; }
+
+  .slide--dim { background: var(--bg-dim); }
+
+  /* ---------- type ---------- */
+
+  h1, h2, h3, .display {
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: var(--step-3);
+    font-weight: 600;
+    line-height: 1.06;
+    letter-spacing: -0.022em;
+  }
+
+  h3 {
+    font-size: var(--step-1);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.012em;
+  }
+
+  p { margin: 0; }
+
+  .lede {
+    font-size: var(--step-1);
+    color: var(--ink-soft);
+    line-height: 1.5;
+    max-width: 62ch;
+    font-weight: 300;
+  }
+
+  .eyebrow {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: var(--step--1);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--teal);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .eyebrow::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .eyebrow .num {
+    color: var(--ink-faint);
+    font-weight: 400;
+  }
+
+  .head { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: clamp(1.4rem, 3vh, 2.4rem); }
+
+  code, .mono {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.88em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  code {
+    background: var(--grey-wash);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 0.08em 0.34em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  strong { font-weight: 600; color: var(--ink); }
+
+  /* ---------- primitives ---------- */
+
+  .grid { display: grid; gap: clamp(0.7rem, 1.6vw, 1.15rem); }
+  .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: clamp(0.95rem, 1.8vw, 1.35rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: var(--shadow);
+  }
+  .card h3 { font-size: var(--step-0); }
+  .card p { font-size: var(--step--1); color: var(--ink-soft); line-height: 1.55; }
+  .card .mono-label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* accent variants — used only where the colour means something */
+  .card--ai   { border-color: var(--gold); background: var(--gold-wash); }
+  .card--ai h3, .card--ai .mono-label { color: var(--gold-ink); }
+  .card--ai p { color: var(--gold-ink); opacity: 0.88; }
+
+  .card--teal { border-color: var(--teal-ring); background: var(--teal-wash); }
+  .card--teal h3 { color: var(--teal); }
+  .card--teal p { color: var(--ink-soft); }
+
+  /* ---------- mastery chips: the app's real state encoding ---------- */
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.24rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  .chip--mastered { background: var(--green-wash); color: var(--green-ink); border-color: var(--green); }
+  .chip--mastered .dot { background: var(--green); }
+  .chip--progress { background: var(--teal-wash); color: var(--teal); border-color: var(--teal-ring); }
+  .chip--progress .dot { background: var(--teal-ring); }
+  .chip--gap      { background: var(--red-wash); color: var(--red-ink); border-color: var(--red); }
+  .chip--gap .dot { background: var(--red); }
+  .chip--locked   { background: var(--grey-wash); color: var(--grey-ink); border-color: var(--grey); }
+  .chip--locked .dot { background: var(--grey-ink); }
+  .chip--ai       { background: var(--gold-wash); color: var(--gold-ink); border-color: var(--gold); }
+  .chip--ai .dot  { background: var(--gold); }
+
+  .chiprow { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+
+  /* ---------- stats ---------- */
+
+  .stat { display: flex; flex-direction: column; gap: 0.15rem; }
+  .stat .n {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: var(--step-2);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .stat .k {
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    line-height: 1.35;
+  }
+  .stat--teal .n { color: var(--teal); }
+  .stat--gold .n { color: var(--gold-ink); }
+
+  /* ---------- lists ---------- */
+
+  ul.clean { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+  ul.clean li {
+    position: relative;
+    padding-left: 1.15rem;
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  ul.clean li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0.62em;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--teal-ring);
+  }
+
+  /* ---------- numbered rule steps (a real sequence) ---------- */
+
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    gap: 0.9rem;
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--line-soft);
+    align-items: baseline;
+  }
+  .step:last-child { border-bottom: 1px solid var(--line-soft); }
+  .step .idx {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--teal);
+    font-variant-numeric: tabular-nums;
+  }
+  .step .body { font-size: var(--step--1); color: var(--ink-soft); line-height: 1.55; }
+  .step .body b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- table ---------- */
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+  th, td { text-align: left; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  thead th {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    background: var(--bg-dim);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.route { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.8rem; color: var(--teal); white-space: nowrap; }
+  td.dim { color: var(--ink-soft); }
+
+  /* ---------- callout: the thesis device ---------- */
+
+  .thesis {
+    border-left: 3px solid var(--teal-ring);
+    padding: 0.2rem 0 0.2rem 1.15rem;
+    font-size: var(--step-1);
+    font-weight: 300;
+    line-height: 1.45;
+    color: var(--ink);
+    max-width: 60ch;
+  }
+
+  .gold-block {
+    border: 1px solid var(--gold);
+    background: var(--gold-wash);
+    border-radius: 10px;
+    padding: clamp(0.9rem, 1.8vw, 1.25rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .gold-block .quote {
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: var(--gold-ink);
+    font-style: italic;
+  }
+
+  /* ---------- diagrams ---------- */
+
+  .figure { overflow-x: auto; }
+  .figure svg { display: block; min-width: 640px; width: 100%; height: auto; }
+  .fig-cap {
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing: 0.04em;
+    margin-top: 0.5rem;
+  }
+
+  .n-box { fill: var(--surface); stroke: var(--line); stroke-width: 1.25; }
+  .n-box--gw { fill: var(--teal-wash); stroke: var(--teal-ring); stroke-width: 1.5; }
+  .n-box--py { fill: var(--surface); stroke: var(--teal-ring); stroke-width: 1.5; stroke-dasharray: 0; }
+  .n-box--db { fill: var(--bg-dim); stroke: var(--line); stroke-width: 1.25; }
+  .n-t   { fill: var(--ink); font-family: "Space Grotesk", sans-serif; font-size: 13px; font-weight: 600; }
+  .n-s   { fill: var(--ink-faint); font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 0.04em; }
+  .edge  { stroke: var(--line); stroke-width: 1.4; fill: none; }
+  .edge--hot { stroke: var(--teal-ring); stroke-width: 1.6; fill: none; }
+  .edge--dash { stroke: var(--teal-ring); stroke-width: 1.4; fill: none; stroke-dasharray: 4 3; }
+  .e-lab { fill: var(--ink-faint); font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 0.03em; }
+
+  .dag-mastered { fill: var(--green-wash); stroke: var(--green); stroke-width: 1.6; }
+  .dag-progress { fill: var(--teal-wash); stroke: var(--teal-ring); stroke-width: 1.6; }
+  .dag-gap      { fill: var(--red-wash); stroke: var(--red); stroke-width: 1.6; }
+  .dag-locked   { fill: var(--grey-wash); stroke: var(--grey); stroke-width: 1.6; }
+  .dag-t { font-family: "Geist", sans-serif; font-size: 11px; font-weight: 500; fill: var(--ink); }
+  .band  { fill: var(--ink); opacity: 0.028; }
+  .band-t { fill: var(--ink-faint); font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* ---------- title slide ---------- */
+
+  .title-slide { display: flex; flex-direction: column; gap: clamp(1.2rem, 3vh, 2rem); }
+  .wordmark {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: var(--step-4);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 0.92;
+    margin: 0;
+  }
+  .wordmark .forge { color: var(--teal); }
+  .title-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.6rem;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+  .title-meta b { color: var(--ink-soft); font-weight: 500; }
+
+  .hairline { height: 1px; background: var(--line); width: 100%; }
+
+  /* ---------- rail nav ---------- */
+
+  .rail {
+    position: fixed;
+    right: 0; top: 0;
+    height: 100dvh;
+    width: var(--rail);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    z-index: 40;
+    background: linear-gradient(to left, var(--bg) 55%, transparent);
+  }
+  .rail button {
+    width: 7px; height: 7px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: transparent;
+    cursor: pointer;
+    transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+  }
+  .rail button:hover { border-color: var(--teal-ring); transform: scale(1.35); }
+  .rail button[aria-current="true"] {
+    background: var(--teal-ring);
+    border-color: var(--teal-ring);
+    transform: scale(1.4);
+  }
+  .rail button:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+
+  .counter {
+    position: fixed;
+    left: clamp(1.1rem, 4vw, 4.5rem);
+    bottom: clamp(1rem, 3vh, 1.8rem);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    z-index: 40;
+    pointer-events: none;
+  }
+  .counter b { color: var(--teal); font-weight: 500; }
+
+  .progress {
+    position: fixed;
+    left: 0; top: 0;
+    height: 2px;
+    background: var(--teal-ring);
+    z-index: 50;
+    transition: width 180ms ease;
+  }
+
+  .hint {
+    position: fixed;
+    right: calc(var(--rail) + 0.4rem);
+    bottom: clamp(1rem, 3vh, 1.8rem);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    z-index: 40;
+    opacity: 0.8;
+  }
+  .hint kbd {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 0.05em 0.32em;
+    background: var(--surface);
+  }
+
+  /* ---------- live deployment pill ---------- */
+
+  .livebar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    align-self: flex-start;
+    border: 1px solid var(--teal-ring);
+    background: var(--teal-wash);
+    border-radius: 999px;
+    padding: 0.45rem 1.05rem 0.45rem 0.85rem;
+    text-decoration: none;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: var(--step--1);
+    color: var(--teal);
+    letter-spacing: 0.02em;
+    max-width: 100%;
+    transition: border-color 160ms ease, transform 160ms ease;
+  }
+  .livebar:hover { border-color: var(--teal); transform: translateY(-1px); }
+  .livebar:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+  .livebar .pulse {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--green) 30%, transparent);
+    flex: none;
+  }
+  .livebar b { font-weight: 700; color: var(--ink); }
+  .livebar .lbl {
+    font-size: 0.66rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--teal);
+    opacity: 0.75;
+    flex: none;
+  }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 900px) {
+    .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 620px) {
+    :root { --rail: 30px; }
+    .g2, .g3, .g4 { grid-template-columns: minmax(0, 1fr); }
+    .slide { justify-content: flex-start; padding-top: 3.2rem; }
+    .hint { display: none; }
+  }
+</style>
+
+<div class="progress" id="progress" style="width:0"></div>
+
+<main class="deck" id="deck">
+
+  <!-- ══════════════ 1 · TITLE ══════════════ -->
+  <section class="slide">
+    <div class="title-slide">
+      <div class="eyebrow"><span class="num">PS-03</span> Hackathon Submission</div>
+
+      <h1 class="wordmark">Skill<span class="forge">Forge</span></h1>
+
+      <p class="lede" style="max-width:56ch;">
+        Students are told to “learn what the job needs.” Nobody tells them
+        <em>what they already have</em>, <em>what is missing</em>, or
+        <em>what order to learn it in</em>. SkillForge measures all three — and
+        computes the path.
+      </p>
+
+      <div class="hairline"></div>
+
+      <div class="title-meta">
+        <span><b>Team</b> &nbsp;Azeem · Awaim</span>
+        <span><b>Stack</b> &nbsp;Next 16 · Hono/Bun · FastAPI · Postgres 17</span>
+        <span><b>AI</b> &nbsp;DeepSeek · RAG · Tool-calling agent</span>
+        <span><b>Ships</b> &nbsp;Compose · Kubernetes · Terraform</span>
+      </div>
+
+      <a class="livebar" href="https://skillforge.sudobox.tech" target="_blank" rel="noopener">
+        <span class="pulse"></span>
+        <span class="lbl">Live</span>
+        <span><b>skillforge.sudobox.tech</b></span>
+      </a>
+
+      <div class="chiprow" style="margin-top:0.1rem;">
+        <span class="chip chip--mastered"><span class="dot"></span>9 services live</span>
+        <span class="chip chip--progress"><span class="dot"></span>94 tests passing</span>
+        <span class="chip chip--ai"><span class="dot"></span>gold = written by a model</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 2 · PROBLEM ══════════════ -->
+  <section class="slide slide--dim">
+    <div class="head">
+      <div class="eyebrow"><span class="num">01</span> The problem</div>
+      <h2>A student’s real blocker isn’t motivation.<br>It’s not knowing the order.</h2>
+    </div>
+
+    <div class="grid g3" style="margin-bottom:1.4rem;">
+      <div class="card">
+        <span class="mono-label">Invisible starting point</span>
+        <h3>“I think I know Python”</h3>
+        <p>Self-rating is the only signal most platforms have. It is unverified, inflated, and impossible to compare against what a role actually requires.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Invisible target</span>
+        <h3>“Become an AI Engineer”</h3>
+        <p>A job title is not a curriculum. The gap between a student and a role is a set of specific skills at specific levels — and nobody computes it.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Invisible sequence</span>
+        <h3>“Just start somewhere”</h3>
+        <p>Skills have prerequisites. Learning Pandas before NumPy wastes weeks. A generic “top 10 roadmap” article knows nothing about the learner.</p>
+      </div>
+    </div>
+
+    <div class="thesis">
+      Every generic AI study-plan tool answers the same way: it asks a language
+      model to invent a list. <strong>The list is plausible, unverifiable, and different every time.</strong>
+      That is the thing we set out not to build.
+    </div>
+  </section>
+
+  <!-- ══════════════ 3 · SDG ══════════════ -->
+  <section class="slide">
+    <div class="head">
+      <div class="eyebrow"><span class="num">02</span> Alignment — UN Sustainable Development Goals</div>
+      <h2>SDG&nbsp;4 · Quality Education</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.5rem;">
+      Target 4.4 — <em>“substantially increase the number of youth and adults who
+      have relevant skills, including technical and vocational skills, for
+      employment and decent jobs.”</em> Two design decisions map to it directly,
+      and neither is decorative.
+    </p>
+
+    <div class="grid g2" style="margin-bottom:1.4rem;">
+      <div class="card card--teal">
+        <span class="mono-label">Relevant skills — measured, not claimed</span>
+        <h3>Proficiency is earned</h3>
+        <p>
+          A level is written from a graded sitting at
+          <code>level = round(1 + ratio × 4)</code>, tagged
+          <code>source: "assessment"</code>. “Relevant skills” becomes a number
+          the system can defend, not a checkbox a student ticks.
+        </p>
+      </div>
+      <div class="card card--teal">
+        <span class="mono-label">Retention — the part everyone skips</span>
+        <h3>Mastery has to survive the month</h3>
+        <p>
+          Every demonstrated skill is scheduled with <strong>FSRS spaced
+          repetition</strong>, keyed on the <em>skill</em> rather than a
+          flashcard. Proficiency decays and must be re-earned — so “mastered”
+          still means something in six weeks.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <span class="mono-label">Secondary — SDG 8, Decent Work</span>
+        <p>Every roadmap terminates in a real <strong>target role</strong> with weighted requirements, so learning effort is pointed at employability rather than at content consumption.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Access</span>
+        <p>Self-hosted, one command from a fresh clone, no paid dependency in the learning path. The whole system runs on a single VPS.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 4 · SOLUTION ══════════════ -->
+  <section class="slide slide--dim">
+    <div class="head">
+      <div class="eyebrow"><span class="num">03</span> The solution</div>
+      <h2>One table. Three views. Zero invented structure.</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.3rem;">
+      <code>skills</code> is a single table with an <code>altitude</code> enum —
+      CATEGORY / SUBCATEGORY / SKILL. Two structures sit over it, and the third
+      view is derived, not stored.
+    </p>
+
+    <div class="grid g3" style="margin-bottom:1.5rem;">
+      <div class="card">
+        <span class="mono-label">via parentId</span>
+        <h3>Skill Tree</h3>
+        <p>The whole taxonomy as d3 circle packing, the student at the root. Click to focus, search across all three altitudes. <code>/tree</code></p>
+      </div>
+      <div class="card">
+        <span class="mono-label">via skillPrerequisites</span>
+        <h3>Skill Graph</h3>
+        <p>A prerequisite DAG over the leaves — 144 hand-authored edges. React Flow, laid out in per-category bands, coloured by mastery. <code>/graph</code></p>
+      </div>
+      <div class="card card--teal">
+        <span class="mono-label">derived — not a third structure</span>
+        <h3>Roadmap</h3>
+        <p>The target role’s required subgraph, <em>minus</em> what the student demonstrated, layered by topological sort. <code>/roadmap</code></p>
+      </div>
+    </div>
+
+    <div class="figure">
+      <svg viewBox="0 0 720 190" role="img" aria-label="Prerequisite DAG layered into roadmap phases: mastered skills, then the startable gap, then locked skills behind unmet prerequisites">
+        <rect class="band" x="0" y="26" width="222" height="150" rx="8"></rect>
+        <rect class="band" x="246" y="26" width="222" height="150" rx="8"></rect>
+        <rect class="band" x="492" y="26" width="222" height="150" rx="8"></rect>
+
+        <text class="band-t" x="12" y="18">Demonstrated</text>
+        <text class="band-t" x="258" y="18">Phase 1 — startable</text>
+        <text class="band-t" x="504" y="18">Phase 2 — locked</text>
+
+        <!-- edges -->
+        <path class="edge" d="M170 62 L300 62"></path>
+        <path class="edge" d="M170 62 L300 128"></path>
+        <path class="edge" d="M170 128 L300 128"></path>
+        <path class="edge" d="M416 62 L546 62"></path>
+        <path class="edge" d="M416 128 L546 62"></path>
+        <path class="edge" d="M416 128 L546 128"></path>
+
+        <!-- mastered -->
+        <rect class="dag-mastered" x="42" y="46" width="128" height="32" rx="6"></rect>
+        <text class="dag-t" x="60" y="66">Python Basics</text>
+        <rect class="dag-mastered" x="42" y="112" width="128" height="32" rx="6"></rect>
+        <text class="dag-t" x="76" y="132">Git</text>
+
+        <!-- gap -->
+        <rect class="dag-gap" x="300" y="46" width="116" height="32" rx="6"></rect>
+        <text class="dag-t" x="326" y="66">NumPy</text>
+        <rect class="dag-progress" x="300" y="112" width="116" height="32" rx="6"></rect>
+        <text class="dag-t" x="316" y="132">Unit Testing</text>
+
+        <!-- locked -->
+        <rect class="dag-locked" x="546" y="46" width="116" height="32" rx="6"></rect>
+        <text class="dag-t" x="574" y="66">Pandas</text>
+        <rect class="dag-locked" x="546" y="112" width="116" height="32" rx="6"></rect>
+        <text class="dag-t" x="562" y="132">Scikit-learn</text>
+      </svg>
+      <p class="fig-cap">Phase = rank of the topological sort over the gap subgraph. Same student, same input → same sequence, every time.</p>
+    </div>
+
+    <div class="chiprow" style="margin-top:1rem;">
+      <span class="chip chip--mastered"><span class="dot"></span>Mastered</span>
+      <span class="chip chip--progress"><span class="dot"></span>In progress</span>
+      <span class="chip chip--gap"><span class="dot"></span>Gap — the only state you can act on</span>
+      <span class="chip chip--locked"><span class="dot"></span>Locked — prerequisite unmet</span>
+    </div>
+  </section>
+
+  <!-- ══════════════ 5 · EVIDENCE ENGINE ══════════════ -->
+  <section class="slide">
+    <div class="head">
+      <div class="eyebrow"><span class="num">04</span> The engine</div>
+      <h2>Assessment → evidence → schedule</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.4rem;">
+      The scoring path is where most projects hand-wave. Four decisions here are
+      the difference between a demo and a system.
+    </p>
+
+    <div class="steps" style="margin-bottom:1.4rem;">
+      <div class="step">
+        <span class="idx">01</span>
+        <span class="body"><b>Questions are tagged to skills, not to a quiz.</b> One sitting of ten questions writes proficiency across <em>several</em> skills, so a single assessment moves multiple nodes in the graph.</span>
+      </div>
+      <div class="step">
+        <span class="idx">02</span>
+        <span class="body"><b>Every question in the bank is graded — not just the answered ones.</b> An unanswered question is wrong. Omitting it would silently inflate the score.</span>
+      </div>
+      <div class="step">
+        <span class="idx">03</span>
+        <span class="body"><b>A quiz cannot erase better evidence.</b> The upsert carries a <code>setWhere</code> restricting it to rows whose source is <code>self_reported</code> or <code>assessment</code>. A level earned from a shipped project or a certification survives a bad morning.</span>
+      </div>
+      <div class="step">
+        <span class="idx">04</span>
+        <span class="body"><b>Results are sorted worst-first.</b> The per-skill breakdown opens on what to fix, not on what went well.</span>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="card card--teal">
+        <span class="mono-label">The readiness rule — measured, not guessed</span>
+        <h3>A prerequisite counts at half the level the role asks</h3>
+        <p>
+          Requiring the <em>full</em> level locked Unit Testing behind
+          Object-Oriented Programming going 3→4 — not a real blocker. Requiring
+          <em>any</em> level above zero left Pandas “startable” with NumPy at 1
+          of 4. Half is the rule that matches what a student expects from both.
+          It is pinned by test at 1 (blocks) and 2 (unblocks) for a requirement of 3.
+        </p>
+      </div>
+      <div class="card">
+        <span class="mono-label">FSRS · skill-service/src/scheduler.ts</span>
+        <h3>Spaced repetition, keyed on the skill</h3>
+        <p>
+          <code>skill_state</code> is keyed <code>(userId, skillId)</code>, not
+          on cards, and one module is the only importer of <code>ts-fsrs</code>.
+          Fuzz is off, so the schedule is reproducible during judging.
+          <code>GET /progress/due</code> already answers “what decays next.”
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 6 · LIVE DEMO ══════════════ -->
+  <section class="slide slide--dim">
+    <div class="head">
+      <div class="eyebrow"><span class="num">05</span> Live demo — the required flow, end to end</div>
+      <h2>Every step runs against a real account</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.2rem;">
+      No step depends on a hardcoded student. <strong>A step that only works for
+      one seeded user does not count as working</strong> — so no code path in the
+      repo knows the demo account’s id. It is ordinary rows.
+    </p>
+
+    <div class="tablewrap" style="margin-bottom:1.1rem;">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Required step</th><th>Route</th><th>What it actually writes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">1</td><td>Create account</td><td class="route">/register</td><td class="dim">auth-service · argon2id, database session</td></tr>
+          <tr><td class="mono">2</td><td>Create student profile</td><td class="route">/profile</td><td class="dim">profile-api · profile, CV upload with inline preview</td></tr>
+          <tr><td class="mono">3</td><td>Add skills</td><td class="route">/profile</td><td class="dim"><code>student_skills</code>, <code>source: self_reported</code></td></tr>
+          <tr><td class="mono">4</td><td>Take assessment</td><td class="route">/assessments</td><td class="dim">graded attempt → <code>student_skills</code> + FSRS <code>skill_state</code></td></tr>
+          <tr><td class="mono">5</td><td>View skill gaps</td><td class="route">/graph · /tree</td><td class="dim">mastery states recomputed from real levels</td></tr>
+          <tr><td class="mono">6</td><td>Generate AI roadmap</td><td class="route">/roadmap</td><td class="dim">python-analyzer <code>/plan</code>, persisted, prior plan archived</td></tr>
+          <tr><td class="mono">7</td><td>Ask the RAG assistant</td><td class="route">/assistant</td><td class="dim">ai-service <code>/chat</code> · cited answers</td></tr>
+          <tr><td class="mono">8</td><td>Career Agent analyses profile</td><td class="route">/assistant</td><td class="dim">ai-service <code>/agent</code> · six tools, calls shown</td></tr>
+          <tr><td class="mono">9</td><td>Mentor / admin oversight</td><td class="route">/students</td><td class="dim">mentorship join · role management · resource library</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card card--teal">
+      <span class="mono-label">Judge, open this immediately — it is deployed and warm</span>
+      <a class="livebar" href="https://skillforge.sudobox.tech" target="_blank" rel="noopener" style="margin:0.15rem 0 0.35rem;">
+        <span class="pulse"></span>
+        <span class="lbl">Live</span>
+        <span><b>skillforge.sudobox.tech</b></span>
+      </a>
+      <p style="font-size:var(--step--1);">
+        Running on a Contabo VPS via Coolify, TLS by Let’s Encrypt. The AI tier
+        reports <code>embeddings_ready: true</code> over <strong>140 embedded
+        chunks</strong> before it ever takes a question, so the first thing a
+        judge asks is not the one that pays for the model load.
+      </p>
+      <p style="font-size:var(--step--1);">
+        Sign in with a populated student, a mentor joined to them by a
+        <code>mentorships</code> row, or an admin —
+        <code>demo@example.com</code> / <code>mentor@example.com</code> /
+        <code>admin@example.com</code>, password
+        <code>skillforge-demo-2026</code>. Four graded sittings, a portfolio and
+        a roadmap already there.
+        <strong>The seeder reimplements nothing</strong>: passwords go through
+        auth-service’s own <code>hashPassword</code>, the sittings through
+        skill-service’s own grader and FSRS module, the roadmap through the same
+        <code>phases()</code> the live route uses.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════ 7 · AI THESIS ══════════════ -->
+  <section class="slide">
+    <div class="head">
+      <div class="eyebrow"><span class="num">06</span> AI — the thesis</div>
+      <h2>The model never decides structure.<br>It only describes it.</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.5rem;">
+      This is the single most important engineering decision in the project, and
+      it is enforced in code, not in a prompt.
+    </p>
+
+    <div class="grid g2" style="margin-bottom:1.4rem; align-items:start;">
+      <div class="card">
+        <span class="mono-label">Computed — Python, deterministic</span>
+        <h3>Everything that is a claim</h3>
+        <ul class="clean" style="margin-top:0.3rem;">
+          <li>Which skills are missing — a weighted vector comparison against the role’s requirements</li>
+          <li>What is startable versus locked — the half-level prerequisite rule</li>
+          <li>What order the phases go in — rank of a topological sort over the DAG</li>
+          <li>Effort estimates per phase</li>
+        </ul>
+      </div>
+      <div class="gold-block">
+        <span class="mono-label" style="color:var(--gold-ink);opacity:.8;">Generated — DeepSeek, gold in the UI</span>
+        <h3 style="color:var(--gold-ink);">Everything that is prose</h3>
+        <ul class="clean" style="margin-top:0.3rem;">
+          <li style="color:var(--gold-ink);opacity:.9;">The roadmap’s <code>narration</code></li>
+          <li style="color:var(--gold-ink);opacity:.9;">Each phase’s <code>rationale</code></li>
+        </ul>
+        <p class="quote" style="margin-top:0.2rem;">
+          Two database columns. That is the entire surface the language model
+          writes to.
+        </p>
+      </div>
+    </div>
+
+    <div class="thesis">
+      Because ordering is a topological sort and not a prompt,
+      <strong>the same student always gets the same sequence</strong> — and the
+      roadmap is correct rather than merely plausible. This is also the reason
+      an AI roadmap here does not read generic.
+    </div>
+  </section>
+
+  <!-- ══════════════ 8 · GENERATIVE ══════════════ -->
+  <section class="slide slide--dim">
+    <div class="head">
+      <div class="eyebrow"><span class="num">06a</span> Generative AI</div>
+      <h2>Prose written last, on a leash</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.3rem;">
+      <code>skill-service</code> settles the phases, <em>then</em> posts the
+      finished plan to ai-service <code>/narrate</code>. Three guardrails keep it
+      honest.
+    </p>
+
+    <div class="steps" style="margin-bottom:1.3rem;">
+      <div class="step">
+        <span class="idx">01</span>
+        <span class="body"><b>It is given the phases as facts.</b> Titles, order, week estimates and skill names go in with an instruction not to re-order, merge, rename, add or drop any of them.</span>
+      </div>
+      <div class="step">
+        <span class="idx">02</span>
+        <span class="body"><b>A rationale for a phase number that was not sent is dropped, not stored.</b> Writing it would be the one remaining way a model could reshape a plan it was only asked to describe.</span>
+      </div>
+      <div class="step">
+        <span class="idx">03</span>
+        <span class="body"><b>It fails soft, on a 20-second budget.</b> An unreachable or unconfigured ai-service leaves both columns null, changes nothing else, and the response says <code>narrated: false</code>. The roadmap still saves. <em>A roadmap that failed because a model was slow is a worse product than a roadmap with no prose.</em></span>
+      </div>
+    </div>
+
+    <div class="grid g2" style="align-items:start;">
+      <div class="gold-block">
+        <span class="mono-label" style="color:var(--gold-ink);opacity:.8;">Rendered in the <code>--ai</code> gold block on /roadmap</span>
+        <p class="quote">
+          “You already have the Python and Git foundations this role assumes, so
+          Phase 1 starts where the evidence stops — NumPy, then the array
+          thinking Pandas depends on…”
+        </p>
+        <p style="font-size:0.74rem;color:var(--gold-ink);opacity:.85;">
+          Gold is reserved, app-wide, for model output. A student can see
+          exactly which sentences a model wrote — and which numbers it did not.
+        </p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Verified against the live DeepSeek API</span>
+        <div class="grid g2" style="gap:0.9rem;margin-top:0.3rem;">
+          <div class="stat stat--teal"><span class="n">~5s</span><span class="k">to narrate a seven-phase plan</span></div>
+          <div class="stat"><span class="n">20s</span><span class="k">hard budget before it gives up</span></div>
+          <div class="stat"><span class="n">4s</span><span class="k">analyzer timeout → TS fallback</span></div>
+          <div class="stat"><span class="n">2</span><span class="k">columns a model may write</span></div>
+        </div>
+        <p style="margin-top:0.5rem;">
+          If <code>python-analyzer</code> is unreachable, the roadmap falls back
+          to a topological layering in TypeScript and the response reports which
+          source ran. Still a sort. Still not a prompt.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 9 · RAG ══════════════ -->
+  <section class="slide">
+    <div class="head">
+      <div class="eyebrow"><span class="num">06b</span> Retrieval-augmented generation</div>
+      <h2>Answers with receipts</h2>
+    </div>
+
+    <div class="grid g4" style="margin-bottom:1.4rem;">
+      <div class="card">
+        <span class="mono-label">Corpus</span>
+        <div class="stat"><span class="n">140</span><span class="k">chunks, heading-aware, from an authored markdown knowledge base</span></div>
+      </div>
+      <div class="card">
+        <span class="mono-label">Embeddings</span>
+        <div class="stat stat--teal"><span class="n">fastembed</span><span class="k">ONNX, ~50 MB, no PyTorch — DeepSeek has no embeddings endpoint</span></div>
+      </div>
+      <div class="card">
+        <span class="mono-label">Retrieval</span>
+        <div class="stat"><span class="n">cosine</span><span class="k">in-memory linear scan — at 140 chunks it beats a round trip</span></div>
+      </div>
+      <div class="card">
+        <span class="mono-label">Coverage</span>
+        <div class="stat"><span class="n">8</span><span class="k">skill references, one per taxonomy subcategory — every branch is grounded</span></div>
+      </div>
+    </div>
+
+    <div class="grid g3">
+      <div class="card card--teal">
+        <span class="mono-label">Show a judge what RAG did</span>
+        <h3><code>/search</code> returns retrieval with no generation</h3>
+        <p>A dedicated endpoint that exposes the retrieved chunks alone — so “is this really RAG?” is answerable in one request, without a model in the way.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">In the UI</span>
+        <h3>Citations are interactive</h3>
+        <p>Answers cite sources as <code>[1]</code>, <code>[2]</code>; the UI renders each as a hoverable superscript linked to the exact retrieved chunk. Multi-turn, with a past-chat switcher and retry on failure.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">The detail that makes it useful</span>
+        <h3>It knows you took the assessment</h3>
+        <p>The assistant receives your recent sittings and the three weakest skills off the newest breakdown — so “how did I do?” and “what should I review first?” are answered from your results. If you haven’t taken one, it <em>says so</em> instead of inventing a score.</p>
+      </div>
+    </div>
+
+    <p class="fig-cap" style="margin-top:1rem;">
+      The corpus ships inside the ai-service image, and the service embeds all of
+      it <em>before opening its port</em> — so the first question a judge asks is
+      not the one that pays for the model load.
+    </p>
+  </section>
+
+  <!-- ══════════════ 10 · AGENT ══════════════ -->
+  <section class="slide slide--dim">
+    <div class="head">
+      <div class="eyebrow"><span class="num">06c</span> Agentic AI</div>
+      <h2>Six real tools. None return canned text.</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.3rem;">
+      Ask <em>“Analyze my profile and tell me what I should learn next.”</em> The
+      Career Planning Agent runs a tool-calling loop, and the app shows which
+      tools it called under every answer.
+      <strong>The brief asked for four; two more are ours.</strong>
+    </p>
+
+    <div class="tablewrap" style="margin-bottom:1.2rem;">
+      <table>
+        <thead>
+          <tr><th>Tool</th><th>Backed by</th><th>What it really does</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="route">analyze_student_skills</td><td class="dim">python-analyzer <code>/analyze</code></td><td class="dim">Scores the student’s demonstrated vector</td></tr>
+          <tr><td class="route">generate_skill_gap</td><td class="dim">python-analyzer <code>/gaps</code></td><td class="dim">Weighted gaps against the target role, plus readiness</td></tr>
+          <tr><td class="route">create_roadmap</td><td class="dim">python-analyzer <code>/roadmap</code></td><td class="dim">Topologically layered phases with effort estimates</td></tr>
+          <tr><td class="route">compare_target_roles</td><td class="dim">python-analyzer <code>/compare</code></td><td class="dim">Scores every role — “AI Engineer vs Backend Engineer”</td></tr>
+          <tr><td class="route">search_learning_resources</td><td class="dim">the embedded corpus</td><td class="dim">Retrieval over the knowledge base + seeded resources</td></tr>
+          <tr><td class="route">get_assessment_history</td><td class="dim">skill-service attempts</td><td class="dim">Reads real graded sittings and per-skill breakdowns</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid g2">
+      <div class="card card--teal">
+        <span class="mono-label">A deliberate cost decision</span>
+        <h3>The agent pulls, it isn’t pushed</h3>
+        <p>
+          <code>/agent</code> is <em>sent</em> the assessment context but never
+          renders it into the prompt — it reads attempts through the tool
+          instead. A conversation that never asks about a score never pays a
+          token for one.
+        </p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Why four of six call Python</span>
+        <h3>The agent reasons; it doesn’t compute</h3>
+        <p>
+          Every number the agent reports comes back from
+          <code>python-analyzer</code>. The model chooses <em>which</em> question
+          to ask and how to explain the answer — it never does the arithmetic
+          that the recommendation rests on.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 11 · ARCHITECTURE ══════════════ -->
+  <section class="slide">
+    <div class="head">
+      <div class="eyebrow"><span class="num">07</span> Architecture</div>
+      <h2>Nine services, one database boundary</h2>
+    </div>
+
+    <div class="figure" style="margin-bottom:0.9rem;">
+      <svg viewBox="0 0 960 400" role="img" aria-label="SkillForge architecture: browser to Caddy, splitting to the Next.js frontend and the api-gateway, which routes to auth-service, profile-api, skill-service, ai-service and python-analyzer. Only the three Node services reach PostgreSQL.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--line)"></path>
+          </marker>
+          <marker id="ah-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--teal-ring)"></path>
+          </marker>
+        </defs>
+
+        <!-- browser -->
+        <rect class="n-box" x="396" y="8" width="168" height="42" rx="7"></rect>
+        <text class="n-t" x="452" y="27">Browser</text>
+        <text class="n-s" x="424" y="41">same-origin, always</text>
+
+        <!-- caddy -->
+        <path class="edge" d="M480 50 L480 82" marker-end="url(#ah)"></path>
+        <rect class="n-box" x="396" y="84" width="168" height="46" rx="7"></rect>
+        <text class="n-t" x="450" y="105">Caddy</text>
+        <text class="n-s" x="404" y="119">the only container publishing ports</text>
+
+        <!-- split -->
+        <path class="edge" d="M430 130 L300 160" marker-end="url(#ah)"></path>
+        <text class="e-lab" x="306" y="146">everything else</text>
+        <path class="edge--hot" d="M530 130 L660 160" marker-end="url(#ah-hot)"></path>
+        <text class="e-lab" x="580" y="146">/api/*</text>
+
+        <!-- frontend + gateway -->
+        <rect class="n-box" x="208" y="162" width="180" height="46" rx="7"></rect>
+        <text class="n-t" x="248" y="183">frontend</text>
+        <text class="n-s" x="222" y="197">Next.js 16 · React 19 · never touches the DB</text>
+
+        <rect class="n-box--gw" x="584" y="162" width="180" height="46" rx="7"></rect>
+        <text class="n-t" x="622" y="183">api-gateway</text>
+        <text class="n-s" x="596" y="197">verifies the session once · holds no DATABASE_URL</text>
+
+        <path class="edge" d="M388 185 L582 185" marker-end="url(#ah)"></path>
+        <text class="e-lab" x="416" y="179">server-side reads</text>
+
+        <!-- fan out -->
+        <path class="edge--hot" d="M674 208 L674 224 L104 224 L104 250" marker-end="url(#ah-hot)"></path>
+        <path class="edge--hot" d="M292 224 L292 250" marker-end="url(#ah-hot)"></path>
+        <path class="edge--hot" d="M480 224 L480 250" marker-end="url(#ah-hot)"></path>
+        <path class="edge--hot" d="M668 224 L668 250" marker-end="url(#ah-hot)"></path>
+        <path class="edge--hot" d="M856 224 L856 250" marker-end="url(#ah-hot)"></path>
+
+        <rect class="n-box" x="20" y="252" width="168" height="50" rx="7"></rect>
+        <text class="n-t" x="44" y="273">auth-service</text>
+        <text class="n-s" x="30" y="288">Better Auth · argon2id · :8081</text>
+
+        <rect class="n-box" x="208" y="252" width="168" height="50" rx="7"></rect>
+        <text class="n-t" x="240" y="273">profile-api</text>
+        <text class="n-s" x="220" y="288">portfolio · uploads · :8082</text>
+
+        <rect class="n-box" x="396" y="252" width="168" height="50" rx="7"></rect>
+        <text class="n-t" x="424" y="273">skill-service</text>
+        <text class="n-s" x="404" y="288">assessments · FSRS · :8083</text>
+
+        <rect class="n-box--py" x="584" y="252" width="168" height="50" rx="7"></rect>
+        <text class="n-t" x="618" y="273">ai-service</text>
+        <text class="n-s" x="592" y="288">FastAPI · RAG · agent · :8084</text>
+
+        <rect class="n-box--py" x="772" y="252" width="168" height="50" rx="7"></rect>
+        <text class="n-t" x="790" y="273">python-analyzer</text>
+        <text class="n-s" x="784" y="288">FastAPI · the maths · :8085</text>
+
+        <path class="edge--dash" d="M564 292 L770 292"></path>
+        <text class="e-lab" x="612" y="287">roadmap structure</text>
+
+        <!-- db -->
+        <path class="edge" d="M104 302 L104 332" marker-end="url(#ah)"></path>
+        <path class="edge" d="M292 302 L292 332" marker-end="url(#ah)"></path>
+        <path class="edge" d="M480 302 L480 332" marker-end="url(#ah)"></path>
+        <rect class="n-box--db" x="20" y="334" width="544" height="46" rx="7"></rect>
+        <text class="n-t" x="222" y="355">PostgreSQL 17 + pgvector</text>
+        <text class="n-s" x="150" y="369">26 tables · one migration history · no published port, ever</text>
+
+        <text class="n-s" x="590" y="352" style="fill:var(--teal);">The Python tier holds no DATABASE_URL.</text>
+        <text class="n-s" x="590" y="366">Both are stateless: the Node tier sends the</text>
+        <text class="n-s" x="590" y="378">student’s data in the request body.</text>
+      </svg>
+      <p class="fig-cap">Service names match the diagram in the requirements PDF exactly.</p>
+    </div>
+
+    <div class="grid g3">
+      <div class="card">
+        <span class="mono-label">Why a gateway at all</span>
+        <p>The frontend knows five path prefixes and <em>no hostnames</em>. Adding a service is one line in a route table and a compose block — nothing in the UI changes.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Why same-origin is not cosmetic</span>
+        <p>A cross-origin gateway needs <code>SameSite=None</code> cookies, which need TLS — which would make a plain <code>docker compose up</code> unable to sign anyone in.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Why one database</span>
+        <p>The gap calculation is a join between <code>student_skills</code> and <code>role_requirements</code>. Split the databases and that join becomes an HTTP call in a loop.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 12 · IDENTITY ══════════════ -->
+  <section class="slide slide--dim">
+    <div class="head">
+      <div class="eyebrow"><span class="num">07a</span> Identity &amp; trust</div>
+      <h2>Three rules, verified both ways</h2>
+    </div>
+
+    <div class="steps" style="margin-bottom:1.4rem;">
+      <div class="step">
+        <span class="idx">01</span>
+        <span class="body"><b>The session is verified once, at the gateway, against a live database row</b> — not a JWT signature. Which means signing a student out actually signs them out.</span>
+      </div>
+      <div class="step">
+        <span class="idx">02</span>
+        <span class="body"><b>Identity travels as headers, and the gateway strips any the client sent</b> before adding its own. A forged <code>x-skillforge-user-id</code> never survives the hop.</span>
+      </div>
+      <div class="step">
+        <span class="idx">03</span>
+        <span class="body"><b>Services believe those headers only with the gateway key.</b> A request reaching a service directly carries no identity; a wrong key is a 401, not a quiet fallback to anonymous. <em>Tested both ways — forged through the gateway, and forged straight at a service.</em></span>
+      </div>
+    </div>
+
+    <div class="grid g3">
+      <div class="card card--teal">
+        <span class="mono-label">Authorization lives at the data layer</span>
+        <h3>A mentor is a join, not a role string</h3>
+        <p>A mentor reads a student only if a <code>mentorships</code> row joins them — <code>requireReadAccess</code> in profile-api. Holding the role grants nothing on its own, and a mentor may look, never edit.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">The rule people forget</span>
+        <h3>An admin cannot demote themselves</h3>
+        <p>The last one doing so would leave nobody able to promote anyone back. The first admin is made from outside the app — <code>./scripts/promote.sh</code>.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Defence in depth</span>
+        <h3>Not published, and not trusted either</h3>
+        <p>Postgres has no <code>ports:</code> entry at all, and Kubernetes adds NetworkPolicies. But network reachability is one mistake from being wrong — so a forged header fails closed rather than depending on the network being right.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 13 · DEVOPS ══════════════ -->
+  <section class="slide">
+    <div class="head">
+      <div class="eyebrow"><span class="num">08</span> DevOps</div>
+      <h2>Infrastructure that describes a system that exists</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.4rem;">
+      A generic AWS skeleton would have been faster and more familiar to a judge.
+      It also would have described a deployment we do not run —
+      <strong>decorative infrastructure is exactly what the rubric punishes.</strong>
+    </p>
+
+    <div class="grid g3" style="margin-bottom:1.4rem;">
+      <div class="card card--teal">
+        <span class="mono-label">Docker Compose</span>
+        <h3>Dev <em>and</em> production, one file</h3>
+        <p>10 services, 4 volumes. The same <code>docker-compose.yml</code> a judge runs locally is the one deployed via Coolify on a Contabo VPS. Every image builds from the repo root, because ai-service copies the RAG corpus in.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Kubernetes</span>
+        <h3>26 resources · 14 files · all valid</h3>
+        <p>Every service in the compose file has a <code>Deployment</code>. Validated with <code>kubeconform -strict</code> against real 1.31 schemas — offline, and it rejects unknown fields, which is what catches a mistyped key.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Terraform</span>
+        <h3>The box that actually runs it</h3>
+        <p>Targets the <code>contabo/contabo</code> provider directly, and uses <code>existing_instance_id</code> to <em>adopt</em> the VPS already running Coolify rather than ordering a second one. Plus cloud-init.</p>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="card card--teal">
+        <span class="mono-label">Shipped — verified on the live box</span>
+        <a class="livebar" href="https://skillforge.sudobox.tech" target="_blank" rel="noopener" style="margin:0.1rem 0 0.4rem;">
+          <span class="pulse"></span>
+          <span class="lbl">Live</span>
+          <span><b>skillforge.sudobox.tech</b></span>
+        </a>
+        <ul class="clean" style="margin-top:0.1rem;">
+          <li><code>/</code> — 200, valid Let’s Encrypt certificate</li>
+          <li><code>/api/skills/roles</code> — four roles, through the gateway</li>
+          <li><code>/api/ai/health</code> — <code>llm_configured</code> and <code>embeddings_ready</code> both true, 140 chunks</li>
+        </ul>
+        <p style="font-size:var(--step--1);margin-top:0.35rem;">
+          And from nothing: <code>./scripts/setup.sh</code> generates
+          <code>.env</code> with fresh secrets, builds, starts, health-gates and
+          seeds. Safe to re-run.
+        </p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Details that only show up in production</span>
+        <ul class="clean" style="margin-top:0.2rem;">
+          <li>ai-service runs <strong>one replica with a 5-minute startupProbe</strong> — each replica embeds the corpus at boot and shares nothing.</li>
+          <li>Every Dockerfile installs with <code>--linker=hoisted</code>: Bun’s isolated layout breaks Next’s file tracer, and that failure appears at container start, not at build.</li>
+          <li>Seed ids are deterministic from slugs, so re-seeding updates rows in place instead of orphaning the attempt answers pointing at them.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 14 · NUMBERS ══════════════ -->
+  <section class="slide slide--dim">
+    <div class="head">
+      <div class="eyebrow"><span class="num">09</span> Proof</div>
+      <h2>Read off the running system, not estimated</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.5rem;">
+      Seed counts from Postgres, test counts from <code>pytest</code>, endpoint
+      lists from the routers.
+    </p>
+
+    <div class="grid g4" style="row-gap:1.6rem; margin-bottom:1.6rem;">
+      <div class="stat stat--teal"><span class="n">124</span><span class="k">skills, hand-authored — no harvested dataset carries prerequisites</span></div>
+      <div class="stat stat--teal"><span class="n">144</span><span class="k">prerequisite edges — the substance the roadmap computes over</span></div>
+      <div class="stat"><span class="n">150</span><span class="k">questions across 15 sittings, 8 areas</span></div>
+      <div class="stat"><span class="n">92</span><span class="k">weighted role requirements over 4 target roles</span></div>
+
+      <div class="stat"><span class="n">26</span><span class="k">database tables, one migration history</span></div>
+      <div class="stat"><span class="n">56</span><span class="k">curated learning resources, staff-editable</span></div>
+      <div class="stat"><span class="n">15</span><span class="k">frontend pages, all reading the signed-in student through the gateway</span></div>
+      <div class="stat"><span class="n">13</span><span class="k">Python endpoints — 7 analyzer, 6 ai-service</span></div>
+
+      <div class="stat stat--gold"><span class="n">94</span><span class="k">tests passing — 37 analyzer, 57 ai-service</span></div>
+      <div class="stat"><span class="n">140</span><span class="k">RAG chunks embedded at boot</span></div>
+      <div class="stat"><span class="n">6</span><span class="k">agent tools — the brief asked for four</span></div>
+      <div class="stat"><span class="n">3</span><span class="k">roles: student, mentor, admin — each enforced at the data layer</span></div>
+    </div>
+
+    <div class="thesis">
+      The seed taxonomy was <strong>written from scratch</strong>. An existing
+      878-role occupational dataset was evaluated and rejected — its categories
+      were Loan Processing and Supply Chain, and nothing in it maps to a student
+      learning to code. More importantly:
+      <strong>no public skills dataset carries prerequisite edges</strong>, and
+      those edges are the entire thing the roadmap computes over.
+    </div>
+  </section>
+
+  <!-- ══════════════ 15 · JUDGMENT ══════════════ -->
+  <section class="slide">
+    <div class="head">
+      <div class="eyebrow"><span class="num">10</span> Engineering judgment</div>
+      <h2>What we chose <em>not</em> to build</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:1.3rem;">
+      Every rejected idea is written down with its reason, in
+      <code>docs/decisions.md</code>, so nobody on the team re-proposes it — and
+      so a judge can see the call was made rather than missed.
+    </p>
+
+    <div class="tablewrap" style="margin-bottom:1.3rem;">
+      <table>
+        <thead><tr><th>Not built</th><th>Because</th></tr></thead>
+        <tbody>
+          <tr><td><strong>An LLM that orders roadmap phases</strong></td><td class="dim">Ordering is a topological sort. A model writes prose, never structure.</td></tr>
+          <tr><td><strong>pgvector for RAG</strong></td><td class="dim">140 chunks — a linear scan beats a network round trip. The column is there; revisit past a few hundred.</td></tr>
+          <tr><td><strong>Supabase / Vercel</strong></td><td class="dim">An all-managed deploy makes the compose file, the K8s manifests and the architecture diagram describe a system that does not exist.</td></tr>
+          <tr><td><strong>Broadening past tech careers</strong></td><td class="dim">The brief says technology. The graph is more convincing dense and narrow than sparse and wide.</td></tr>
+          <tr><td><strong>Assessment authoring UI</strong></td><td class="dim">Large build, small marginal credit — and the honest gap against the brief, stated as one rather than hidden.</td></tr>
+          <tr><td><strong>Tighter auth rate limits</strong></td><td class="dim">Loose is the right failure mode while five judges hit the same instance.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid g2">
+      <div class="card card--teal">
+        <span class="mono-label">Everything degrades instead of breaking</span>
+        <h3>Three fallbacks, all reported</h3>
+        <p>
+          Analyzer unreachable → TypeScript topological layering, and the
+          response says which ran. Narration slow → <code>narrated: false</code>,
+          plan still saves. Assistant context fails → the answer still comes
+          back. <strong>Nothing in the demo path has a single point of failure.</strong>
+        </p>
+      </div>
+      <div class="card">
+        <span class="mono-label">An approved deviation, documented</span>
+        <h3>PostgreSQL, not MongoDB</h3>
+        <p>
+          The PDF’s <em>generic</em> cross-problem diagram names MongoDB;
+          PS-03’s own service diagram names no database at all — and that is the
+          one we match exactly. We asked the organizers and got explicit
+          permission, then recorded it in <code>docs/decisions.md</code> so it
+          reads as a decision, not a miss.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 16 · FUTURE + CLOSE ══════════════ -->
+  <section class="slide slide--dim">
+    <div class="head">
+      <div class="eyebrow"><span class="num">11</span> Future potential</div>
+      <h2>The engine is running. More of it can surface.</h2>
+    </div>
+
+    <div class="grid g3" style="margin-bottom:1.5rem;">
+      <div class="card">
+        <span class="mono-label">Already computed, not yet surfaced</span>
+        <h3>Retake pressure from FSRS</h3>
+        <p><code>skill_state.due</code> schedules every demonstrated skill and <code>GET /progress/due</code> already answers. “3 skills due for review” is a dashboard card away — the engine is running with nobody watching.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Tool exists, UI doesn’t</span>
+        <h3>Compare two roles side by side</h3>
+        <p><code>compare_target_roles</code> already scores every role. “AI Engineer vs Backend Engineer — here is what changes” is the strongest demo moment still on the table.</p>
+      </div>
+      <div class="card card--ai">
+        <span class="mono-label">What the AI is actually for</span>
+        <h3>Project → skill inference</h3>
+        <p>Feed a student’s project description to ai-service and propose skills — as <em>suggestions they confirm</em>, marked in <code>--ai</code> gold. Evidence from work they already did.</p>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-bottom:1.8rem;">
+      <div class="card">
+        <span class="mono-label">Small, high payoff</span>
+        <p>Evidence links on skill claims — a repo URL behind a self-rating reads very differently to a mentor than a bare number.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Most shareable artefact</span>
+        <p>Export the roadmap as PDF or Markdown. Students want something to keep.</p>
+      </div>
+      <div class="card">
+        <span class="mono-label">Scale</span>
+        <p>The corpus moves into pgvector the moment it outgrows a linear scan — the extension is already installed and the column already exists.</p>
+      </div>
+    </div>
+
+    <div class="hairline" style="margin-bottom:1.4rem;"></div>
+
+    <h2 style="font-size:var(--step-2); margin-bottom:0.8rem;">
+      Assess what you know. See the gap to the role you want.<br>
+      Get a roadmap that <span style="color:var(--teal);">respects prerequisites</span>.
+    </h2>
+
+    <a class="livebar" href="https://skillforge.sudobox.tech" target="_blank" rel="noopener" style="width:auto;margin:0 auto 1.1rem 0;">
+      <span class="pulse"></span>
+      <span class="lbl">Try it now</span>
+      <span><b>skillforge.sudobox.tech</b></span>
+    </a>
+
+    <div class="title-meta">
+      <span><b>Sign in</b> &nbsp;demo@example.com · skillforge-demo-2026</span>
+      <span><b>Run it</b> &nbsp;./scripts/setup.sh</span>
+      <span><b>Read it</b> &nbsp;docs/architecture.md · docs/decisions.md</span>
+    </div>
+  </section>
+
+</main>
+
+<nav class="rail" id="rail" aria-label="Slide navigation"></nav>
+<div class="counter" id="counter" aria-live="polite"></div>
+<div class="hint"><kbd>←</kbd> <kbd>→</kbd> navigate · <kbd>F</kbd> fullscreen</div>
+
+<script>
+  (function () {
+    var deck = document.getElementById("deck");
+    var slides = Array.prototype.slice.call(deck.querySelectorAll(".slide"));
+    var rail = document.getElementById("rail");
+    var counter = document.getElementById("counter");
+    var progress = document.getElementById("progress");
+    var current = 0;
+
+    var titles = ["Title", "Problem", "SDG 4", "Solution", "Engine", "Live demo",
+                  "AI thesis", "Generative", "RAG", "Agentic", "Architecture",
+                  "Identity", "DevOps", "Proof", "Judgment", "Future"];
+
+    slides.forEach(function (s, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-label", "Go to slide " + (i + 1) + ": " + (titles[i] || ""));
+      b.addEventListener("click", function () { go(i); });
+      rail.appendChild(b);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function paint(i) {
+      current = i;
+      dots.forEach(function (d, n) { d.setAttribute("aria-current", n === i ? "true" : "false"); });
+      counter.innerHTML = "<b>" + String(i + 1).padStart(2, "0") + "</b> / " + String(slides.length).padStart(2, "0")
+                        + " &nbsp;·&nbsp; " + (titles[i] || "");
+      progress.style.width = ((i) / (slides.length - 1) * 100) + "%";
+    }
+
+    function go(i) {
+      i = Math.max(0, Math.min(slides.length - 1, i));
+      slides[i].scrollIntoView({ behavior: "smooth", block: "start" });
+      paint(i);
+    }
+
+    // Keep the counter honest when someone scrolls rather than pressing a key.
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && e.intersectionRatio > 0.5) {
+            paint(slides.indexOf(e.target));
+          }
+        });
+      }, { threshold: [0.5, 0.75] });
+      slides.forEach(function (s) { io.observe(s); });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      var k = e.key;
+      if (k === "ArrowRight" || k === "ArrowDown" || k === "PageDown" || k === " ") {
+        e.preventDefault(); go(current + 1);
+      } else if (k === "ArrowLeft" || k === "ArrowUp" || k === "PageUp") {
+        e.preventDefault(); go(current - 1);
+      } else if (k === "Home") {
+        e.preventDefault(); go(0);
+      } else if (k === "End") {
+        e.preventDefault(); go(slides.length - 1);
+      } else if (k === "f" || k === "F") {
+        e.preventDefault();
+        if (document.fullscreenElement) { document.exitFullscreen(); }
+        else if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen(); }
+      }
+    });
+
+    paint(0);
+  })();
+</script>
