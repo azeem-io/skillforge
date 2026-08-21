@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -132,16 +133,26 @@ export function Answer({
       </h5>
     ),
 
-    a: ({ href, children }) => (
-      <a
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        className="text-ai underline underline-offset-2"
-      >
-        {children}
-      </a>
-    ),
+    // An app route and a citation URL are not the same kind of link. Sending
+    // an internal one through `target="_blank"` would open a second tab and
+    // drop the SPA navigation, so those route through next/link instead.
+    a: ({ href, children }) => {
+      const className = "text-ai underline underline-offset-2";
+      return href?.startsWith("/") ? (
+        <Link href={href} className={className}>
+          {children}
+        </Link>
+      ) : (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className={className}
+        >
+          {children}
+        </a>
+      );
+    },
     code: ({ children }) => (
       <code className="bg-background/70 rounded border px-1 py-0.5 font-mono text-[0.85em]">
         {children}
