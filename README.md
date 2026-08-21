@@ -42,13 +42,14 @@ bun run dev            # the frontend on :3000
 | `auth-service` | 8081 | Better Auth, argon2id, users/sessions/roles |
 | `profile-api` | 8082 | Profile, skills, projects, certifications, uploads |
 | `skill-service` | 8083 | Taxonomy, assessments, FSRS progress, roadmaps |
-| `ai-service` | 8084 | DeepSeek, RAG, the agent — **not built yet** |
-| `python-analyzer` | 8085 | SkillAnalyzer, gap calculation — **not built yet** |
+| `ai-service` | 8084 | DeepSeek generation, RAG retrieval, the Career Planning Agent |
+| `python-analyzer` | 8085 | SkillAnalyzer, SkillGapCalculator, RoadmapGenerator |
 | `postgres` | — | PostgreSQL 17 + pgvector. Never published |
 | `caddy` | 80/443 | TLS, and the only container that publishes ports |
 
-The two unbuilt services are routed at anyway: the gateway answers 502 for them,
-and the roadmap falls back to a local topological layering rather than failing.
+If `python-analyzer` is unreachable, the roadmap falls back to a local
+topological layering rather than failing — the structure is the same, only the
+effort estimates and narration are lost.
 
 ## Scripts
 
@@ -72,7 +73,39 @@ and the roadmap falls back to a local topological layering rather than failing.
 3. Take an assessment at `/assessments`. Six areas, ten questions each.
 4. The result scores **per skill**, writes your proficiency levels and starts a
    spaced-repetition schedule for each one.
-5. `/graph` and `/roadmap` now reflect what you actually demonstrated.
+5. `/graph` and `/roadmap` now reflect what you actually demonstrated. `/tree`
+   shows the same mastery over the whole taxonomy as circle packing.
+6. Ask `/assistant` anything — it answers from the knowledge base with
+   citations, and calls the analyzer when the question needs real numbers.
+7. Mentors and admins get `/students`. A mentor sees only the students a
+   `mentorships` row assigns them; an admin sees everyone and can change roles.
+
+## How the AI works
+
+Three distinct capabilities, deliberately kept separate.
+
+**Generative** — `/roadmap` asks python-analyzer for the phase structure, then
+DeepSeek writes the `narration` and per-phase `rationale` prose. The model never
+decides ordering: phases are a rank of the topological sort over the prerequisite
+DAG, computed in `RoadmapGenerator`. This is what stops an AI roadmap reading
+generic, and it is why the same student always gets the same sequence.
+
+**RAG** — `rag/knowledge-base/` is a markdown corpus of career guides, sequencing
+principles, project selection and skill foundations. ai-service chunks it on
+headings at boot, embeds with `fastembed` (ONNX, no PyTorch) and retrieves by
+cosine similarity. Answers cite sources as `[1]`, `[2]`, and the UI renders each
+one as a hoverable superscript linked to the retrieved chunk.
+
+**Agentic** — the Career Planning Agent at `/ai/agent` runs a tool-calling loop
+over five tools: `analyze_student_skills`, `generate_skill_gap`, `create_roadmap`,
+`compare_target_roles` and `search_learning_resources`. Ask it *"Analyze my
+profile and tell me what I should learn next"* and it retrieves your skills,
+computes the gaps through python-analyzer, and recommends seeded resources. The
+tools it called are shown under each answer.
+
+DeepSeek is used for every LLM call (OpenAI-compatible SDK with `base_url`
+swapped). It has no embeddings endpoint, which is why retrieval uses `fastembed`
+locally rather than an API.
 
 ## Docs
 
@@ -80,6 +113,7 @@ and the roadmap falls back to a local topological layering rather than failing.
 - `docs/architecture.md` — services, request path, how identity travels
 - `docs/api.md` — every endpoint, and the python-analyzer contract
 - `docs/schema.md` — the data model, with ER diagrams
+- `docs/cicd.md` — build, test gates, migrations, deploy and rollback
 - `docs/decisions.md` — settled decisions and why; read before re-proposing
 
 ## Deployment
