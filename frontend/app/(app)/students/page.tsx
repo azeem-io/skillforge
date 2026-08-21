@@ -1,17 +1,12 @@
-import Link from "next/link";
-import { ArrowRight, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
-import { RoleControls } from "@/components/staff/role-controls";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { RosterTable, type RosterRow } from "@/components/staff/roster-table";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { mentorships, requireStaff, roster } from "@/lib/student";
 
 import type { Metadata } from "next";
@@ -26,19 +21,32 @@ export default async function StudentsPage() {
 
   const [{ students }, pairs] = await Promise.all([
     roster(),
+    // A mentor's roster is already only their students, so the pairing adds
+    // nothing there. An admin sees everyone and needs to know who covers whom.
     isAdmin ? mentorships() : Promise.resolve({ mentorships: [] }),
   ]);
 
   const mentorsByStudent = new Map<string, string[]>();
+  const assignedByStudent: Record<string, string[]> = {};
   for (const pair of pairs.mentorships) {
-    const list = mentorsByStudent.get(pair.studentId) ?? [];
-    list.push(pair.mentorName ?? pair.mentorEmail);
-    mentorsByStudent.set(pair.studentId, list);
+    const names = mentorsByStudent.get(pair.studentId) ?? [];
+    names.push(pair.mentorName ?? pair.mentorEmail);
+    mentorsByStudent.set(pair.studentId, names);
+
+    (assignedByStudent[pair.studentId] ??= []).push(pair.mentorId);
   }
 
+  const rows: RosterRow[] = students.map((student) => ({
+    ...student,
+    mentors: mentorsByStudent.get(student.userId) ?? [],
+  }));
+
   const mentorOptions = students
-    .filter((s) => s.role !== "student")
-    .map((s) => ({ id: s.userId, label: s.name ?? s.email }));
+    .filter((student) => student.role !== "student")
+    .map((student) => ({
+      id: student.userId,
+      label: student.name ?? student.email,
+    }));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
@@ -53,83 +61,29 @@ export default async function StudentsPage() {
         </p>
       </div>
 
-      {students.length === 0 && (
+      {rows.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
               <Users className="text-muted-foreground size-4" />
-              Nobody assigned yet
+              {isAdmin ? "Nobody has registered yet" : "Nobody assigned yet"}
             </CardTitle>
             <CardDescription>
-              An admin assigns students to a mentor. Until then there is nothing
-              to review here.
+              {isAdmin
+                ? "Everyone who registers arrives as a student and will appear here."
+                : "An admin assigns students to a mentor. Until then there is nothing to review."}
             </CardDescription>
           </CardHeader>
         </Card>
+      ) : (
+        <RosterTable
+          rows={rows}
+          isAdmin={isAdmin}
+          selfId={staff.userId}
+          mentorOptions={mentorOptions}
+          assignedByStudent={assignedByStudent}
+        />
       )}
-
-      <div className="grid gap-3">
-        {students.map((student) => (
-          <Card key={student.userId}>
-            <CardContent className="flex flex-wrap items-center gap-4 py-4">
-              <div className="min-w-56 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">
-                    {student.name ?? student.email}
-                  </span>
-                  {student.role !== "student" && (
-                    <Badge variant="secondary" className="capitalize">
-                      {student.role}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-muted-foreground text-xs">{student.email}</p>
-                {(mentorsByStudent.get(student.userId)?.length ?? 0) > 0 && (
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    Mentored by {mentorsByStudent.get(student.userId)!.join(", ")}
-                  </p>
-                )}
-              </div>
-
-              <div className="w-44">
-                <p className="text-muted-foreground text-xs">
-                  {student.targetRoleName ?? "No goal set"}
-                </p>
-                {student.readiness !== null ? (
-                  <>
-                    <Progress className="mt-1 h-1.5" value={student.readiness} />
-                    <p className="text-muted-foreground mt-1 font-mono text-xs">
-                      {student.readiness}% ready · {student.demonstrated} skills
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    {student.demonstrated} skills demonstrated
-                  </p>
-                )}
-              </div>
-
-              {isAdmin && (
-                <RoleControls
-                  userId={student.userId}
-                  role={student.role}
-                  isSelf={student.userId === staff.userId}
-                  mentors={mentorOptions.filter((m) => m.id !== student.userId)}
-                  assigned={pairs.mentorships
-                    .filter((p) => p.studentId === student.userId)
-                    .map((p) => p.mentorId)}
-                />
-              )}
-
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/students/${student.userId}`}>
-                  Open <ArrowRight className="size-3.5" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
     </div>
   );
 }
