@@ -21,6 +21,10 @@ data:
   TRUSTED_PROXIES: "10.0.0.0/8"
   UPLOAD_DIR: "/data/uploads"
   SEED_ON_START: "true"
+  # The migrate Job also seeds a demo student, mentor and admin whose password
+  # is public. Same default as compose, and the same warning: "false" on
+  # anything that is not a demo.
+  SEED_DEMO: "true"
 ---
 # Placeholder values only — `stringData` so the manifest stays readable, and
 # committed with obvious non-secrets. On a real cluster this comes from a

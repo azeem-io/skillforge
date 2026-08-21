@@ -77,8 +77,13 @@ export function RoadmapView({
                 </CardDescription>
               </CardHeader>
               {roadmap.narration && (
-                <CardContent className="text-sm whitespace-pre-wrap">
-                  {roadmap.narration}
+                <CardContent>
+                  {/* Gold is reserved for model output. The phases beside it
+                      are computed; this paragraph is the part a model wrote. */}
+                  <p className="bg-ai-dim/30 border-ai/30 rounded-md border p-2.5 text-sm whitespace-pre-wrap">
+                    <Sparkles className="text-ai mr-1.5 inline size-3.5 align-[-2px]" />
+                    {roadmap.narration}
+                  </p>
                 </CardContent>
               )}
             </Card>

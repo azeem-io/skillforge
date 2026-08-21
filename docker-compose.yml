@@ -49,6 +49,11 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       SEED_ON_START: ${SEED_ON_START:-true}
+      # A populated demo student, mentor and admin, so an instance nobody has
+      # registered on still shows a working system. Their password is public —
+      # set SEED_DEMO=false on anything that is not a demo.
+      SEED_DEMO: ${SEED_DEMO:-true}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-skillforge-demo-2026}
 
   auth-service:
     build:
@@ -139,6 +144,9 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       GATEWAY_SECRET: ${GATEWAY_SECRET:?set GATEWAY_SECRET in .env}
       PYTHON_ANALYZER_URL: http://python-analyzer:8085
+      # Roadmap prose only — the phases are computed before this is called, and
+      # an unreachable ai-service costs a roadmap its narration, nothing else.
+      AI_SERVICE_URL: http://ai-service:8084
       PORT: 8083
     healthcheck:
       test: ["CMD", "bun", "-e", "process.exit((await fetch('http://localhost:8083/health')).ok ? 0 : 1)"]

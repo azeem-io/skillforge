@@ -13,6 +13,7 @@
     "generate": "bun --env-file=../../.env x drizzle-kit generate",
     "migrate": "bun --env-file=../../.env src/migrate.ts",
     "seed": "bun --env-file=../../.env src/seed/index.ts",
+    "seed:demo": "bun --env-file=../../.env src/seed/demo.ts",
     "studio": "bun --env-file=../../.env x drizzle-kit studio",
     "typecheck": "tsc --noEmit"
   },

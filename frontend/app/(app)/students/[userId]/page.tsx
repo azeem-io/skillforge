@@ -12,8 +12,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { BreakdownRow } from "@/components/assessment/result-card";
 import { api, ApiError } from "@/lib/api";
-import { requireStaff, roster, studentDetail } from "@/lib/student";
+import {
+  requireStaff,
+  roster,
+  studentAttempts,
+  studentDetail,
+} from "@/lib/student";
 
 import type { Metadata } from "next";
 
@@ -81,7 +87,7 @@ export default async function StudentDetailPage({
     throw error;
   });
 
-  const [taxonomy, { students }] = await Promise.all([
+  const [taxonomy, { students }, history] = await Promise.all([
     // Same for everyone, changes only on a re-seed — so this is a cache hit.
     api<Taxonomy>("/api/skills/taxonomy", { revalidate: 3600 }),
     // Readiness is computed per-student inside profile-api's roster query.
@@ -89,11 +95,15 @@ export default async function StudentDetailPage({
     // *caller's* mastery, so a mentor would be shown their own progress under
     // the student's name.
     roster(),
+    // A panel that cannot load must not take the profile down with it — the
+    // authorization here is the same join that already let the page render.
+    studentAttempts(userId).catch(() => null),
   ]);
 
   const { profile, skills } = detail;
   const summary = students.find((student) => student.userId === userId);
   const byAssessment = skills.filter((s) => s.source === "assessment").length;
+  const completed = history?.attempts.filter((a) => a.completedAt) ?? [];
 
   // slug → "Category · Subcategory", so demonstrated skills can be grouped the
   // way the rest of the app groups them.
@@ -181,6 +191,72 @@ export default async function StudentDetailPage({
           }
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Assessments</CardTitle>
+          <CardDescription>
+            Every sitting, most recent first. Scores are graded evidence — this
+            is where the levels below came from.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!history && (
+            <p className="text-muted-foreground text-sm">
+              Assessment history could not be loaded just now.
+            </p>
+          )}
+
+          {history && completed.length === 0 && (
+            <p className="text-muted-foreground text-sm">
+              No assessment taken yet. Nothing here is graded evidence until
+              one is.
+            </p>
+          )}
+
+          {completed.map((attempt) => {
+            const ratio =
+              attempt.maxScore && attempt.score !== null
+                ? attempt.score / attempt.maxScore
+                : 0;
+            return (
+              <div
+                key={attempt.id}
+                className="flex flex-wrap items-center gap-3 rounded-md border p-3"
+              >
+                <span className="min-w-40 flex-1 text-sm font-medium">
+                  {attempt.title}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  {attempt.completedAt &&
+                    new Date(attempt.completedAt).toLocaleDateString(undefined, {
+                      dateStyle: "medium",
+                    })}
+                </span>
+                <div className="w-28">
+                  <Progress className="h-1.5" value={ratio * 100} />
+                </div>
+                <span className="w-16 text-right font-mono text-xs">
+                  {attempt.score}/{attempt.maxScore}
+                </span>
+              </div>
+            );
+          })}
+
+          {history && history.breakdown.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                Weakest skills in the most recent sitting
+              </p>
+              <ul className="space-y-1.5">
+                {history.breakdown.slice(0, 6).map((entry) => (
+                  <BreakdownRow key={entry.slug} entry={entry} />
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {profile.education && (
         <Card>
