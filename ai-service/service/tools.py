@@ -26,11 +26,12 @@ class HttpxClient:
 class ToolBox:
     """
     The Career Planning Agent's tools. Each performs a real action against real
-    data — three call python-analyzer, one searches the knowledge base. None
-    return canned text.
+    data — four call python-analyzer, one searches the knowledge base, one reads
+    the student's assessment history. None return canned text.
 
-    `context` carries the student's graph and demonstrated levels, supplied by
-    the caller, so the model never has to be trusted to remember them.
+    `context` carries the student's graph, demonstrated levels and recent
+    attempts, supplied by the caller, so the model never has to be trusted to
+    remember them.
     """
 
     def __init__(
@@ -115,6 +116,49 @@ class ToolBox:
             "roles": result["roles"],
         }
 
+    def get_assessment_history(self, limit: int = 3) -> dict[str, Any]:
+        """
+        Graded sittings, newest first. This is the only tool that can tell a
+        result from a claim: `demonstrated` says a student is level 2 at NumPy,
+        never whether that came from a test or from typing it into a form.
+
+        The caller loads these, so an empty list means "took none", not
+        "lookup failed" — the model has to be told the difference or it invents
+        a score.
+        """
+        attempts = self._context.get("recent_assessments", [])
+        if not attempts:
+            return {
+                "attempts": [],
+                "note": "this student has not completed an assessment yet",
+            }
+
+        return {
+            "attempts": [
+                {
+                    "assessment": a.get("title") or a.get("slug"),
+                    "slug": a.get("slug"),
+                    "score": a.get("score"),
+                    "max_score": a.get("max_score"),
+                    "completed_at": a.get("completed_at"),
+                    "weakest_skills": [
+                        {
+                            "skill": w.get("name"),
+                            "correct": w.get("correct"),
+                            "total": w.get("total"),
+                        }
+                        for w in a.get("weakest", [])
+                    ],
+                }
+                # A limit of 0 would answer "took none" to a student who has.
+                for a in attempts[: max(1, limit)]
+            ],
+            "note": (
+                "weakest_skills is per-skill within one sitting, worst first, and "
+                "is only carried for the most recent attempt"
+            ),
+        }
+
     def search_learning_resources(self, query: str, k: int = 4) -> dict[str, Any]:
         results = self._retriever.search(query, k=k)
         return {
@@ -139,6 +183,9 @@ class ToolBox:
             "compare_target_roles": lambda: self.compare_target_roles(),
             "search_learning_resources": lambda: self.search_learning_resources(
                 query=str(args.get("query", "")), k=int(args.get("k", 4))
+            ),
+            "get_assessment_history": lambda: self.get_assessment_history(
+                limit=int(args.get("limit", 3))
             ),
         }
 
@@ -227,6 +274,30 @@ SCHEMAS: list[dict[str, Any]] = [
                     "k": {"type": "integer", "description": "Results. Default 4."},
                 },
                 "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_assessment_history",
+            "description": (
+                "Read the student's graded assessment results: score out of "
+                "max, when they sat it, and the weakest skills within the most "
+                "recent one. Call this whenever they ask how they did, what "
+                "they got wrong, or what to review next — a demonstrated level "
+                "cannot tell a test result from a self-reported claim. If it "
+                "returns no attempts, say they have not taken one rather than "
+                "guessing a score."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "How many recent sittings. Default 3.",
+                    }
+                },
             },
         },
     },

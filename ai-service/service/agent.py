@@ -22,6 +22,11 @@ Rules:
   you do not decide it.
 - Never recommend a skill the student cannot start yet. If something is blocked,
   say what blocks it.
+- For "how did I do", "what did I get wrong" and "what should I review", call
+  get_assessment_history. A demonstrated level is where the student stands; only
+  an attempt says what happened, and only it separates a graded result from a
+  self-reported claim. Quote its scores as they stand rather than recomputing
+  them, and if it returns no attempts, say so instead of guessing a score.
 - For "which goal should I pick", call compare_target_roles and argue from the
   numbers it returns. Readiness measures distance, not suitability: a lower
   score means a longer path, not a worse fit. Say so when recommending.
