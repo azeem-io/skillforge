@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { Certifications, Projects } from "@/components/profile/portfolio";
+import { CvPreview } from "@/components/profile/cv-preview";
 import { CvUpload } from "@/components/profile/cv-upload";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { SkillClaims } from "@/components/profile/skill-claims";
@@ -112,8 +113,14 @@ export default async function ProfilePage() {
             Stored outside the repository and served back only to you.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <CvUpload cvUploadId={me.profile.cvUploadId} />
+          <CvPreview
+            cvUploadId={me.profile.cvUploadId}
+            cvFilename={me.profile.cvFilename}
+            cvMimeType={me.profile.cvMimeType}
+            cvSizeBytes={me.profile.cvSizeBytes}
+          />
         </CardContent>
       </Card>
     </div>
