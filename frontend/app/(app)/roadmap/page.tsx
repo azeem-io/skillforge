@@ -1,16 +1,13 @@
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { SkillGraph } from "@/components/graph/skill-graph";
 import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
-import { phases } from "@/lib/skills";
-import { roleGraph, roleOptions, requireTargetRole } from "@/lib/student";
+import { GenerateButton } from "@/components/roadmap/generate-button";
+import { RoadmapView } from "@/components/roadmap/roadmap-view";
+import {
+  roleGraph,
+  roleOptions,
+  requireTargetRole,
+  savedRoadmap,
+} from "@/lib/student";
 
 // One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
@@ -21,8 +18,17 @@ export default async function RoadmapPage() {
 
   if (!roleSlug) return <GoalPicker options={options} />;
 
-  const { role, skills } = await roleGraph(roleSlug);
-  const layers = phases(skills);
+  const [{ role, skills }, { roadmap }] = await Promise.all([
+    roleGraph(roleSlug),
+    savedRoadmap(),
+  ]);
+
+  // A roadmap generated against a different goal is stale, not this goal's.
+  const current = roadmap?.roleSlug === roleSlug ? roadmap : null;
+  const totalWeeks = current?.phases.reduce(
+    (sum, phase) => sum + (phase.estimatedWeeks ?? 0),
+    0,
+  );
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
@@ -30,43 +36,18 @@ export default async function RoadmapPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Roadmap</h1>
           <p className="text-muted-foreground text-sm">
-            The subgraph {role.name} requires, minus what you have already
-            shown, layered by prerequisite depth — {layers.length} phases.
+            {current
+              ? `${current.phases.length} phases, about ${totalWeeks} weeks at 8 hours a week.`
+              : `What ${role.name} requires, minus what you have shown. Generate a plan to save it.`}
           </p>
         </div>
-        <RoleSwitcher options={options} current={roleSlug} />
-      </div>
-
-      <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[1fr_22rem]">
-        <div className="h-[55vh] lg:h-auto">
-          <SkillGraph skills={skills} mode="roadmap" />
+        <div className="flex items-center gap-2">
+          <RoleSwitcher options={options} current={roleSlug} />
+          <GenerateButton existing={Boolean(current)} />
         </div>
-
-        <aside className="space-y-3 overflow-auto border-t p-4 lg:border-t-0 lg:border-l">
-          {layers.map((layer, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-base">Phase {i + 1}</CardTitle>
-                  <Badge variant="secondary">{layer.length} skills</Badge>
-                </div>
-                <CardDescription>
-                  {i === 0
-                    ? "Every prerequisite is far enough along to begin these now."
-                    : `Unlocked once phase ${i} lands.`}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-1.5">
-                {layer.map((s) => (
-                  <Badge key={s.id} variant="outline">
-                    {s.name}
-                  </Badge>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-        </aside>
       </div>
+
+      <RoadmapView skills={skills} roadmap={current} />
     </div>
   );
 }

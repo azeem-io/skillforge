@@ -19,6 +19,21 @@ export async function setTargetRole(slug: string) {
   }
 }
 
+/**
+ * Persists a roadmap rather than recomputing one per request. The phases and
+ * the readiness score are frozen at generation, so regenerating later shows
+ * movement instead of overwriting the evidence of it.
+ */
+export async function generateRoadmap() {
+  const result = await api<{ source: "python-analyzer" | "local" }>(
+    "/api/skills/roadmap",
+    { method: "POST", body: {} },
+  );
+  revalidatePath("/roadmap");
+  revalidatePath("/dashboard");
+  return result.source;
+}
+
 export async function changeUserRole(
   userId: string,
   role: "student" | "mentor" | "admin",
