@@ -87,6 +87,10 @@ class StudentContext(BaseModel):
     # Most recent first. A level says where the student is; these say what
     # happened, which is what "how did I do?" is actually asking about.
     recent_assessments: list[AssessmentRecap] = Field(default_factory=list)
+    # Every assessment that exists right now, not just ones this student has
+    # sat — so the assistant can link one without a slug list hardcoded here
+    # going stale the next time an assessment is added or removed.
+    available_assessments: list[dict[str, str]] = Field(default_factory=list)
 
 
 class SearchRequest(BaseModel):
@@ -141,13 +145,34 @@ app. Say what they depend on instead.
 next, answer from the assessment results below rather than the skill levels — a \
 level is where they stand now, an attempt is what actually happened. If no \
 assessment is listed, say they have not taken one yet instead of guessing a score.
-- When you recommend taking or retaking an assessment, link it as markdown so \
-the student can click straight through. The six slugs are the only ones that \
-exist: python-fundamentals, web-development-fundamentals, git-fundamentals, \
-devops-fundamentals, ai-fundamentals, database-fundamentals — written as \
-[the Python assessment](/assessments/python-fundamentals). Never invent a \
-slug; if none of the six fits, name the topic without a link.
+- When you recommend taking or retaking an assessment, link it as markdown from \
+the assessment list below, written as [the Python assessment](/assessments/\
+python-fundamentals). Never invent a slug or use one from your own knowledge — \
+only ones printed in that list exist. If the list is not provided or nothing \
+in it fits, name the topic without a link.
 - Be concrete and brief. A student wants the next action, not an essay."""
+
+
+def assessment_catalog(context: StudentContext | None) -> str:
+    """
+    Every assessment slug that actually exists, supplied per-request by the
+    frontend rather than hardcoded here — the one place CHAT_SYSTEM used to
+    hardcode a slug list that went stale the moment an assessment was added.
+    """
+    if context is None:
+        return ""
+
+    lines = [
+        f"- [{a.get('title') or a['slug']}](/assessments/{a['slug']})"
+        for a in context.available_assessments
+        if a.get("slug")
+    ]
+    if not lines:
+        return ""
+
+    return "\n\nAssessments that exist right now — link only from this list:\n" + "\n".join(
+        lines
+    )
 
 
 def assessment_summary(attempts: list[AssessmentRecap]) -> str:
@@ -247,6 +272,7 @@ def chat(request: ChatRequest) -> dict[str, Any]:
             "content": (
                 f"{CHAT_SYSTEM}"
                 f"{student_summary(request.context)}"
+                f"{assessment_catalog(request.context)}"
                 f"\n\n{context}"
             ),
         }
