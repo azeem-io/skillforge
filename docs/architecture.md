@@ -34,16 +34,19 @@ graph TD
     AUTH --> DB
     PROF --> DB
     SKILL --> DB
-    AI --> DB
-    PY --> DB
-
-    classDef missing stroke-dasharray: 5 5
-    class AI,PY missing
 ```
 
-Dashed services are not built yet. The gateway routes to them regardless and
-answers 502 until they exist; skill-service falls back to a local layering for
-the roadmap rather than failing.
+All five services are built and running. `skill-service` still falls back to a
+local TypeScript layering for the roadmap if `python-analyzer` is unreachable
+(see "Duplicated logic" in `docs/decisions.md`) — that fallback is a
+resilience choice now, not a stand-in for an unbuilt service.
+
+`ai-service` and `python-analyzer` hold no `DATABASE_URL` and never touch
+Postgres. Both are stateless HTTP services: the Node tier assembles a
+student's data through Drizzle and sends it in the request body; the Python
+tier computes or generates over that payload and hands a response straight
+back. Nothing downstream of `GW -->|"/api/ai/*"| AI` or
+`GW -->|"/api/analysis/*"| PY` reaches the database.
 
 ## Request path
 

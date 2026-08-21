@@ -70,7 +70,8 @@ effort estimates and narration are lost.
 1. Register at `/register` — passwords are at least 12 characters, hashed with
    argon2id.
 2. Set a target role on `/profile`. That is what everything measures against.
-3. Take an assessment at `/assessments`. Six areas, ten questions each.
+3. Take an assessment at `/assessments` — searchable, eight areas, ten
+   questions each.
 4. The result scores **per skill**, writes your proficiency levels and starts a
    spaced-repetition schedule for each one.
 5. `/graph` and `/roadmap` now reflect what you actually demonstrated. `/tree`

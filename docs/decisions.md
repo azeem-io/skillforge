@@ -43,6 +43,18 @@ hashing, and Better Auth with argon2id lets us point at the code. An auth
 service whose answer to "what does it do" is "calls Supabase" is a weak
 microservice.
 
+**On MongoDB specifically:** the hackathon PDF's generic "Common Technical
+Architecture" diagram (the one shared across all four problem statements, not
+the SkillForge-specific one on PS-03's own page) names MongoDB as the example
+database. We asked the organizers directly and got explicit permission to use
+a different data store, provided it does the same job — Postgres is a document
+store's superset for a relational domain like a prerequisite DAG and a role
+requirement graph, and pgvector keeps the door open for the RAG corpus to move
+into the same database later. The PS-03-specific service diagram (`auth
+service / profile API / AI service` → `python analyzer / skill service`) never
+names a database at all, and it is that diagram — not the generic one — that
+`docs/architecture.md` and `CLAUDE.md` say we match exactly.
+
 ## Deployment: Coolify on Contabo
 
 Not Vercel. An all-Vercel deploy makes the compose file, the Kubernetes

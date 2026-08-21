@@ -23,7 +23,7 @@ What a judge can already do, end to end, against a real account.
 | Student profile, projects, certifications | `/profile` → profile-api |
 | CV upload with inline preview (pdf/png/jpeg) | `/profile`, sandboxed frame |
 | Self-reported skill claims | `/profile`, `source: self_reported` |
-| Assessments — recall, cloze, MCQ | `/assessments`, 6 areas, 60 questions |
+| Assessments — recall, cloze, MCQ, with search | `/assessments`, 8 areas, 80 questions |
 | Per-skill breakdown, worst-first | `/assessments/attempts/[id]` |
 | FSRS spaced repetition | `skill_state`, `skill-service/src/scheduler.ts` |
 | Skill graph — prerequisite DAG | `/graph`, React Flow + elk |
@@ -32,6 +32,7 @@ What a judge can already do, end to end, against a real account.
 | RAG assistant with cited sources, retry on failure, past-chat switcher | `/assistant` → ai-service `/chat` |
 | Career agent, 6 tools | ai-service `/agent` |
 | Mentor and admin dashboard | `/students`, role + mentorship management |
+| Staff curate the resource library | `/resources`, mentor/admin only, `skill-service` |
 | Compose, Kubernetes, Terraform | `docker-compose.yml`, `kubernetes/`, `terraform/` |
 
 ---
