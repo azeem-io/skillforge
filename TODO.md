@@ -148,6 +148,11 @@ elsewhere just point there instead of duplicating.
       with a 5-minute startupProbe, because each replica embeds the corpus at
       boot and shares nothing. `kubeconform -strict` against 1.31: 26
       resources in 14 files, all valid.
+- [x] **Architecture diagram / database schema as image files.** Shipped as
+      PDFs rather than PNGs — `docs/architecture.pdf`,
+      `docs/database-schema.pdf` and `docs/api.pdf`, rendered from the
+      markdown with the mermaid diagrams drawn, so a judge reading offline
+      gets the diagrams and the prose in one file. Original note below.
 - [~] **Architecture diagram / database schema as image files.** The
       Submission Structure's tree names `docs/architecture.png` and
       `docs/database-schema.png` specifically; we instead have the same
