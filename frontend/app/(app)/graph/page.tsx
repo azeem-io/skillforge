@@ -3,8 +3,12 @@ import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
 import { roleGraph, roleOptions, requireTargetRole } from "@/lib/student";
 
+import type { Metadata } from "next";
+
 // One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Skill graph · SkillForge" };
 
 export default async function GraphPage() {
   const { roleSlug } = await requireTargetRole();
@@ -15,7 +19,7 @@ export default async function GraphPage() {
   const { role, skills } = await roleGraph(roleSlug);
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
       <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Skill Graph</h1>

@@ -8,11 +8,15 @@ import { ChatEmpty, ChatThread } from "@/components/ai/chat-thread";
 import { reset, send } from "@/components/ai/chat-store";
 import { useChat } from "@/components/ai/use-chat";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Assistant · SkillForge" };
+
 export default function AssistantPage() {
   const { messages, busy } = useChat();
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
       <div className="flex items-center justify-between gap-4 border-b px-6 py-4">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">

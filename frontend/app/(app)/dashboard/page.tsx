@@ -25,10 +25,14 @@ import { FirstSteps } from "@/components/layout/first-steps";
 import { phases, readiness } from "@/lib/skills";
 import { roleGraph, roleOptions, requireTargetRole } from "@/lib/student";
 
+import type { Metadata } from "next";
+
 const ORDER: Mastery[] = ["mastered", "progress", "gap", "locked"];
 
 // One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Dashboard · SkillForge" };
 
 export default async function DashboardPage() {
   const { profile, roleSlug } = await requireTargetRole();

@@ -13,6 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { api, apiOrNull } from "@/lib/api";
+
+import type { Metadata } from "next";
 import type {
   Certification,
   Profile,
@@ -28,6 +30,8 @@ type TaxonomySkill = { slug: string; name: string };
 type Taxonomy = {
   categories: { subcategories: { skills: TaxonomySkill[] }[] }[];
 };
+
+export const metadata: Metadata = { title: "Profile · SkillForge" };
 
 export default async function ProfilePage() {
   const me = await apiOrNull<{ profile: Profile }>("/api/profile/me");

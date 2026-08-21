@@ -16,6 +16,8 @@ import { api, apiOrNull } from "@/lib/api";
 import type { AssessmentSummary } from "@/lib/assessment-types";
 import type { Profile } from "@/lib/profile-types";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
 
 type Attempt = {
@@ -26,6 +28,8 @@ type Attempt = {
   maxScore: number | null;
   completedAt: string | null;
 };
+
+export const metadata: Metadata = { title: "Assessments · SkillForge" };
 
 export default async function AssessmentsPage() {
   const me = await apiOrNull<{ profile: Profile }>("/api/profile/me");

@@ -14,7 +14,11 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { mentorships, requireStaff, roster } from "@/lib/student";
 
+import type { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Students · SkillForge" };
 
 export default async function StudentsPage() {
   const staff = await requireStaff();
