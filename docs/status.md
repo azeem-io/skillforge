@@ -39,7 +39,6 @@ depends on a hardcoded student.
       `gap` is red (`--destructive-*`), not amber: red is the faster read for
       "missing". Locked keeps grey plus a padlock so it cannot be confused with
       skills outside the goal, which are faded instead.
-- [x] Agent harness: `CLAUDE.md`, `.claude/skills/{db-change,ui-component,add-service}`
 - [x] `docs/decisions.md` — settled calls, read before re-proposing
 - [x] `.env.example` with all six service URLs and the DeepSeek keys
 
@@ -202,7 +201,7 @@ depends on a hardcoded student.
 - [x] `README.md` — setup, architecture, AI explanation
 - [x] `docs/api.md` · `docs/architecture.md` · `docs/schema.md` · `docs/cicd.md`
 - [x] `docs/decisions.md` — settled calls and why
-- [x] `CLAUDE.md` — up to date with the merged system
+- [x] `CONTRIBUTING.md` — stack rules, hard rules, ownership, kept current
 
 ## In progress
 
@@ -218,7 +217,7 @@ Nothing mid-flight right now — see **Next** for what's queued.
 **Duplicated logic.** `packages/db/src/queries/skills.ts` computes gaps and
 phases in TypeScript; `python-analyzer` computes the same thing in Python. The
 readiness rule (a prerequisite counts at half its required level) is written out
-in both — see `docs/decisions.md` and the table in `CLAUDE.md`. They agree today
+in both — see `docs/decisions.md` and the table in `CONTRIBUTING.md`. They agree today
 because they were aligned by hand. **This will drift.** Deliberately not being
 fixed before submission: skill-service already prefers the analyzer and falls
 back to the TypeScript path, which is the behaviour we want during judging.

@@ -55,7 +55,7 @@ Deploy, demo video and presentation are handled separately — not in this list.
             `/agent` is sent `recent_assessments` in its context but never
             renders it into the prompt — it reads the attempts through the tool,
             so a conversation that never asks about a score never pays for one.
-            Tool counts corrected in README.md, CLAUDE.md, docs/api.md,
+            Tool counts corrected in README.md, CONTRIBUTING.md, docs/api.md,
             docs/status.md and ai-service/README.md (five -> six), and the
             `ToolBox` docstring's stale "three call python-analyzer" is now
             four. 45 tests passing.
@@ -174,7 +174,7 @@ elsewhere just point there instead of duplicating.
 - [x] **MongoDB → PostgreSQL.** The PDF's *generic* cross-problem-statement
       architecture diagram names MongoDB; PS-03's own service diagram doesn't
       name a database at all, and that's the one `docs/architecture.md` and
-      `CLAUDE.md` say we match exactly. Organizers gave explicit permission to
+      `CONTRIBUTING.md` say we match exactly. Organizers gave explicit permission to
       substitute a different data store that does the same job. Recorded in
       `docs/decisions.md` under "Database: self-hosted Postgres, not
       Supabase" so it reads as a documented, approved call rather than a

@@ -4,7 +4,7 @@ import { env } from "./context";
  * The prose half of a roadmap. Structure is computed — by python-analyzer when
  * it answers, by `phases()` in packages/db when it does not — and this asks
  * ai-service to describe what was computed. A model never decides ordering;
- * see the roadmap rules in CLAUDE.md.
+ * see the roadmap rules in CONTRIBUTING.md.
  */
 export type NarrationRequest = {
   role: string;

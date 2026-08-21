@@ -7,15 +7,12 @@ import { mentorships } from "../schema/index";
 export type Reader = { id: string; role: string };
 
 /**
- * Whether `reader` may read `userId`'s rows.
+ * Whether `reader` may read `userId`'s rows. Reads only — a mentor may look,
+ * never edit.
  *
- * A mentor's access is a join against `mentorships`, never a comparison
- * against the string "mentor": holding the role grants nothing on its own,
- * only the pairing does. Lives here because two services enforce it — see
- * `requireReadAccess` in profile-api and in skill-service — and a second copy
- * of this rule is a second thing to get wrong.
- *
- * Reads only. A mentor may look, never edit.
+ * A mentor's access is a join against `mentorships`, never a comparison against
+ * the string "mentor": holding the role grants nothing on its own, only the
+ * pairing does. Both profile-api and skill-service enforce it through here.
  */
 export async function canReadStudent(
   db: Database,

@@ -156,7 +156,8 @@ and stores what comes back in `roadmaps.narration` and
 `roadmap_phases.rationale` — the response reports it as `narrated: true`. The
 call is bounded at 20 seconds and fails soft: an unreachable or unconfigured
 ai-service leaves both columns null and changes nothing else about the plan.
-Ordering is never a model's to decide; see the roadmap rules in `CLAUDE.md`.
+Ordering is never a model's to decide; see the roadmap rules in
+`CONTRIBUTING.md`.
 
 ## ai-service
 

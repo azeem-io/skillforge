@@ -3,7 +3,7 @@
 AI-powered student skills and career development platform. Assess what you know,
 see the gap to the role you want, and get a roadmap that respects prerequisites.
 
-Read `CLAUDE.md` before writing code — stack rules, architecture, ownership.
+Read `CONTRIBUTING.md` before writing code — stack rules, architecture, ownership.
 
 ## Quick start
 
@@ -128,7 +128,7 @@ locally rather than an API.
 
 ## Docs
 
-- `CLAUDE.md` — stack, hard rules, architecture, ownership
+- `CONTRIBUTING.md` — stack, hard rules, architecture, ownership
 - `docs/architecture.md` — services, request path, how identity travels
 - `docs/api.md` — every endpoint, and the python-analyzer contract
 - `docs/schema.md` — the data model, with ER diagrams

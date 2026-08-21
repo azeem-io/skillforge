@@ -33,8 +33,7 @@ const Generate = z.object({ roleSlug: z.string().min(1).optional() });
 /**
  * Builds the roadmap and stores it. The structure comes from python-analyzer
  * when it is reachable; when it is not, it comes from `phases()` in
- * packages/db — the longest-path layering already in the repo, marked there as
- * moving to RoadmapGenerator once that service lands.
+ * packages/db — the same longest-path layering in TypeScript.
  *
  * Either way no model decides ordering. Once the phases are settled they go to
  * ai-service, which writes `narration` and `rationale` and nothing else.

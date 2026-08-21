@@ -1,17 +1,10 @@
 /**
- * A populated demo account, so a judge who never registers still sees a
- * working system. Separate from `db:seed` on purpose: that one seeds the
- * catalogue every install needs and runs before any service starts, this one
- * invents people and has to run after it.
+ * A populated demo account, so an instance nobody has registered on still shows
+ * a working system. Separate from `db:seed`, which seeds the catalogue before
+ * any service starts.
  *
- * Nothing here is invented twice. Passwords go through auth-service's own
- * `hashPassword`, answers through skill-service's grader, proficiency through
- * its FSRS scheduler, and the roadmap through the same layering the route
- * uses — so the demo student is indistinguishable from one who registered and
- * sat the assessments by hand.
- *
- * Re-running updates in place: every row this writes is keyed on a
- * deterministic id or a natural key.
+ * Every row is keyed on a deterministic id or a natural key, so re-running
+ * updates in place.
  */
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
@@ -129,7 +122,6 @@ if (!anySkill) {
   process.exit(1);
 }
 
-// ---------------------------------------------------------------- accounts
 
 const hash = await hashPassword(PASSWORD);
 
@@ -164,7 +156,6 @@ for (const person of Object.values(PEOPLE)) {
     .onConflictDoUpdate({ target: accounts.id, set: { password: hash } });
 }
 
-// ----------------------------------------------------------------- profile
 
 const roles = await db
   .select({ id: targetRoles.id, slug: targetRoles.slug, name: targetRoles.name })
@@ -228,7 +219,6 @@ await db
   .values({ mentorId: PEOPLE.mentor.id, studentId: PEOPLE.student.id })
   .onConflictDoNothing();
 
-// -------------------------------------------------------------- assessments
 
 type QuestionRow = GradableQuestion & {
   ordinal: number;
@@ -415,7 +405,6 @@ const assessed = await db
   );
 for (const row of assessed) demonstrated[row.slug] = row.level;
 
-// ------------------------------------------------------- self-reported claims
 
 /**
  * Claims on skills the goal needs and the student can already start — the
@@ -456,7 +445,6 @@ for (const row of claimable) {
   demonstrated[row.slug] = level;
 }
 
-// ------------------------------------------------------------------ portfolio
 
 const PROJECTS = [
   {
@@ -535,7 +523,6 @@ await db
   })
   .onConflictDoNothing();
 
-// -------------------------------------------------------------------- roadmap
 
 /**
  * Structure only. `narration` and `rationale` stay null here for the same
@@ -586,7 +573,6 @@ if (layers.length) {
   }
 }
 
-// --------------------------------------------------------------------- report
 
 const claimed = await db
   .select({ skillId: studentSkills.skillId })

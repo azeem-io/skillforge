@@ -11,9 +11,9 @@ import {
  * through the functions at the bottom, so replacing the algorithm changes this
  * file and nothing else.
  *
- * Ported from Retention Lab, with one substantive change: the unit being
- * scheduled is a *skill*, not a flashcard. Proficiency decays and has to be
- * re-earned, which is what keeps "mastered" meaning something a month later.
+ * The unit being scheduled is a *skill*, not a flashcard: proficiency decays
+ * and has to be re-earned, which is what keeps "mastered" meaning something a
+ * month later.
  */
 
 const DAY_MS = 86_400_000;
