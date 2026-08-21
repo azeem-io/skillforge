@@ -81,6 +81,19 @@ If sign-in rate-limits trip immediately, Coolify's proxy network is outside the
 default `TRUSTED_PROXIES` range. Widen it:
 `TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`.
 
+## Every deploy is about two minutes of downtime
+
+Coolify stops the stack and starts it again, and the start order is a chain:
+`migrate` → the three data services → `api-gateway` → `frontend`, each waiting
+on the previous one's health check. The proxy answers **503** until `frontend`
+is healthy, measured at roughly two minutes on the 12 GB box with warm layers.
+
+So: **do not push to `main` during the demo or while judges have the URL.**
+Auto-deploy means a docs-only commit restarts production like any other. To
+stop that, set *Watch Paths* on the resource in Coolify to the directories that
+matter (`frontend/`, `backend/`, `packages/`, `ai-service/`, `python-analyzer/`,
+`docker-compose.yml`) so `docs/` pushes are ignored.
+
 ## Rollback
 
 Coolify's deployment list redeploys any earlier commit. Migrations are
@@ -101,6 +114,8 @@ Caddy issues a real certificate for any public hostname and its own for
 
 ## Port 3000
 
-`frontend` publishes `3000:3000` so a local checkout works without Caddy. On
-the VPS that port stays closed: `terraform/cloud-init.yaml` opens only 22, 80
-and 443 in ufw.
+`frontend` publishes `127.0.0.1:3000:3000` — loopback only. Locally that is
+`http://localhost:3000`; on the VPS the raw IP serves nothing on 3000, which is
+deliberate. Docker publishes straight past ufw, so the bind address is the
+firewall here, not a rule. Coolify's proxy reaches the container over the
+compose network and is unaffected.
