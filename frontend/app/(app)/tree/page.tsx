@@ -3,8 +3,12 @@ import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
 import { roleTree, roleOptions, requireTargetRole } from "@/lib/student";
 
+import type { Metadata } from "next";
+
 // One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Skill tree · SkillForge" };
 
 export default async function TreePage() {
   const { roleSlug } = await requireTargetRole();
@@ -15,7 +19,7 @@ export default async function TreePage() {
   const { role, categories } = await roleTree(roleSlug);
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
       <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Skill Tree</h1>

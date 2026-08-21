@@ -2,6 +2,8 @@ import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
 import { GenerateButton } from "@/components/roadmap/generate-button";
 import { RoadmapView } from "@/components/roadmap/roadmap-view";
+
+import type { Metadata } from "next";
 import {
   roleGraph,
   roleOptions,
@@ -11,6 +13,8 @@ import {
 
 // One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Roadmap · SkillForge" };
 
 export default async function RoadmapPage() {
   const { roleSlug } = await requireTargetRole();
@@ -31,7 +35,7 @@ export default async function RoadmapPage() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
       <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Roadmap</h1>
