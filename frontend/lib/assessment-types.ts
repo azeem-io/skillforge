@@ -24,6 +24,16 @@ export type AssessmentSummary = {
   best: { score: number; maxScore: number; lastAt: string } | null;
 };
 
+/** One row of `GET /api/skills/attempts` — the list, without the answers. */
+export type AttemptSummary = {
+  id: string;
+  slug: string;
+  title: string;
+  score: number | null;
+  maxScore: number | null;
+  completedAt: string | null;
+};
+
 export type AttemptAnswer = Question & {
   questionId: string;
   correct: number[] | null;

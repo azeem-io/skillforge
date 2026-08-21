@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import APIRouter, FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from service.agent import CareerPlanningAgent
 from service.deepseek import DeepSeekClient
@@ -53,6 +53,29 @@ def client() -> DeepSeekClient:
     return DeepSeekClient()
 
 
+class SkillScore(BaseModel):
+    name: str = ""
+    correct: int = 0
+    total: int = 0
+
+
+class AssessmentRecap(BaseModel):
+    """
+    One sitting. The frontend speaks camelCase, so the aliases are the wire
+    names and the snake_case ones are what this file reads.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    slug: str = ""
+    title: str = ""
+    score: int | None = None
+    max_score: int | None = Field(default=None, alias="maxScore")
+    completed_at: str | None = Field(default=None, alias="completedAt")
+    # Worst first, and only for the most recent attempt.
+    weakest: list[SkillScore] = Field(default_factory=list)
+
+
 class StudentContext(BaseModel):
     skills: list[dict[str, Any]] = Field(default_factory=list)
     edges: list[dict[str, Any]] = Field(default_factory=list)
@@ -61,6 +84,9 @@ class StudentContext(BaseModel):
     # Every role with its requirements, so compare_target_roles can rank them.
     roles: list[dict[str, Any]] = Field(default_factory=list)
     target_role: str | None = None
+    # Most recent first. A level says where the student is; these say what
+    # happened, which is what "how did I do?" is actually asking about.
+    recent_assessments: list[AssessmentRecap] = Field(default_factory=list)
 
 
 class SearchRequest(BaseModel):
@@ -111,28 +137,72 @@ when there is genuinely more than one item. No headings on a two-line answer.
 - Never state a readiness percentage, a gap count, or roadmap phase order. Those \
 are computed by the analyzer and guessing them would contradict the rest of the \
 app. Say what they depend on instead.
+- When the student asks how they did, what they got wrong, or what to review \
+next, answer from the assessment results below rather than the skill levels — a \
+level is where they stand now, an attempt is what actually happened. If no \
+assessment is listed, say they have not taken one yet instead of guessing a score.
 - Be concrete and brief. A student wants the next action, not an essay."""
+
+
+def assessment_summary(attempts: list[AssessmentRecap]) -> str:
+    """
+    The recent sittings as one line each. Scores are quoted back verbatim —
+    the model is not asked to average them or turn them into a percentage.
+    """
+    if not attempts:
+        return ""
+
+    lines = []
+    for attempt in attempts:
+        parts = [attempt.title or attempt.slug]
+        if attempt.score is not None and attempt.max_score is not None:
+            parts.append(f"scored {attempt.score}/{attempt.max_score}")
+        if attempt.completed_at:
+            parts.append(f"on {attempt.completed_at[:10]}")
+        if attempt.weakest:
+            weakest = ", ".join(
+                f"{skill.name} {skill.correct}/{skill.total}" for skill in attempt.weakest
+            )
+            parts.append(f"weakest: {weakest}")
+        lines.append(f"- {' — '.join(parts)}")
+
+    return (
+        "\n\nAssessments they have taken, most recent first:\n"
+        + "\n".join(lines)
+        + "\nThese are graded results, not self-reported claims. Quote the scores "
+        "as they stand and point at the weakest skills when asked what to review; "
+        "a skill level on its own cannot say which questions went wrong."
+    )
 
 
 def student_summary(context: StudentContext | None) -> str:
     """
-    Demonstrated levels folded into the RAG prompt. Enough for the model to
-    tailor an answer without the tool-calling round trips /agent needs — it
-    still cannot compute, so anything numeric belongs on /agent.
+    Demonstrated levels and recent assessment results folded into the RAG
+    prompt. Enough for the model to tailor an answer without the tool-calling
+    round trips /agent needs — it still cannot compute, so anything numeric
+    belongs on /agent.
     """
-    if context is None or not context.demonstrated:
+    if context is None:
         return ""
 
-    levels = ", ".join(
-        f"{slug} (level {level})"
-        for slug, level in sorted(context.demonstrated.items())
-    )
-    target = f" Their target role is {context.target_role}." if context.target_role else ""
-    return (
-        f"\n\nThe student has demonstrated: {levels}.{target} Use this to tailor "
-        "the answer, but do not state readiness percentages or counts — those "
-        "are computed elsewhere and guessing them would be wrong."
-    )
+    summary = ""
+    if context.demonstrated:
+        levels = ", ".join(
+            f"{slug} (level {level})"
+            for slug, level in sorted(context.demonstrated.items())
+        )
+        target = (
+            f" Their target role is {context.target_role}." if context.target_role else ""
+        )
+        summary = (
+            f"\n\nThe student has demonstrated: {levels}.{target} Use this to tailor "
+            "the answer, but do not state readiness percentages or counts — those "
+            "are computed elsewhere and guessing them would be wrong."
+        )
+    elif context.target_role:
+        summary = f"\n\nThe student's target role is {context.target_role}."
+
+    return summary + assessment_summary(context.recent_assessments)
 
 
 @router.get("/health")

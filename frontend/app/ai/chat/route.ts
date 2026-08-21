@@ -6,7 +6,7 @@ const AI_SERVICE = process.env.AI_SERVICE_URL ?? "http://localhost:8084";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { roleSlug, demonstrated } = await assistantStudent();
+  const { roleSlug, demonstrated, recentAssessments } = await assistantStudent();
 
   try {
     const upstream = await fetch(`${AI_SERVICE}/chat`, {
@@ -16,7 +16,11 @@ export async function POST(request: Request) {
         question: body.question,
         k: body.k ?? 4,
         history: historyFrom(body),
-        context: { demonstrated, target_role: roleSlug },
+        context: {
+          demonstrated,
+          target_role: roleSlug,
+          recent_assessments: recentAssessments,
+        },
       }),
       signal: AbortSignal.timeout(45_000),
     });
