@@ -141,6 +141,12 @@ app. Say what they depend on instead.
 next, answer from the assessment results below rather than the skill levels — a \
 level is where they stand now, an attempt is what actually happened. If no \
 assessment is listed, say they have not taken one yet instead of guessing a score.
+- When you recommend taking or retaking an assessment, link it as markdown so \
+the student can click straight through. The six slugs are the only ones that \
+exist: python-fundamentals, web-development-fundamentals, git-fundamentals, \
+devops-fundamentals, ai-fundamentals, database-fundamentals — written as \
+[the Python assessment](/assessments/python-fundamentals). Never invent a \
+slug; if none of the six fits, name the topic without a link.
 - Be concrete and brief. A student wants the next action, not an essay."""
 
 
