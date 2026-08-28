@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 
 import type { Metadata } from "next";
 import {
+  requireTargetRole,
+  resourcesBySkill,
   roleGraph,
   roleOptions,
-  requireTargetRole,
   savedRoadmap,
 } from "@/lib/student";
 
@@ -26,9 +27,10 @@ export default async function RoadmapPage() {
 
   if (!roleSlug) return <GoalPicker options={options} />;
 
-  const [{ role, skills }, { roadmap }] = await Promise.all([
+  const [{ role, skills }, { roadmap }, resources] = await Promise.all([
     roleGraph(roleSlug),
     savedRoadmap(),
+    resourcesBySkill(),
   ]);
 
   // A roadmap generated against a different goal is stale, not this goal's.
@@ -61,7 +63,7 @@ export default async function RoadmapPage() {
         </div>
       </div>
 
-      <RoadmapView skills={skills} roadmap={current} />
+      <RoadmapView skills={skills} roadmap={current} resources={resources} />
     </div>
   );
 }

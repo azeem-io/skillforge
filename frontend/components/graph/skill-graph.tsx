@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   Controls,
@@ -14,9 +14,10 @@ import {
 
 import "@xyflow/react/dist/style.css";
 
+import type { ResourceLink } from "@/components/resources/resource-links";
 import { categoryIndex, categoryOrder } from "@/lib/category";
 import { type Mastery } from "@/lib/mastery";
-import { layoutGraph } from "./layout";
+import { layoutGraph, NODE_H, NODE_W } from "./layout";
 import { Legend } from "./legend";
 import { SkillNode } from "./skill-node";
 import { SkillPanel } from "./skill-panel";
@@ -45,15 +46,26 @@ function GraphInner({
   skills: initial,
   mode,
   highlight,
+  resources,
+  focusSlug,
 }: {
   skills: GraphSkill[];
   mode: Mode;
   highlight?: string[] | null;
+  resources: Record<string, ResourceLink[]>;
+  focusSlug?: string | null;
 }) {
   const [skills, setSkills] = useState(initial);
   const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const { fitView } = useReactFlow();
+  // `/graph?skill=<slug>` opens with that node already selected, which is what
+  // lets the dashboard, the roadmap and the assistant point at one skill
+  // rather than at the graph in general. Resolved during the first render so
+  // the panel is there on the first paint; the camera follows in an effect
+  // below, once ELK has actually placed the node.
+  const [selectedId, setSelectedId] = useState<string | null>(
+    () => initial.find((skill) => skill.slug === focusSlug)?.id ?? null,
+  );
+  const { fitBounds, fitView, setCenter } = useReactFlow();
 
   // A new server payload — a different role, or a refresh — replaces whatever
   // the wand added locally. Adjusted during render rather than in an effect:
@@ -63,16 +75,6 @@ function GraphInner({
     setSeeded(initial);
     setSkills(initial);
   }
-
-  const select = useCallback(
-    (id: string | null) => {
-      setSelectedId(id);
-      if (id) {
-        fitView({ nodes: [{ id }], duration: 500, padding: 0.4, maxZoom: 1.1 });
-      }
-    },
-    [fitView],
-  );
 
   const onExpand = useCallback(
     async (id: string) => {
@@ -219,18 +221,81 @@ function GraphInner({
     };
   }, [rawNodes, edges]);
 
-  // The camera follows the spotlight. fitView's duration is what turns the
-  // move into a glide instead of a cut.
+  /**
+   * The camera. Everything here works off the positions ELK produced rather
+   * than off React Flow's node lookup: `fitView({ nodes: [...] })` needs nodes
+   * React Flow has measured, and on this graph — controlled `nodes`, no
+   * `onNodesChange` — it silently does nothing. Unfiltered `fitView` is fine,
+   * so only the targeted moves are hand-rolled.
+   *
+   * NODE_W/NODE_H are the size SkillNode renders at, which is also what ELK
+   * was told to lay out with.
+   */
+  const centerOn = useCallback(
+    (id: string) => {
+      const node = nodes.find((n) => n.id === id);
+      if (!node) return;
+      setCenter(node.position.x + NODE_W / 2, node.position.y + NODE_H / 2, {
+        zoom: 1,
+        duration: 500,
+      });
+    },
+    [nodes, setCenter],
+  );
+
+  const frame = useCallback(
+    (ids: string[]) => {
+      const picked = nodes.filter((n) => ids.includes(n.id));
+      if (picked.length === 0) return false;
+      const left = Math.min(...picked.map((n) => n.position.x));
+      const top = Math.min(...picked.map((n) => n.position.y));
+      const right = Math.max(...picked.map((n) => n.position.x)) + NODE_W;
+      const bottom = Math.max(...picked.map((n) => n.position.y)) + NODE_H;
+      fitBounds(
+        { x: left, y: top, width: right - left, height: bottom - top },
+        { padding: 0.3, duration: 600 },
+      );
+      return true;
+    },
+    [nodes, fitBounds],
+  );
+
+  const select = useCallback(
+    (id: string | null) => {
+      setSelectedId(id);
+      if (id) centerOn(id);
+    },
+    [centerOn],
+  );
+
+  // The camera follows the spotlight, and returns to the whole graph when the
+  // phase is deselected — which is what the roadmap's "click again to zoom
+  // back out" has always promised.
   const spotlightKey = spotlightIds?.join() ?? "";
   useEffect(() => {
     if (nodes.length === 0) return;
-    const target = spotlightIds
-      ? { nodes: spotlightIds.map((id) => ({ id })), padding: 0.3 }
-      : { padding: 0.15 };
-    const timer = setTimeout(() => fitView({ ...target, duration: 600 }), 60);
+    const timer = setTimeout(() => {
+      if (spotlightIds && frame(spotlightIds)) return;
+      fitView({ padding: 0.15, duration: 600 });
+    }, 60);
     return () => clearTimeout(timer);
+    // `frame` and `spotlightIds` both change identity every render; the key is
+    // what actually decides whether the spotlight moved.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spotlightKey, nodes.length === 0, fitView]);
+
+  // The camera for a deep link. The selection itself is already set during
+  // render; this only has to wait for ELK, then land after React Flow's own
+  // initial fit — which reads as zooming out for context, then in on the node
+  // the link named. Once, or it would fight every later click.
+  const focusHandled = useRef(false);
+  useEffect(() => {
+    if (focusHandled.current || !focusSlug || !selectedId) return;
+    if (!nodes.some((node) => node.id === selectedId)) return;
+    focusHandled.current = true;
+    const timer = setTimeout(() => centerOn(selectedId), 400);
+    return () => clearTimeout(timer);
+  }, [focusSlug, selectedId, nodes, centerOn]);
 
   const byId = useMemo(() => new Map(skills.map((s) => [s.id, s])), [skills]);
   const selected = selectedId ? (byId.get(selectedId) ?? null) : null;
@@ -268,6 +333,7 @@ function GraphInner({
           unlocks={skills.filter((s) =>
             s.prerequisites.includes(selected.id),
           )}
+          resources={(selected.slug && resources[selected.slug]) || []}
           expanding={expanding}
           onSelect={select}
           onExpand={onExpand}
@@ -293,14 +359,25 @@ export function SkillGraph({
   skills,
   mode = "explore",
   highlight,
+  resources = {},
+  focusSlug,
 }: {
   skills: GraphSkill[];
   mode?: Mode;
   highlight?: string[] | null;
+  /** Keyed by skill slug — see `resourcesBySkill()`. */
+  resources?: Record<string, ResourceLink[]>;
+  focusSlug?: string | null;
 }) {
   return (
     <ReactFlowProvider>
-      <GraphInner skills={skills} mode={mode} highlight={highlight} />
+      <GraphInner
+        skills={skills}
+        mode={mode}
+        highlight={highlight}
+        resources={resources}
+        focusSlug={focusSlug}
+      />
     </ReactFlowProvider>
   );
 }
