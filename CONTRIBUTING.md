@@ -67,6 +67,9 @@ Everyone registers as a student. The first admin is made from outside the app:
   ordinary rows like anyone else's — no code path knows its id.
 - Auth is re-verified at the data layer on every protected route and action,
   never in middleware alone.
+- Security headers are set in `frontend/next.config.ts`, not in the Caddyfile.
+  Caddy is behind the opt-in `edge` profile and does not run in production, so
+  anything set only there reaches nobody.
 - The roadmap's structure is computed by the Python service. The LLM writes
   prose into `narration` and `rationale` columns only, through ai-service
   `/narrate`, and only after the phases are settled. Never let a model decide
@@ -115,6 +118,11 @@ Easy to confuse, and Caddy makes the difference invisible:
 
 A Next route under `/api/` is unreachable in compose: Caddy intercepts it
 before Next ever sees it. Put app routes outside `/api/`.
+
+`/ai/*` sits outside `(app)`, so no layout has already turned an anonymous
+visitor away — each handler calls `aiUser()` from `frontend/app/ai/guard.ts`
+itself. Without that the deployed site is an open proxy to a paid model. Any
+new route under `/ai/` starts with the same two lines.
 
 ### Docker build context
 
