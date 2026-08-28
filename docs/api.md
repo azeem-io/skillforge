@@ -76,6 +76,25 @@ Notes:
 - Uploads are limited to 5MB and to `application/pdf`, `image/png`,
   `image/jpeg`. The stored filename is generated, never the client's.
 
+### Account — your own record
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/api/profile/account/export` | everything held about the caller as one JSON document, `Content-Disposition: attachment` |
+| DELETE | `/api/profile/account` | `{ ok }`. Body must carry `{ email }` matching the caller's own |
+
+The export deliberately omits the argon2id hash and live session tokens —
+credentials are the means of access to an account, not facts about the person,
+and a downloadable file containing either is a liability rather than a
+disclosure. Sessions appear as metadata with the token withheld.
+
+Deletion removes the `users` row only; every table holding personal data
+references it `on delete cascade`. `resources.created_by` and
+`assessments.created_by` are `set null`, so content a mentor contributed
+outlives them unattributed. Files do not cascade, so the upload directory is
+removed first — if that throws, the account still exists and the request can be
+retried. Deleting the last remaining admin is refused with a 409.
+
 ## skill-service — `/api/skills/*`
 
 ### Taxonomy — public

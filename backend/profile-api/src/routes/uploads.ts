@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 
 import { profiles, uploads } from "@skillforge/db/schema";
@@ -156,8 +156,14 @@ uploadRoutes.delete("/uploads/:id", async (c) => {
   const deleted = await db
     .delete(uploads)
     .where(and(eq(uploads.id, c.req.param("id")), eq(uploads.userId, actor.id)))
-    .returning({ id: uploads.id });
+    .returning({ id: uploads.id, storageKey: uploads.storageKey });
 
   if (deleted.length === 0) throw new HTTPException(404, { message: "No such upload" });
+
+  // The row was the only thing pointing at the file. Without this a deleted CV
+  // stays on the volume forever, which makes "delete" a lie in the one place
+  // it most needs not to be.
+  await rm(join(env.uploadDir, deleted[0]!.storageKey), { force: true });
+
   return c.json({ ok: true });
 });

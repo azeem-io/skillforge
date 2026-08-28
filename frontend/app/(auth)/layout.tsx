@@ -21,6 +21,18 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
       <main className="bg-card w-full max-w-sm rounded-lg border p-6 shadow-sm">
         {children}
       </main>
+
+      <p className="text-muted-foreground text-xs">
+        By creating an account you agree to our{" "}
+        <Link href="/terms" className="hover:text-foreground underline underline-offset-2">
+          terms
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="hover:text-foreground underline underline-offset-2">
+          privacy policy
+        </Link>
+        .
+      </p>
     </div>
   );
 }

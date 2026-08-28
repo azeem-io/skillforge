@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { AccountData } from "@/components/profile/account-data";
 import { Certifications, Projects } from "@/components/profile/portfolio";
 import { CvPreview } from "@/components/profile/cv-preview";
 import { CvUpload } from "@/components/profile/cv-upload";
@@ -127,6 +128,8 @@ export default async function ProfilePage() {
           />
         </CardContent>
       </Card>
+
+      <AccountData email={me.profile.email} />
     </div>
   );
 }

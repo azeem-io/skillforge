@@ -8,6 +8,7 @@ import {
 import { Hono } from "hono";
 
 import { env, type Vars } from "./context";
+import { account } from "./routes/account";
 import { portfolio } from "./routes/portfolio";
 import { profile } from "./routes/profile";
 import { roster } from "./routes/roster";
@@ -26,6 +27,7 @@ health(app, SERVICE);
 
 // The gateway forwards the path unchanged, so the prefix here is the same one
 // the browser asked for. Nothing rewrites a URL anywhere along the chain.
+app.route("/api/profile", account);
 app.route("/api/profile", profile);
 app.route("/api/profile", portfolio);
 app.route("/api/profile", uploadRoutes);
