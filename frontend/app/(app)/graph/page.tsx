@@ -1,7 +1,12 @@
 import { SkillGraph } from "@/components/graph/skill-graph";
 import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
-import { roleGraph, roleOptions, requireTargetRole } from "@/lib/student";
+import {
+  requireTargetRole,
+  resourcesBySkill,
+  roleGraph,
+  roleOptions,
+} from "@/lib/student";
 
 import type { Metadata } from "next";
 
@@ -10,13 +15,19 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Skill graph" };
 
-export default async function GraphPage() {
+export default async function GraphPage({
+  searchParams,
+}: PageProps<"/graph">) {
   const { roleSlug } = await requireTargetRole();
   const options = await roleOptions();
 
   if (!roleSlug) return <GoalPicker options={options} />;
 
-  const { role, skills } = await roleGraph(roleSlug);
+  const [{ role, skills }, resources, { skill }] = await Promise.all([
+    roleGraph(roleSlug),
+    resourcesBySkill(),
+    searchParams,
+  ]);
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
@@ -25,13 +36,18 @@ export default async function GraphPage() {
           <h1 className="text-2xl font-semibold">Skill Graph</h1>
           <p className="text-muted-foreground text-sm">
             Every skill {role.name} requires, plus their prerequisites. Select
-            a node for its detail and the expand wand.
+            a node for its detail, what to read next, and the expand wand.
           </p>
         </div>
         <RoleSwitcher options={options} current={roleSlug} />
       </div>
       <div className="flex-1">
-        <SkillGraph skills={skills} mode="explore" />
+        <SkillGraph
+          skills={skills}
+          mode="explore"
+          resources={resources}
+          focusSlug={typeof skill === "string" ? skill : null}
+        />
       </div>
     </div>
   );

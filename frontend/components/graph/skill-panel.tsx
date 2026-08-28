@@ -2,6 +2,10 @@
 
 import { Loader2, Sparkles, X } from "lucide-react";
 
+import {
+  ResourceLinks,
+  type ResourceLink,
+} from "@/components/resources/resource-links";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { CATEGORY_BAR } from "@/lib/category";
@@ -49,6 +53,7 @@ export function SkillPanel({
   categoryIndex,
   prerequisites,
   unlocks,
+  resources,
   expanding,
   onSelect,
   onExpand,
@@ -58,6 +63,7 @@ export function SkillPanel({
   categoryIndex: number;
   prerequisites: GraphSkill[];
   unlocks: GraphSkill[];
+  resources: ResourceLink[];
   expanding: boolean;
   onSelect: (id: string) => void;
   onExpand: (id: string) => void;
@@ -152,6 +158,18 @@ export function SkillPanel({
           skills={unlocks}
           onSelect={onSelect}
         />
+
+        {/* The tree's panel has shown these since the library shipped; this
+            one never did, so half the app answered "how do I learn this?"
+            and half left it as a coloured node. */}
+        {resources.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-muted-foreground text-xs font-medium">
+              Learn this ({resources.length})
+            </p>
+            <ResourceLinks resources={resources} />
+          </div>
+        )}
       </div>
 
       {!skill.aiGenerated && (

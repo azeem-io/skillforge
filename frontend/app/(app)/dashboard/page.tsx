@@ -172,12 +172,21 @@ export default async function DashboardPage() {
           <CardTitle>Start here</CardTitle>
           <CardDescription>
             Every prerequisite is far enough along that you can begin these now.
+            Open one for its detail and what to read.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
+          {/* Links, not labels. Naming the skill and then leaving the student
+              to find it themselves is where this card used to stop. */}
           {nextUp.map((s) => (
-            <Badge key={s.id} className={MASTERY_CHIP.gap}>
-              {s.name}
+            <Badge
+              key={s.id}
+              asChild
+              className={`${MASTERY_CHIP.gap} hover:ring-mastery-gap-ring/60 hover:ring-2`}
+            >
+              <Link href={`/graph?skill=${encodeURIComponent(s.slug)}`}>
+                {s.name}
+              </Link>
             </Badge>
           ))}
         </CardContent>
@@ -195,7 +204,11 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {rows.map((s) => (
-              <div key={s.id} className="rounded-md border p-3">
+              <Link
+                key={s.id}
+                href={`/graph?skill=${encodeURIComponent(s.slug)}`}
+                className="hover:border-ring/60 rounded-md border p-3 transition-colors"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-sm font-medium">{s.name}</span>
                   <Badge variant="outline" className={MASTERY_CHIP[s.mastery]}>
@@ -209,7 +222,7 @@ export default async function DashboardPage() {
                   className="mt-2 h-1.5"
                   value={(s.level / s.requiredLevel) * 100}
                 />
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>
