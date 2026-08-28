@@ -1,0 +1,13 @@
+# Canonical identities. `git shortlog`, `git log` and most local tooling read
+# this, so a commit that arrives from another clone still carrying the old
+# address is displayed and counted under the right one.
+#
+# The address on the right of each line is the one that was written into
+# history by mistake — a typo in a global git config, which put it on every
+# commit from that machine for months. History has been rewritten, but Azeem's
+# clone and any branch restored from a backup will still carry it.
+#
+# Note this file does NOT affect GitHub's contributor graph: that reads the raw
+# author email out of each commit. Only rewriting history fixes attribution
+# there, which is what was done.
+Yar Muhammad Uwaim <yarmuhammaduwaim@gmail.com> <yarmuhammaduwaim@gmaill.com>
