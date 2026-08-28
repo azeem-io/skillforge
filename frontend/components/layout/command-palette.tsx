@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
 import {
+  CalendarClock,
   ClipboardCheck,
   CornerDownLeft,
   GitBranch,
@@ -55,6 +56,7 @@ const PAGES: Entry[] = [
   { id: "p-tree", label: "Skill Tree", href: "/tree", icon: GitBranch, group: "Pages" },
   { id: "p-compare", label: "Compare Roles", href: "/compare", icon: Scale, group: "Pages" },
   { id: "p-assessments", label: "Assessments", href: "/assessments", icon: ClipboardCheck, group: "Pages" },
+  { id: "p-review", label: "Review", href: "/review", icon: CalendarClock, group: "Pages" },
   { id: "p-profile", label: "Profile", href: "/profile", icon: User, group: "Pages" },
   { id: "p-students", label: "Students", href: "/students", icon: Users, group: "Pages" },
   { id: "p-resources", label: "Resources", href: "/resources", icon: Library, group: "Pages" },

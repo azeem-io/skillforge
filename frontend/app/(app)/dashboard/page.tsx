@@ -22,6 +22,8 @@ import {
 import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
 import { FirstSteps } from "@/components/layout/first-steps";
+import { DueCard } from "@/components/review/due-card";
+import { dueCount } from "@/lib/review";
 import { phases, readiness } from "@/lib/skills";
 import { StaffOverview } from "@/components/staff/staff-overview";
 import {
@@ -71,7 +73,10 @@ export default async function DashboardPage() {
 
   if (!roleSlug) return <GoalPicker options={options} />;
 
-  const { role, skills } = await roleGraph(roleSlug);
+  const [{ role, skills }, due] = await Promise.all([
+    roleGraph(roleSlug),
+    dueCount(),
+  ]);
   const score = readiness(skills);
   const layers = phases(skills);
   const nextUp = layers[0] ?? [];
@@ -107,6 +112,8 @@ export default async function DashboardPage() {
           </Button>
         </div>
       </div>
+
+      <DueCard count={due} />
 
       {demonstrated === 0 && <FirstSteps roleName={role.name} />}
 

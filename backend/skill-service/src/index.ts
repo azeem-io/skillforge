@@ -11,6 +11,7 @@ import { env, type Vars } from "./context";
 import { assessmentRoutes } from "./routes/assessments";
 import { progress } from "./routes/progress";
 import { resourceRoutes } from "./routes/resources";
+import { reviewRoutes } from "./routes/review";
 import { roadmapRoutes } from "./routes/roadmap";
 import { taxonomy } from "./routes/taxonomy";
 
@@ -29,6 +30,7 @@ app.route("/api/skills", taxonomy);
 app.route("/api/skills", assessmentRoutes);
 app.route("/api/skills", progress);
 app.route("/api/skills", resourceRoutes);
+app.route("/api/skills", reviewRoutes);
 app.route("/api/skills", roadmapRoutes);
 
 console.log(

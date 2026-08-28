@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  CalendarClock,
   ClipboardCheck,
   GitBranch,
   LayoutDashboard,
@@ -42,6 +43,7 @@ const STUDENT_NAV: Item[] = [
   { href: "/compare", label: "Compare Roles", icon: Scale },
   { href: "/tree", label: "Skill Tree", icon: GitBranch },
   { href: "/assessments", label: "Assessments", icon: ClipboardCheck },
+  { href: "/review", label: "Review", icon: CalendarClock },
   { href: "/profile", label: "Profile", icon: User },
 ];
 

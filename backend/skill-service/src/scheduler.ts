@@ -229,3 +229,19 @@ export function gradeFromRatio(ratio: number): Grade {
   if (ratio < 0.9) return 3;
   return 4;
 }
+
+/**
+ * The grade a *review* earns. Same ratio rule as a sitting, capped at "Good"
+ * when the probe was a single question.
+ *
+ * 95 of the 120 assessable skills carry exactly one question, so most reviews
+ * are a one-item probe and `gradeFromRatio` would score every correct answer
+ * "Easy" — the rating that stretches the next interval hardest. One right
+ * answer is evidence the memory is still there; it is not evidence that it was
+ * effortless, and treating it as such would push the next review out past the
+ * point the schedule is trying to find.
+ */
+export function reviewGrade(ratio: number, total: number): Grade {
+  const grade = gradeFromRatio(ratio);
+  return total < 2 && grade > 3 ? 3 : grade;
+}
