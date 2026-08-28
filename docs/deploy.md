@@ -1,5 +1,11 @@
 # Deploying
 
+**Current deployment: <https://skillforge.sudobox.tech>** — Coolify on the
+Contabo VPS, auto-deploying from `main`. The walkthrough below is the general
+procedure; where it writes `app.<VPS-IP>.sslip.io` as the domain, that
+deployment uses `skillforge.sudobox.tech` instead. `sslip.io` remains the
+zero-DNS option for a second environment.
+
 One VPS, one compose file, Coolify in front. The same `docker-compose.yml` that
 runs locally runs in production with a different set of environment variables —
 there is no separate production configuration to drift.

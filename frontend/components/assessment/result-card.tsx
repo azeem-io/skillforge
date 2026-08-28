@@ -15,6 +15,7 @@ import {
   type AttemptResult,
   type SkillBreakdown,
 } from "@/lib/assessment-types";
+import { durationBetween } from "@/lib/duration";
 import { MASTERY_CHIP, MASTERY_DOT } from "@/lib/mastery";
 import { LEVEL_LABEL } from "@/lib/profile-types";
 
@@ -34,6 +35,7 @@ export function ResultCard({
   const score = attempt.score ?? 0;
   const max = attempt.maxScore ?? 0;
   const ratio = max ? score / max : 0;
+  const took = durationBetween(attempt.startedAt, attempt.completedAt);
 
   return (
     <Card>
@@ -45,6 +47,7 @@ export function ResultCard({
               {attempt.completedAt
                 ? `Completed ${new Date(attempt.completedAt).toLocaleDateString()}`
                 : "In progress"}
+              {took && <> · took {took}</>}
             </CardDescription>
           </div>
           <div className="text-right">

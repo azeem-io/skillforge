@@ -54,7 +54,12 @@ Everyone registers as a student. The first admin is made from outside the app:
 - No `any`. No `@ts-expect-error` without a comment saying what is suppressed.
 - **The frontend never touches the database.** Pages call the gateway through
   `frontend/lib/api.ts`; `lib/student.ts` wraps the calls a page actually needs.
-  Only `packages/db` and the backend services import Drizzle.
+  Only `packages/db` and the backend services import Drizzle. This is now
+  literally true rather than aspirational: the frontend container holds no
+  `DATABASE_URL`, so a new Drizzle read fails at runtime rather than working
+  quietly. `lib/skills.ts` re-exports `phases` and `readiness` from
+  `@skillforge/db`, which are pure functions over rows the gateway returned —
+  no connection involved.
 - **Nothing in `(app)` renders for an anonymous visitor.** The layout calls
   `requireUser()`. Every page inside is one student's data.
 - **Never hardcode a student.** Skills come from `studentSkills` via the

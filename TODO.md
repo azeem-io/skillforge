@@ -129,14 +129,15 @@ maps every PDF-named deliverable to its actual state — items already tracked
 elsewhere just point there instead of duplicating.
 
 **Missing outright:**
-- [ ] **Live application / deployment URL.** The PDF lists it under both
-      "Submission for PS-03" and the Final Checklist's DevOps section.
-      Tracked in `docs/status.md` → Next, as "Deploy to Coolify — Awaim".
-- [ ] **Demo video (2–3 min) and presentation (5–7 min).** Both named in the
-      Submission list and the Documentation checklist; the PDF gives the
-      8-point presentation outline (problem → SDG → solution → live demo →
-      AI/RAG/Agent → architecture → DevOps → future potential). Tracked in
-      `docs/status.md` → Next. Neither exists yet — no slides, no recording.
+- [x] **Live application / deployment URL.** Deployed to Coolify on the Contabo
+      VPS and reachable at <https://skillforge.sudobox.tech>.
+- [x] **Presentation (5–7 min).** `presentation.html` — a self-contained
+      16-slide deck following the PDF's 8-point outline (problem → SDG →
+      solution → live demo → AI/RAG/Agent → architecture → DevOps → future
+      potential).
+- [ ] **Demo video (2–3 min).** The one deliverable still outstanding. Record
+      against the live URL with the seeded demo student, which already has four
+      graded sittings, a portfolio and a roadmap.
 - [x] **LICENSE file.** The Submission Structure's repo tree names it
       explicitly; `package.json` already declared `"license": "MIT"` with
       nothing to back it. Added `LICENSE` (MIT) at the repo root.
@@ -195,8 +196,8 @@ elsewhere just point there instead of duplicating.
 
 Rubric-wise, none of the above touches the largest line items (Core
 Functionality 20, AI/RAG/Agentic 30, Docker+K8s+Terraform 10). The two-service
-Kubernetes gap and the roadmap prose are both closed; what remains is the
-deploy/video/presentation trio everyone already knows about.
+Kubernetes gap and the roadmap prose are both closed; of the
+deploy/presentation/video trio, only the video is left.
 
 ## Deliberately not doing
 

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { AttemptTimer } from "@/components/assessment/timer";
 import { apiFetch } from "@/lib/api-client";
 import { TYPE_LABEL, type Question } from "@/lib/assessment-types";
 
@@ -20,10 +21,12 @@ import { TYPE_LABEL, type Question } from "@/lib/assessment-types";
 export function Quiz({
   title,
   attemptId,
+  startedAt,
   questions,
 }: {
   title: string;
   attemptId: string;
+  startedAt: string;
   questions: Question[];
 }) {
   const router = useRouter();
@@ -103,9 +106,12 @@ export function Quiz({
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-xl font-semibold">{title}</h1>
-          <p className="text-muted-foreground font-mono text-sm">
-            {index + 1} of {questions.length}
-          </p>
+          <div className="flex shrink-0 items-center gap-3">
+            <AttemptTimer startedAt={startedAt} />
+            <p className="text-muted-foreground font-mono text-sm">
+              {index + 1} of {questions.length}
+            </p>
+          </div>
         </div>
         <Progress value={(answered / questions.length) * 100} />
         <p className="text-muted-foreground text-xs">

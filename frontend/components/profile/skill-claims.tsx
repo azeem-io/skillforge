@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Plus, Sparkles, X } from "lucide-react";
 
+import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -124,10 +125,10 @@ export function SkillClaims({
       )}
 
       {skills.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          Nothing claimed yet. Add what you already know, then take an assessment
-          to turn a claim into evidence.
-        </p>
+        <EmptyState compact icon={Sparkles} title="Nothing claimed yet">
+          Add what you already know, then take an assessment to turn a claim
+          into evidence.
+        </EmptyState>
       ) : (
         <ul className="divide-border divide-y rounded-md border">
           {skills.map((skill) => (

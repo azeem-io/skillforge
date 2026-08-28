@@ -3,6 +3,9 @@
 AI-powered student skills and career development platform. Assess what you know,
 see the gap to the role you want, and get a roadmap that respects prerequisites.
 
+**Live: <https://skillforge.sudobox.tech>** — sign in with the demo account
+below, or register.
+
 Read `CONTRIBUTING.md` before writing code — stack rules, architecture, ownership.
 
 ## Quick start
@@ -89,10 +92,16 @@ Or start from nothing:
    spaced-repetition schedule for each one.
 5. `/graph` and `/roadmap` now reflect what you actually demonstrated. `/tree`
    shows the same mastery over the whole taxonomy as circle packing.
-6. Ask `/assistant` anything — it answers from the knowledge base with
+6. `/compare` scores all four roles against the same evidence, best fit first —
+   readiness, what is left to learn, and what you could start today.
+7. Ask `/assistant` anything — it answers from the knowledge base with
    citations, and calls the analyzer when the question needs real numbers.
-7. Mentors and admins get `/students`. A mentor sees only the students a
+8. Mentors and admins get `/students`. A mentor sees only the students a
    `mentorships` row assigns them; an admin sees everyone and can change roles.
+
+Press <kbd>⌘K</kbd> (or `/`) anywhere for the command palette — it searches
+skills, assessments, roles and pages. The theme follows your system by default;
+the sidebar footer switches it.
 
 ## How the AI works
 
@@ -142,8 +151,9 @@ them.
 
 ## Deployment
 
-`docker-compose.yml` is both local development and production, deployed with
-Coolify on a Contabo VPS.
+Live at <https://skillforge.sudobox.tech>. `docker-compose.yml` is both local
+development and production, deployed with Coolify on a Contabo VPS — see
+`docs/deploy.md`.
 
 - `kubernetes/` — the same system as Deployments and Services, validated with
   `kubeconform -strict` against Kubernetes 1.31 schemas

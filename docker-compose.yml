@@ -241,9 +241,8 @@ services:
       # answers the browser's /api/* requests before they reach Next, so the
       # rewrite in next.config.ts is only exercised in local dev.
       GATEWAY_URL: http://api-gateway:8080
-      # frontend/lib/db.ts still reads a few pages directly; those reads move
-      # behind skill-service as the graph views are wired up.
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # No DATABASE_URL on purpose: every read the frontend makes now goes
+      # through the gateway. The container holds no connection string.
       # app/api/ai/* proxies the wand and the assistant straight to ai-service;
       # without this it defaults to localhost and finds nothing in a container.
       AI_SERVICE_URL: http://ai-service:8084

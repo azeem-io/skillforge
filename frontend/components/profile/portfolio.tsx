@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { ExternalLink, Loader2, Plus, X } from "lucide-react";
+import { BadgeCheck, ExternalLink, FolderGit2, Loader2, Plus, X } from "lucide-react";
 
+import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,10 +60,9 @@ export function Projects({ projects }: { projects: Project[] }) {
   return (
     <div className="space-y-3">
       {projects.length === 0 && !open && (
-        <p className="text-muted-foreground text-sm">
-          No projects yet. A project is the strongest evidence you can show for a
-          skill.
-        </p>
+        <EmptyState compact icon={FolderGit2} title="No projects yet">
+          A project is the strongest evidence you can show for a skill.
+        </EmptyState>
       )}
 
       <ul className="space-y-2">
@@ -186,7 +186,9 @@ export function Certifications({
   return (
     <div className="space-y-3">
       {certifications.length === 0 && !open && (
-        <p className="text-muted-foreground text-sm">No certifications yet.</p>
+        <EmptyState compact icon={BadgeCheck} title="No certifications yet">
+          Anything issued by a provider — a cloud badge, a course certificate.
+        </EmptyState>
       )}
 
       <ul className="space-y-2">

@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { apiOrNull } from "@/lib/api";
-import type { Question } from "@/lib/assessment-types";
+import { api, ApiError, apiOrNull } from "@/lib/api";
+import type { AttemptResult, Question } from "@/lib/assessment-types";
 import type { Profile } from "@/lib/profile-types";
 
 export const dynamic = "force-dynamic";
@@ -54,11 +54,32 @@ export default async function AssessmentPage({
     );
   }
 
+  // Reading the attempt does two jobs: it supplies the server's `startedAt` so
+  // the timer survives a refresh, and it is the ownership check — the route
+  // 403s on someone else's id, so a guessed `?attempt=` never renders a quiz.
+  const sitting = await api<{ result: AttemptResult }>(
+    `/api/skills/attempts/${attempt}`,
+  ).catch((error: unknown) => {
+    // Someone else's attempt is a 403. To the person holding the URL it is
+    // indistinguishable from a typo, and should read like one.
+    if (error instanceof ApiError && (error.status === 403 || error.status === 404)) {
+      notFound();
+    }
+    throw error;
+  });
+
+  // Already handed in. Sending them back to the paper would only let them
+  // re-answer questions that are graded and cannot be submitted again.
+  if (sitting.result.attempt.completedAt) {
+    redirect(`/assessments/attempts/${attempt}`);
+  }
+
   return (
     <div className="mx-auto max-w-2xl p-6">
       <Quiz
         title={data.assessment.title}
         attemptId={attempt}
+        startedAt={sitting.result.attempt.startedAt}
         questions={data.questions}
       />
     </div>

@@ -1,5 +1,6 @@
 import { Download, ExternalLink, FileText } from "lucide-react";
 
+import { EmptyState } from "@/components/layout/empty-state";
 import type { Profile } from "@/lib/profile-types";
 
 /** `?inline=1` asks profile-api to serve the bytes for rendering rather than
@@ -29,11 +30,9 @@ export function CvPreview({
 }: Props) {
   if (!cvUploadId) {
     return (
-      <div className="border-border text-muted-foreground flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-10 text-center">
-        <FileText className="size-6 opacity-60" aria-hidden />
-        <p className="text-sm">No CV yet.</p>
-        <p className="text-xs">Upload one and it will preview here.</p>
-      </div>
+      <EmptyState icon={FileText} title="No CV yet">
+        Upload one and it will preview here.
+      </EmptyState>
     );
   }
 
@@ -49,6 +48,9 @@ export function CvPreview({
           <iframe
             src={source(cvUploadId, true)}
             title={`Preview of ${label}`}
+            // bg-white is deliberate and stays white in dark mode: the frame
+            // holds a page of paper, and a transparent one shows the card
+            // through the PDF's own margins.
             className="h-[26rem] w-full border-0 bg-white"
             // Matches the response's own sandbox CSP. `allow-scripts` is what
             // lets the browser's PDF viewer run at all; the absence of

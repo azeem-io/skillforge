@@ -55,7 +55,14 @@ function GraphInner({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { fitView } = useReactFlow();
 
-  useEffect(() => setSkills(initial), [initial]);
+  // A new server payload — a different role, or a refresh — replaces whatever
+  // the wand added locally. Adjusted during render rather than in an effect:
+  // an effect would paint the previous role's nodes for one frame first.
+  const [seeded, setSeeded] = useState(initial);
+  if (seeded !== initial) {
+    setSeeded(initial);
+    setSkills(initial);
+  }
 
   const select = useCallback(
     (id: string | null) => {
@@ -264,7 +271,10 @@ function GraphInner({
         />
       )}
 
-      <Legend className={selected ? "left-1/3" : undefined} />
+      {/* The rail only exists at `sm` and up, so only shift for it there. On a
+          phone the panel is a bottom sheet sitting exactly where the legend
+          is, and the legend gets out of the way instead. */}
+      <Legend className={selected ? "hidden sm:flex sm:left-1/3" : undefined} />
 
       {error && (
         <div className="bg-destructive text-destructive-foreground absolute right-3 bottom-3 max-w-md rounded-md px-3 py-2 text-xs">

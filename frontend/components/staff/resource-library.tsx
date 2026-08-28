@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Loader2, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Library, Loader2, Plus, Trash2 } from "lucide-react";
 
+import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -249,10 +250,10 @@ export function ResourceLibrary({
         </div>
 
         {added.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            None yet. Anything added here joins the seeded library on the same
-            footing — students see one list per skill.
-          </p>
+          <EmptyState compact icon={Library} title="Nothing added yet">
+            Anything added here joins the seeded library on the same footing —
+            students see one list per skill.
+          </EmptyState>
         ) : (
           <ul className="divide-border divide-y rounded-md border">
             {added.map((resource) => {

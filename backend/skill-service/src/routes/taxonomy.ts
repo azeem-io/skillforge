@@ -1,4 +1,10 @@
-import { listRoles, roleSkillGraph, readiness, skillTree } from "@skillforge/db";
+import {
+  analyzerPayload,
+  listRoles,
+  roleSkillGraph,
+  readiness,
+  skillTree,
+} from "@skillforge/db";
 import { skills, studentSkills } from "@skillforge/db/schema";
 import { query } from "@skillforge/service-kit";
 import { asc, eq } from "drizzle-orm";
@@ -62,6 +68,26 @@ taxonomy.get("/taxonomy", async (c) => {
 });
 
 taxonomy.get("/roles", async (c) => c.json({ roles: await listRoles(db) }));
+
+/**
+ * The whole taxonomy in python-analyzer's shape — every leaf, every
+ * prerequisite edge, and each role carrying its own requirements so one call
+ * can rank them all. The Career Planning Agent's context payload.
+ *
+ * It lives here because the frontend has no database of its own: `/ai/agent`
+ * used to assemble this with Drizzle directly, which was the last direct read
+ * left in the app. `demonstrated` is resolved from the caller's session rather
+ * than accepted from the request — the browser has no business asserting what
+ * a student has proven.
+ */
+taxonomy.get("/analyzer-context", async (c) => {
+  const { role } = query(c, z.object({ role: z.string().min(1).optional() }));
+  const actor = c.get("identity");
+
+  return c.json(
+    await analyzerPayload(db, await demonstratedLevels(actor?.id ?? null), role),
+  );
+});
 
 /**
  * The Skill Graph and the roadmap read the same thing: the role's required

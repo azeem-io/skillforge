@@ -37,18 +37,20 @@ What a judge can already do, end to end, against a real account.
 | Assessment history and per-skill breakdown in the mentor view | `/students/[userId]` → `GET /api/skills/students/:userId/attempts` |
 | A populated demo student, mentor and admin | `bun run db:seed:demo`, `SEED_DEMO` in compose |
 | Compose, Kubernetes (every service), Terraform | `docker-compose.yml`, `kubernetes/`, `terraform/` |
+| Deployed and reachable | <https://skillforge.sudobox.tech>, Coolify on the Contabo VPS |
+| Compare every role side by side | `/compare` → python-analyzer `/compare` |
+| Command palette — skills, assessments, roles, pages | ⌘K or `/`, `components/layout/command-palette.tsx` |
+| Light / dark / system theme | Sidebar footer, landing and auth pages |
+| Assessment stopwatch, and the duration on the result | `/assessments/[slug]`, `/assessments/attempts/[id]` |
 
 ---
 
 ## Next up — high payoff, small cost
 
-**Deploy to Coolify** · M
-The compose file is the deploy target. Until a judge can open a URL, the
-deployment deliverable is a directory of YAML.
-
-**Demo video and presentation** · M
-2–3 minutes and 5–7 minutes, both named in the PDF's submission list. The
-8-point outline it gives is in `TODO.md`.
+**Demo video** · M
+2–3 minutes, named in the PDF's submission list. The presentation is done —
+`presentation.html`, a self-contained 16-slide deck following the PDF's own
+8-point outline. The recording is the last thing outstanding.
 
 ---
 
@@ -79,23 +81,41 @@ confirms, marked with `--ai` gold — is the kind of thing the AI is actually fo
 A PDF or Markdown export of the current roadmap. Students want something to keep;
 it is also the most shareable artefact the app produces.
 
-**Compare two roles side by side** · M
-`compare_target_roles` already scores every role and the agent can report it, but
-there is no UI. A visual "AI Engineer vs Backend Engineer, here is what changes"
-is a strong demo moment.
-
 ---
 
 ## Polish
 
-- **Search across the app** · M — one palette over skills, assessments, roles.
-- **Empty states everywhere** · S — several pages render a bare grid before the
-  first assessment.
-- **Assessment timer** · S — `attempt_answers` already has `elapsed_ms`.
-- **Dark mode audit** · S — tokens support it; nothing has been checked in it.
-- **Keyboard shortcuts** · S — `g` then `g` for graph, `/` to focus search.
-- **Mobile pass on `/graph` and `/tree`** · M — `100dvh` is fixed, but the
-  React Flow controls and the d3 pack have never been used on a small screen.
+Done, and what each one turned out to actually be:
+
+- ~~**Search across the app**~~ — shipped as the ⌘K palette. Skills route to
+  `/tree?q=`, which seeds the tree's own search rather than adding a second one.
+  Roles are not a page, so choosing one sets the goal and opens the roadmap.
+- ~~**Empty states everywhere**~~ — shipped as one `EmptyState`. The work was
+  not adding them; most existed, in three different visual idioms.
+- ~~**Assessment timer**~~ — shipped as a stopwatch seeded from
+  `attempts.started_at`, plus the duration on the result card. The note here
+  said `attempt_answers.elapsed_ms`; that column is on `reviews`, not
+  `attempt_answers`, so per-question timing would need a migration. Per-sitting
+  timing needed none.
+- ~~**Dark mode audit**~~ — the audit's finding was that the full dark palette
+  and every `dark:` variant were already there and **nothing ever set the
+  `.dark` class**, so none of it was reachable. Shipped a three-way toggle with
+  a pre-paint script.
+- ~~**Keyboard shortcuts**~~ — ⌘K and `/` open the palette; `/` yields when the
+  caret is in a field. Not the `g`-then-`g` chords: with nine destinations one
+  searchable list beats nine bindings nobody memorises.
+- ~~**Mobile pass on `/graph` and `/tree`**~~ — the 20rem skill panel became a
+  bottom sheet under `sm`, the legend scrolls instead of overflowing, the tree's
+  breadcrumb yields width to the search cluster, and React Flow's controls get
+  32px targets on a coarse pointer.
+
+Still open:
+
+- **Empty states on the canvas views** · S — `/graph` and `/tree` render a
+  correct but bleak all-gaps picture for a brand-new account. `FirstSteps` does
+  this job on the dashboard and could be lifted.
+- **Real device pass** · S — the above was done against viewport emulation.
+  Nobody has held a phone.
 
 ---
 

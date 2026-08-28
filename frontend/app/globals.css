@@ -360,6 +360,19 @@
   transition: opacity 280ms ease;
 }
 
+/* React Flow ships ~16px control buttons, which is well under a finger. Only
+   on a coarse pointer, so a mouse keeps the compact chrome. */
+@media (pointer: coarse) {
+  .react-flow__controls-button {
+    width: 2rem;
+    height: 2rem;
+  }
+  .react-flow__controls-button svg {
+    max-width: 1rem;
+    max-height: 1rem;
+  }
+}
+
 @keyframes skill-node-enter {
   from {
     opacity: 0;

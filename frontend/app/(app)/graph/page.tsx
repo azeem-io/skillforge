@@ -20,12 +20,12 @@ export default async function GraphPage() {
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
-      <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 border-b px-4 py-4 sm:px-6">
         <div>
           <h1 className="text-2xl font-semibold">Skill Graph</h1>
           <p className="text-muted-foreground text-sm">
-            Every skill {role.name} requires, plus their prerequisites. Hover a
-            node for the expand wand.
+            Every skill {role.name} requires, plus their prerequisites. Select
+            a node for its detail and the expand wand.
           </p>
         </div>
         <RoleSwitcher options={options} current={roleSlug} />

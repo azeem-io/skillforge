@@ -104,8 +104,10 @@ dataset carries them, and they are the substance the roadmap computes over.
 
 Next.js only auto-loads env files from its own directory. A root `.env` (what
 `packages/db`'s scripts read via `--env-file=../../.env`) is invisible to
-`frontend/`, so `frontend/lib/db.ts` needs its own `frontend/.env.local` with
-the same `DATABASE_URL`. Both are gitignored; neither is committed.
+`frontend/`, so anything the frontend needs at runtime goes in its own
+`frontend/.env.local` — `GATEWAY_URL` and `AI_SERVICE_URL`. Not `DATABASE_URL`:
+the frontend no longer opens a connection at all. Both files are gitignored;
+neither is committed.
 
 `docker-compose.yml` now exists and owns the port-5432 contract, which is what
 `.env.example` states. Two ways to run locally: `./scripts/setup.sh` brings up

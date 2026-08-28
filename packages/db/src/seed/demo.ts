@@ -313,7 +313,15 @@ for (const sitting of SITTINGS) {
     })
     .onConflictDoUpdate({
       target: attempts.id,
-      set: { completedAt: at, score, maxScore: bank.length },
+      // `startedAt` has to move with `completedAt`. Re-seeding refreshed only
+      // the end of the sitting, so an instance seeded twice a week apart
+      // reported a sitting that took a week.
+      set: {
+        startedAt: new Date(at.getTime() - 14 * 60_000),
+        completedAt: at,
+        score,
+        maxScore: bank.length,
+      },
     });
 
   await db

@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { assistantStudent, historyFrom } from "@/lib/ai-context";
-import { studentContext } from "@/lib/skills";
+import { agentStudent, historyFrom } from "@/lib/ai-context";
 
 const AI_SERVICE = process.env.AI_SERVICE_URL ?? "http://localhost:8084";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { roleSlug, demonstrated, recentAssessments } = await assistantStudent();
-  const context = await studentContext(demonstrated, roleSlug ?? undefined);
+  const { context, recentAssessments } = await agentStudent();
 
   try {
     const upstream = await fetch(`${AI_SERVICE}/agent`, {

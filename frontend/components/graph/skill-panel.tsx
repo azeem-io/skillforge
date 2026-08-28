@@ -2,7 +2,6 @@
 
 import { Loader2, Sparkles, X } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { CATEGORY_BAR } from "@/lib/category";
@@ -65,7 +64,10 @@ export function SkillPanel({
   onClose: () => void;
 }) {
   return (
-    <div className="bg-card/95 absolute top-3 right-3 bottom-3 z-10 flex w-80 flex-col overflow-hidden rounded-lg border shadow-lg backdrop-blur">
+    // A 20rem rail pinned to the right edge leaves about 40px of graph on a
+    // phone. Below `sm` it is a bottom sheet instead: the canvas keeps the top
+    // two thirds, which is where the node that was just tapped is.
+    <div className="bg-card/95 absolute inset-x-3 bottom-3 z-10 flex max-h-[60%] flex-col overflow-hidden rounded-lg border shadow-lg backdrop-blur sm:inset-x-auto sm:top-3 sm:right-3 sm:max-h-none sm:w-80">
       <div className="flex items-start gap-2.5 border-b p-4">
         <span
           className={cn(

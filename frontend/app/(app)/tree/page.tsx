@@ -10,9 +10,11 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Skill tree · SkillForge" };
 
-export default async function TreePage() {
+export default async function TreePage({
+  searchParams,
+}: PageProps<"/tree">) {
   const { roleSlug } = await requireTargetRole();
-  const options = await roleOptions();
+  const [options, { q }] = await Promise.all([roleOptions(), searchParams]);
 
   if (!roleSlug) return <GoalPicker options={options} />;
 
@@ -20,7 +22,7 @@ export default async function TreePage() {
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
-      <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 border-b px-4 py-4 sm:px-6">
         <div>
           <h1 className="text-2xl font-semibold">Skill Tree</h1>
           <p className="text-muted-foreground text-sm">
@@ -31,7 +33,11 @@ export default async function TreePage() {
         </div>
         <RoleSwitcher options={options} current={roleSlug} />
       </div>
-      <SkillTree categories={categories} roleName={role.name} />
+      <SkillTree
+        categories={categories}
+        roleName={role.name}
+        initialQuery={typeof q === "string" ? q : ""}
+      />
     </div>
   );
 }

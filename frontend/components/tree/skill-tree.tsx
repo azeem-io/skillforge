@@ -52,9 +52,13 @@ const LABEL_MIN_R = { ROOT: 110, CATEGORY: 46, SUBCATEGORY: 58, SKILL: 15 };
 export function SkillTree({
   categories,
   roleName,
+  initialQuery = "",
 }: {
   categories: TreeDatum[];
   roleName: string;
+  /** Seeded from `?q=` so the command palette can land on a skill: the tree's
+   *  own search already lights the match and its ancestors. */
+  initialQuery?: string;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const { transform, flyTo } = useZoom(svgRef);
@@ -62,7 +66,7 @@ export function SkillTree({
   const [focusId, setFocusId] = useState(ROOT_ID);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoverId, setHoverId] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   // Canvas is client-only. useSyncExternalStore hydrates with the server's
   // estimate and swaps in exact widths straight after, with no mismatch.
   const measure = useSyncExternalStore(
@@ -299,7 +303,7 @@ export function SkillTree({
 
   return (
     <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[1fr_21rem]">
-      <div className="relative h-[55vh] overflow-hidden lg:h-auto">
+      <div className="relative h-[55dvh] overflow-hidden lg:h-auto">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${SIZE} ${SIZE}`}
@@ -374,7 +378,10 @@ export function SkillTree({
 
         <nav
           aria-label="Breadcrumb"
-          className="bg-card/90 absolute top-3 left-3 flex max-w-[60%] items-center gap-1 overflow-hidden rounded-md border px-2 py-1.5 text-xs backdrop-blur"
+          // The search cluster sits opposite it. 60% of a 360px screen leaves
+          // the two overlapping, so the trail gives up width first — it
+          // truncates, and the controls stay usable.
+          className="bg-card/90 absolute top-3 left-3 flex max-w-[45%] items-center gap-1 overflow-hidden rounded-md border px-2 py-1.5 text-xs backdrop-blur sm:max-w-[60%]"
         >
           {trail.map((n, i) => (
             <span key={n.data.id} className="flex items-center gap-1">
@@ -407,7 +414,7 @@ export function SkillTree({
                 }}
                 placeholder="Find anything"
                 aria-label="Find a category, subcategory or skill"
-                className="w-32 bg-transparent text-xs outline-none"
+                className="w-20 bg-transparent text-xs outline-none sm:w-32"
               />
               {query && (
                 <button
@@ -431,7 +438,7 @@ export function SkillTree({
           </div>
 
           {matches.length > 0 && (
-            <ul className="bg-card/95 w-64 overflow-hidden rounded-md border text-xs backdrop-blur">
+            <ul className="bg-card/95 w-[min(16rem,calc(100vw-1.5rem))] overflow-hidden rounded-md border text-xs backdrop-blur">
               {matches.map((m) => (
                 <li key={m.data.id}>
                   <button

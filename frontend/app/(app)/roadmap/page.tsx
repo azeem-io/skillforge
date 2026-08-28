@@ -1,7 +1,11 @@
+import Link from "next/link";
+import { Scale } from "lucide-react";
+
 import { GoalPicker } from "@/components/layout/goal-picker";
 import { RoleSwitcher } from "@/components/layout/role-switcher";
 import { GenerateButton } from "@/components/roadmap/generate-button";
 import { RoadmapView } from "@/components/roadmap/roadmap-view";
+import { Button } from "@/components/ui/button";
 
 import type { Metadata } from "next";
 import {
@@ -36,7 +40,7 @@ export default async function RoadmapPage() {
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
-      <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 border-b px-4 py-4 sm:px-6">
         <div>
           <h1 className="text-2xl font-semibold">Roadmap</h1>
           <p className="text-muted-foreground text-sm">
@@ -45,7 +49,13 @@ export default async function RoadmapPage() {
               : `What ${role.name} requires, minus what you have shown. Generate a plan to save it.`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/compare">
+              <Scale className="size-3.5" />
+              Compare roles
+            </Link>
+          </Button>
           <RoleSwitcher options={options} current={roleSlug} />
           <GenerateButton existing={Boolean(current)} />
         </div>

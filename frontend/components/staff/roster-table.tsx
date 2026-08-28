@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Search, Users } from "lucide-react";
 
+import { EmptyState } from "@/components/layout/empty-state";
 import { RoleControls } from "@/components/staff/role-controls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -152,14 +153,15 @@ export function RosterTable({
       </div>
 
       {visible.length === 0 ? (
-        <Card>
-          <CardContent className="text-muted-foreground flex items-center gap-2 py-8 text-sm">
-            <Users className="size-4" />
-            {needle
-              ? `Nobody matches “${query.trim()}”.`
-              : "Nothing in this filter."}
-          </CardContent>
-        </Card>
+        <EmptyState
+          compact
+          icon={Users}
+          title={needle ? "No match" : "Nothing in this filter"}
+        >
+          {needle
+            ? `Nobody matches “${query.trim()}”.`
+            : "Try another filter — every student is under All."}
+        </EmptyState>
       ) : (
         <div className="grid gap-2">
           {visible.map((row) => (

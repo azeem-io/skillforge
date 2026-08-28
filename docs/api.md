@@ -85,9 +85,17 @@ Notes:
 | GET | `/api/skills/taxonomy` | categories → subcategories → skills |
 | GET | `/api/skills/roles` | every target role |
 | GET | `/api/skills/graph?role=<slug>` | the role's required subgraph plus transitive prerequisites, each node tagged `mastered` / `progress` / `gap` / `locked`, plus `readiness` |
+| GET | `/api/skills/tree?role=<slug>` | the whole taxonomy as a tree, the role's mastery overlaid |
+| GET | `/api/skills/analyzer-context[?role=<slug>]` | the taxonomy in python-analyzer's shape: `skills`, `edges`, `demonstrated`, `target_role`, `requirements`, and every `role` with its own requirements |
 
-`/graph` uses the caller's demonstrated levels when signed in, and an empty set
-otherwise — which renders as an all-gaps preview.
+`/graph`, `/tree` and `/analyzer-context` all use the caller's demonstrated
+levels when signed in, and an empty set otherwise — which renders as an
+all-gaps preview.
+
+`/analyzer-context` is what `/ai/agent` sends the Career Planning Agent. It is
+around 20KB, which is why it is assembled server-side and never posted from the
+browser; `demonstrated` comes from the session, so a client cannot assert what
+it has proven.
 
 ### Assessments
 

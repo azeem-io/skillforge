@@ -34,10 +34,6 @@ COPY packages ./packages
 COPY frontend ./frontend
 
 ENV NEXT_TELEMETRY_DISABLED=1
-# Shape-only placeholder. frontend/lib/db.ts reads DATABASE_URL at module scope
-# and `next build` imports every route module to inspect its exports; it is
-# never connected to and never copied into the runtime stage.
-ENV DATABASE_URL=postgres://build:build@localhost:5432/build
 # next.config.ts compiles its rewrites at build time, so this has to be set
 # here, not at runtime. Without it /api/* 404s on the published port 3000.
 # Behind Caddy the rewrite is never reached, so it costs nothing there.

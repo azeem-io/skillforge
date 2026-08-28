@@ -9,6 +9,7 @@ import {
   LogIn,
   Route,
   Library,
+  Scale,
   Sparkles,
   User,
   Users,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import {
   Sidebar,
   SidebarContent,
@@ -37,6 +39,7 @@ const STUDENT_NAV: Item[] = [
   { href: "/assistant", label: "Assistant", icon: Sparkles },
   { href: "/graph", label: "Skill Graph", icon: Waypoints },
   { href: "/roadmap", label: "Roadmap", icon: Route },
+  { href: "/compare", label: "Compare Roles", icon: Scale },
   { href: "/tree", label: "Skill Tree", icon: GitBranch },
   { href: "/assessments", label: "Assessments", icon: ClipboardCheck },
   { href: "/profile", label: "Profile", icon: User },
@@ -177,12 +180,18 @@ export function AppSidebar({
             </div>
             <SidebarMenu>
               <SidebarMenuItem>
+                <ThemeToggle className="w-full justify-start" />
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SignOutButton />
               </SidebarMenuItem>
             </SidebarMenu>
           </>
         ) : (
           <SidebarMenu>
+            <SidebarMenuItem>
+              <ThemeToggle className="w-full justify-start" />
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Sign in">
                 <Link href="/login">

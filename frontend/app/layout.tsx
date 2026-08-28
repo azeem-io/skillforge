@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { THEME_SCRIPT } from "@/lib/theme";
 
 import "./globals.css";
 
@@ -44,8 +45,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      // The pre-paint script below sets `class` and `style` on this element,
+      // so the server's markup and the client's first read never match here.
+      suppressHydrationWarning
       className={`${geist.variable} ${spaceGrotesk.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          // Must run before the browser paints, which rules out next/script
+          // and any component. It only reads localStorage and sets a class.
+          dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }}
+        />
+      </head>
       <body className="flex min-h-full flex-col">
         <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
       </body>

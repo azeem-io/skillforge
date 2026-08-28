@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { getSessionUser } from "@/lib/session";
 
@@ -103,6 +104,7 @@ export default async function Home() {
           </span>
 
           <nav className="flex items-center gap-2">
+            <ThemeToggle />
             {authed ? (
               <Button size="lg" asChild>
                 <Link href="/dashboard">

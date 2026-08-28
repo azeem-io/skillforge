@@ -121,6 +121,46 @@ async function recentAttempts(): Promise<AssessmentRecap[]> {
   }
 }
 
+/**
+ * The taxonomy the agent's tools reason over: leaves, prerequisite edges, every
+ * role's requirements, and what this student has demonstrated. Roughly 20KB, so
+ * it is fetched per agent turn and never sent from the browser.
+ */
+export type AnalyzerContext = {
+  skills: { slug: string; name: string }[];
+  edges: { skill: string; prerequisite: string }[];
+  demonstrated: Record<string, number>;
+  target_role: string | null;
+  requirements: { skill: string; required_level: number; weight: number }[];
+  roles: {
+    slug: string;
+    name: string;
+    requirements: { skill: string; required_level: number; weight: number }[];
+  }[];
+};
+
+async function analyzerContext(roleSlug?: string | null) {
+  const path = "/api/skills/analyzer-context";
+  return api<AnalyzerContext>(
+    roleSlug ? `${path}?role=${encodeURIComponent(roleSlug)}` : path,
+  );
+}
+
+/**
+ * What the Career Planning Agent is sent. Narrower than `assistantStudent()`
+ * on purpose: the agent reads the taxonomy through its tools, so it gets the
+ * analyzer payload instead of a demonstrated map, and never the assessment
+ * catalog — it has `get_assessment_history` for that.
+ */
+export async function agentStudent() {
+  const profile = await me();
+  const [context, recentAssessments] = await Promise.all([
+    analyzerContext(profile?.targetRoleSlug),
+    recentAttempts(),
+  ]);
+  return { context, recentAssessments };
+}
+
 /** Trimmed to the text turns; tool-call frames stay server-side. */
 export function historyFrom(body: unknown): Turn[] {
   const raw = (body as { history?: unknown })?.history;

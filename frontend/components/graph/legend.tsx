@@ -18,7 +18,9 @@ export function Legend({
   return (
     <div
       className={cn(
-        "bg-card/85 absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3.5 rounded-full border px-3.5 py-1.5 text-[11px] whitespace-nowrap shadow-xs backdrop-blur",
+        // max-w plus overflow-x rather than wrapping: four states on one line
+        // is the whole point of the strip, and a phone can scroll it.
+        "bg-card/85 absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100vw-1.5rem)] -translate-x-1/2 items-center gap-3.5 overflow-x-auto rounded-full border px-3.5 py-1.5 text-[11px] whitespace-nowrap shadow-xs backdrop-blur",
         className,
       )}
     >

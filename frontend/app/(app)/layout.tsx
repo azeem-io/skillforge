@@ -1,5 +1,6 @@
 import { AssistantSheet } from "@/components/ai/assistant-sheet";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { CommandPalette } from "@/components/layout/command-palette";
 import {
   SidebarInset,
   SidebarProvider,
@@ -22,6 +23,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
+          <CommandPalette />
           <div className="ml-auto">
             <AssistantSheet userId={user.userId} />
           </div>

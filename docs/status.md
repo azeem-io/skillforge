@@ -27,7 +27,7 @@ depends on a hardcoded student.
 | Generate AI roadmap | `/roadmap` → python-analyzer `/plan`, persisted | done |
 | Ask RAG assistant | `/assistant` → ai-service `/chat` | done |
 | Career Agent analyses profile | ai-service `/agent`, six tools | done |
-| Deployment | `docker-compose.yml`, `kubernetes/`, `terraform/` | compose done, see gap below |
+| Deployment | <https://skillforge.sudobox.tech> | live |
 
 ## Done
 
@@ -99,7 +99,7 @@ depends on a hardcoded student.
 - [x] `docs/cicd.md` — covers the bonus CI/CD requirement without a pipeline
 
 ### Frontend — Azeem
-- [x] App shell with collapsible sidebar, 15 pages
+- [x] App shell with collapsible sidebar, 16 pages
 - [x] `/dashboard` — readiness, mastery counts, start-here, skills by category
 - [x] `/graph` — React Flow, elk layout in per-category bands, mastery colours,
       prerequisite edges, skill detail panel
@@ -117,6 +117,18 @@ depends on a hardcoded student.
       `GET /api/skills/students/:userId/attempts`
 - [x] All of it reads the signed-in student through the gateway
 - [x] Expand wand wired to ai-service `/expand`, with optimistic ghost nodes
+- [x] `/compare` — every seeded role scored against what the student has
+      demonstrated, through python-analyzer `/compare`. Same numbers the agent's
+      `compare_target_roles` reports, with the working shown. Switching goal
+      from a column persists it like the role switcher does.
+- [x] Command palette — ⌘K or `/` over skills, assessments, roles and pages.
+      The catalog is fetched once on first open, never on page load.
+- [x] Light / dark / system theme. The palette and every `dark:` variant were
+      already in `globals.css`; nothing had ever set the `.dark` class, so it
+      was all unreachable. A pre-paint script in `<head>` applies the stored
+      choice before the first frame.
+- [x] Assessment stopwatch, seeded from `attempts.started_at` so a refresh
+      mid-sitting does not reset it, and the duration on the result card
 
 ### python-analyzer — Azeem
 - [x] `SkillGraph` — closure, cycle detection, longest-path layering
@@ -209,8 +221,9 @@ Nothing mid-flight right now — see **Next** for what's queued.
 
 ## Next
 
-- [ ] Deploy to Coolify — Awaim
-- [ ] Demo video (2–3 min) and presentation (5–7 min) — either
+- [ ] Demo video (2–3 min) — either. The last outstanding deliverable; the
+      presentation shipped as `presentation.html`, and the deploy is live at
+      <https://skillforge.sudobox.tech>.
 
 ## Known issues
 
@@ -221,15 +234,6 @@ in both — see `docs/decisions.md` and the table in `CONTRIBUTING.md`. They agr
 because they were aligned by hand. **This will drift.** Deliberately not being
 fixed before submission: skill-service already prefers the analyzer and falls
 back to the TypeScript path, which is the behaviour we want during judging.
-
-**One direct database read is left in the frontend.** Down from all of them.
-Everything a page renders now goes through `lib/student.ts` → `lib/api.ts` →
-gateway. The exception is `frontend/app/ai/agent/route.ts`, which calls
-`studentContext()` in `lib/skills.ts` and hits Drizzle through `lib/db.ts` to
-assemble the agent's payload. `lib/db.ts` and the other three helpers in
-`lib/skills.ts` (`roles`, `roleGraph`, `tree`) now have no callers at all —
-delete them with that route's migration. Type-only imports of `@skillforge/db`
-elsewhere are fine; they erase at compile time.
 
 **Next runs on Node, not Bun.** `next build` segfaults on the Bun runtime
 (SIGILL, Bun 1.3.14). Frontend scripts are plain `next dev` / `next build` on

@@ -80,6 +80,8 @@ spec:
             matchExpressions:
               - key: app
                 operator: In
-                values: [auth-service, profile-api, skill-service, frontend, migrate]
+                # frontend is deliberately absent: it holds no connection
+                # string and reads everything through the gateway.
+                values: [auth-service, profile-api, skill-service, migrate]
       ports:
         - port: 5432
