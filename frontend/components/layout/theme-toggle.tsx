@@ -34,7 +34,14 @@ const SERVER_SNAPSHOT = (): Theme => "system";
  * The colours themselves are already on screen by the time this mounts — the
  * inline script in `<head>` painted them. This only reflects and changes them.
  */
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  showLabel = true,
+}: {
+  className?: string;
+  /** The marketing header is tight on a phone; the icon carries it alone. */
+  showLabel?: boolean;
+}) {
   const theme = useSyncExternalStore(
     subscribeTheme,
     readTheme,
@@ -64,7 +71,9 @@ export function ThemeToggle({ className }: { className?: string }) {
           aria-label={`Theme: ${theme}`}
         >
           <Active className="size-4" />
-          <span className="group-data-[collapsible=icon]:hidden">Theme</span>
+          {showLabel && (
+            <span className="group-data-[collapsible=icon]:hidden">Theme</span>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-36">

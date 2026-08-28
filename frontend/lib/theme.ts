@@ -69,12 +69,19 @@ export function applyTheme(theme: Theme) {
  * the browser has already painted the light palette, so without this a dark
  * theme arrives as a flash of white on every navigation-free page load.
  *
+ * It also marks the document as scripted. Scroll reveals start hidden, and a
+ * visitor with JavaScript disabled must not be served an invisible page — the
+ * `.js` class is what gates every one of those rules, so without it the page
+ * renders complete and static.
+ *
  * Wrapped in try/catch because reading localStorage throws outright when a
  * browser is set to block site data, and a theme preference is not worth a
  * blank page.
  */
 export const THEME_SCRIPT = `
-(function(){try{
+(function(){
+document.documentElement.classList.add("js");
+try{
 var t=localStorage.getItem(${JSON.stringify(THEME_KEY)})||"system";
 var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);
 document.documentElement.classList.toggle("dark",d);
