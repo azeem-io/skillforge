@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { Quiz } from "@/components/assessment/quiz";
@@ -20,6 +22,20 @@ type Response = {
   questions: Question[];
 };
 
+// `cache` so naming the tab does not cost a second round trip: Next calls
+// generateMetadata and the page in the same request, and both want this.
+const assessment = cache((slug: string) =>
+  apiOrNull<Response>(`/api/skills/assessments/${slug}`),
+);
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/assessments/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const data = await assessment(slug);
+  return { title: data?.assessment.title ?? "Assessment" };
+}
+
 export default async function AssessmentPage({
   params,
   searchParams,
@@ -30,7 +46,7 @@ export default async function AssessmentPage({
   const { slug } = await params;
   const { attempt } = await searchParams;
 
-  const data = await apiOrNull<Response>(`/api/skills/assessments/${slug}`);
+  const data = await assessment(slug);
   if (!data) notFound();
 
   // Without an attempt id there is nothing to submit against, so the page

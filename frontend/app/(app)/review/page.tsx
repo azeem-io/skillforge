@@ -12,7 +12,7 @@ import type { Metadata } from "next";
 // One student's schedule, and it changes the moment they answer.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Review · SkillForge" };
+export const metadata: Metadata = { title: "Review" };
 
 export default async function ReviewPage() {
   await requireUser();

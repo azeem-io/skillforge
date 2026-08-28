@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Students · SkillForge" };
+export const metadata: Metadata = { title: "Students" };
 
 export default async function StudentsPage() {
   const staff = await requireStaff();

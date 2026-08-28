@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 // One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Skill tree · SkillForge" };
+export const metadata: Metadata = { title: "Skill tree" };
 
 export default async function TreePage({
   searchParams,

@@ -25,7 +25,7 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Student · SkillForge" };
+export const metadata: Metadata = { title: "Student" };
 
 const SOURCE_LABEL: Record<string, string> = {
   assessment: "Assessment",

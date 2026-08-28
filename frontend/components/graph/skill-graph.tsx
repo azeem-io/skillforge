@@ -108,7 +108,11 @@ function GraphInner({
             count: 3,
           }),
         });
-        const data = await response.json();
+        // A proxy 502 arrives as HTML, and `response.json()` would throw a
+        // SyntaxError that reads to the student like a bug in the graph.
+        const data = await response
+          .json()
+          .catch(() => ({ error: `Expand failed (${response.status}).` }));
 
         if (!response.ok) {
           setSkills((prev) => prev.filter((s) => !s.id.startsWith(`${id}::ai`)));

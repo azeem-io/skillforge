@@ -41,7 +41,7 @@ const ORDER: Mastery[] = ["mastered", "progress", "gap", "locked"];
 // One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Dashboard · SkillForge" };
+export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const profile = await requireUser();

@@ -1,0 +1,106 @@
+<!doctype html>
+<!-- Source for frontend/public/og.png, the link-preview card. Regenerate:
+
+     google-chrome --headless --window-size=1200,630 --hide-scrollbars \
+       --allow-file-access-from-files --screenshot=frontend/public/og.png \
+       file://$PWD/docs/og-card.html
+
+     Colours are the literal oklch() values of the tokens in globals.css; this
+     file is outside the Tailwind build, so it cannot read them. -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face {
+    font-family: "Space Grotesk";
+    src: url("../frontend/app/fonts/SpaceGrotesk-Variable.woff2") format("woff2");
+    font-weight: 300 700;
+  }
+  @font-face {
+    font-family: "Geist";
+    src: url("../frontend/app/fonts/Geist-Variable.woff2") format("woff2");
+    font-weight: 100 900;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; }
+  body {
+    background: oklch(0.986 0.006 96);
+    color: oklch(0.271 0.016 102.2);
+    font-family: "Geist", sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+  .wash-a {
+    position: absolute; inset: 0;
+    background: radial-gradient(60rem 28rem at 12% -12%, oklch(0.955 0.024 195), transparent 60%);
+  }
+  .wash-b {
+    position: absolute; inset: 0;
+    background: radial-gradient(45rem 26rem at 96% 4%, oklch(0.925 0.046 60.86), transparent 62%);
+  }
+  .frame {
+    position: relative;
+    height: 100%;
+    padding: 72px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .mark {
+    width: 56px; height: 56px; border-radius: 12px;
+    background: oklch(0.271 0.016 102.2);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mark svg { width: 28px; height: 28px; stroke: oklch(0.985 0.004 96); }
+  .brand span {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 34px; font-weight: 600; letter-spacing: -0.02em;
+  }
+  h1 {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 78px; font-weight: 600; line-height: 1.04;
+    letter-spacing: -0.03em; max-width: 15ch;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, oklch(0.504 0.064 195), oklch(0.624 0.079 195) 55%, oklch(0.804 0.161 72.71));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  p {
+    margin-top: 26px; font-size: 27px; line-height: 1.45;
+    color: oklch(0.527 0.019 93.5); max-width: 30ch;
+  }
+  .states { display: flex; align-items: center; gap: 34px; font-size: 21px; }
+  .state { display: flex; align-items: center; gap: 11px; font-weight: 500; }
+  .dot { width: 13px; height: 13px; border-radius: 999px; }
+</style>
+</head>
+<body>
+  <div class="wash-a"></div>
+  <div class="wash-b"></div>
+  <div class="frame">
+    <div class="brand">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+        </svg>
+      </span>
+      <span>SkillForge</span>
+    </div>
+
+    <div>
+      <h1>From where you are to the <em>role you want.</em></h1>
+      <p>Assess what you know, see the gap, follow a roadmap the graph computed.</p>
+    </div>
+
+    <div class="states">
+      <span class="state"><span class="dot" style="background: oklch(0.755 0.128 153.5)"></span>Mastered</span>
+      <span class="state"><span class="dot" style="background: oklch(0.746 0.094 195)"></span>In progress</span>
+      <span class="state"><span class="dot" style="background: oklch(0.623 0.199 36.66)"></span>Gap</span>
+      <span class="state"><span class="dot" style="background: oklch(0.809 0.025 96.6)"></span>Locked</span>
+    </div>
+  </div>
+</body>
+</html>

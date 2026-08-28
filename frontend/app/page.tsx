@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -15,14 +16,35 @@ import { CountUp } from "@/components/marketing/count-up";
 import { HeroGraph } from "@/components/marketing/hero-graph";
 import { Reveal, WordReveal } from "@/components/marketing/reveal";
 import { ScrollProgress } from "@/components/marketing/scroll-progress";
+import { SkipLink } from "@/components/layout/skip-link";
 import { SpotlightCard } from "@/components/marketing/spotlight-card";
 import { Button } from "@/components/ui/button";
 import { getSessionUser } from "@/lib/session";
+import { OG_IMAGE } from "@/lib/site";
 
-export const metadata = {
-  title: "SkillForge — from where you are to the role you want",
-  description:
-    "Assess what you actually know, see the gap to a target technology role, and get a roadmap that is computed, not guessed.",
+const SUMMARY =
+  "Assess what you actually know, see the gap to a target technology role, and get a roadmap that is computed, not guessed.";
+
+export const metadata: Metadata = {
+  // `absolute` because the layout's template would otherwise append the name
+  // to a title that already opens with it.
+  title: { absolute: "SkillForge — from where you are to the role you want" },
+  description: SUMMARY,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "SkillForge",
+    url: "/",
+    title: "SkillForge — from where you are to the role you want",
+    description: SUMMARY,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SkillForge — from where you are to the role you want",
+    description: SUMMARY,
+    images: [OG_IMAGE.url],
+  },
 };
 
 /**
@@ -110,6 +132,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-svh flex-col">
+      <SkipLink />
       <ScrollProgress />
 
       <header
@@ -157,7 +180,7 @@ export default async function Home() {
         </div>
       </header>
 
-      <main className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1">
         <section className="relative overflow-hidden border-b">
           {/* Two soft washes behind the hero — the teal is the ring colour and
               the gold is --ai, the same pairing the graph views use. They

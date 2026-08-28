@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 // One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Skill graph · SkillForge" };
+export const metadata: Metadata = { title: "Skill graph" };
 
 export default async function GraphPage() {
   const { roleSlug } = await requireTargetRole();

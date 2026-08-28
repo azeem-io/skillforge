@@ -47,6 +47,9 @@ let state: ChatState = EMPTY;
 let currentUserId: string | null = null;
 let currentThreadId = "";
 let seq = 0;
+// The agent path is allowed 90 seconds upstream. Nothing about a turn that
+// long should be unstoppable, so the request is held here to be aborted.
+let inflight: AbortController | null = null;
 
 const listeners = new Set<() => void>();
 
@@ -203,6 +206,27 @@ export function deleteThread(threadId: string) {
   emit();
 }
 
+type AnswerPayload = {
+  answer?: string;
+  sources?: Source[];
+  steps?: Step[];
+  error?: string;
+  hint?: string;
+};
+
+/**
+ * A proxy in front of the app answers a 502 in HTML, and `response.json()`
+ * would then throw a SyntaxError that reads like a bug in the assistant. The
+ * status is the fallback, the same way `lib/api-client.ts` handles it.
+ */
+async function payload(response: Response): Promise<AnswerPayload> {
+  try {
+    return (await response.json()) as AnswerPayload;
+  } catch {
+    return { error: `The assistant could not answer (${response.status}).` };
+  }
+}
+
 async function ask(
   question: string,
   history: { role: string; content: string }[],
@@ -216,6 +240,9 @@ async function ask(
       ),
     });
 
+  const controller = new AbortController();
+  inflight = controller;
+
   try {
     const response = await fetch(
       NEEDS_TOOLS.test(question) ? "/ai/agent" : "/ai/chat",
@@ -223,9 +250,10 @@ async function ask(
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ question, history }),
+        signal: controller.signal,
       },
     );
-    const data = await response.json();
+    const data = await payload(response);
 
     if (!response.ok) {
       settle({
@@ -241,14 +269,25 @@ async function ask(
       steps: data.steps ?? [],
     });
   } catch (error) {
+    // Aborts are the student's own doing, so they read as a stopped turn
+    // rather than as a failure — and retry still has the question to re-ask.
     settle({
       failed: true,
       content:
-        error instanceof Error
-          ? error.message
-          : "The assistant could not answer.",
+        controller.signal.aborted
+          ? "Stopped."
+          : error instanceof Error
+            ? error.message
+            : "The assistant could not answer.",
     });
+  } finally {
+    if (inflight === controller) inflight = null;
   }
+}
+
+/** Cancels the turn in flight. A no-op when nothing is running. */
+export function stop() {
+  inflight?.abort();
 }
 
 export async function send(question: string) {

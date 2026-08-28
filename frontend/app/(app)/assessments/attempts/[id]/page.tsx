@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Check, X } from "lucide-react";
@@ -17,6 +19,20 @@ import type { Profile } from "@/lib/profile-types";
 
 export const dynamic = "force-dynamic";
 
+// See the sibling assessment page: shared between the metadata and the render.
+const attempt = cache((id: string) =>
+  apiOrNull<{ result: AttemptResult }>(`/api/skills/attempts/${id}`),
+);
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/assessments/attempts/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const data = await attempt(id);
+  const title = data?.result.attempt.title;
+  return { title: title ? `${title} result` : "Result" };
+}
+
 export default async function AttemptPage({
   params,
 }: PageProps<"/assessments/attempts/[id]">) {
@@ -24,9 +40,7 @@ export default async function AttemptPage({
   if (!me) redirect("/login");
 
   const { id } = await params;
-  const data = await apiOrNull<{ result: AttemptResult }>(
-    `/api/skills/attempts/${id}`,
-  );
+  const data = await attempt(id);
   if (!data) notFound();
 
   const { result } = data;

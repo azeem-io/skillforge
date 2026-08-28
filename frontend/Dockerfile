@@ -58,6 +58,9 @@ ENV HOSTNAME=0.0.0.0
 # frontend/server.js inside it and static assets have to be placed by hand.
 COPY --from=build /app/frontend/.next/standalone ./
 COPY --from=build /app/frontend/.next/static ./frontend/.next/static
+# public/ is not part of the standalone output either. It holds og.png, which
+# every link preview of the site resolves against.
+COPY --from=build /app/frontend/public ./frontend/public
 
 USER node
 EXPOSE 3000

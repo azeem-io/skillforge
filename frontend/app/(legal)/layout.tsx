@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
+import { SkipLink } from "@/components/layout/skip-link";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 /**
@@ -11,6 +12,7 @@ import { ThemeToggle } from "@/components/layout/theme-toggle";
 export default function LegalLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-svh flex-col">
+      <SkipLink />
       <header className="border-border/60 border-b">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-6 py-4">
           <Link href="/" className="flex items-center gap-2">
@@ -25,7 +27,11 @@ export default function LegalLayout({ children }: LayoutProps<"/">) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-3xl flex-1 px-6 py-10"
+      >
         {children}
       </main>
 

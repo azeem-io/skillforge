@@ -23,7 +23,7 @@ type Taxonomy = {
   }[];
 };
 
-export const metadata: Metadata = { title: "Resources · SkillForge" };
+export const metadata: Metadata = { title: "Resources" };
 
 export default async function ResourcesPage() {
   const staff = await requireStaff();

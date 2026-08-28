@@ -15,6 +15,9 @@ data:
   PYTHON_ANALYZER_URL: "http://python-analyzer:8085"
   GATEWAY_URL: "http://api-gateway:8080"
   BETTER_AUTH_URL: "https://skillforge.example.com"
+  # The public origin the frontend puts in its metadata, robots.txt and
+  # sitemap. Host only — the app assumes https for anything but localhost.
+  SITE_ADDRESS: "skillforge.example.com"
   # The pod network, so Better Auth trusts the ingress controller's
   # X-Forwarded-For rather than collapsing every client into one rate-limit
   # bucket. Narrow this to the controller's own range on a real cluster.

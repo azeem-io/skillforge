@@ -4,7 +4,7 @@ import { Placeholder } from "@/components/layout/legal-placeholder";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy · SkillForge",
+  title: "Privacy",
   description: "What SkillForge collects, why, and who else sees it.",
 };
 

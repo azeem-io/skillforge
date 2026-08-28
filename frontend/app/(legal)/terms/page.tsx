@@ -4,7 +4,7 @@ import { Placeholder } from "@/components/layout/legal-placeholder";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms · SkillForge",
+  title: "Terms",
   description: "The terms you agree to by using SkillForge.",
 };
 

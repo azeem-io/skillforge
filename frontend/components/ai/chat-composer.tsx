@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Loader2, Send } from "lucide-react";
+import { Send, Square } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { SUGGESTIONS } from "./chat-store";
+import { stop, SUGGESTIONS } from "./chat-store";
 
 export function ChatComposer({
   onSend,
@@ -44,14 +44,19 @@ export function ChatComposer({
           autoFocus={autoFocus}
           disabled={busy}
         />
-        <Button type="submit" disabled={busy || !value.trim()}>
-          {busy ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
+        {/* The agent path can run for a minute and a half. A spinner that
+            cannot be dismissed is the wrong affordance for a wait that long. */}
+        {busy ? (
+          <Button type="button" variant="outline" onClick={stop}>
+            <Square className="size-3.5 fill-current" />
+            <span className="sr-only">Stop generating</span>
+          </Button>
+        ) : (
+          <Button type="submit" disabled={!value.trim()}>
             <Send className="size-4" />
-          )}
-          <span className="sr-only">Send</span>
-        </Button>
+            <span className="sr-only">Send</span>
+          </Button>
+        )}
       </form>
 
       {showSuggestions && (

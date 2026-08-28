@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 // Measured against one student's demonstrated levels, per request.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Compare roles · SkillForge" };
+export const metadata: Metadata = { title: "Compare roles" };
 
 /** The gateway's `/api/skills/analyzer-context` returns exactly the body
  *  python-analyzer's `/compare` accepts, so this page is a pass-through. */

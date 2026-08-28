@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { OG_IMAGE, SITE_URL } from "@/lib/site";
 import { THEME_SCRIPT } from "@/lib/theme";
 
 import "./globals.css";
@@ -35,10 +36,34 @@ const geistMono = localFont({
   fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
 });
 
+const DESCRIPTION =
+  "Evaluate your skills, find the gaps, and get a roadmap to the role you want.";
+
 export const metadata: Metadata = {
-  title: "SkillForge",
-  description:
-    "Evaluate your skills, find the gaps, and get a roadmap to the role you want.",
+  // Every relative URL below — and in any page that sets its own — resolves
+  // against this. Without it Next warns and emits localhost into production
+  // link previews.
+  metadataBase: new URL(SITE_URL),
+  // Every page below sets a bare title — "Dashboard", "Roadmap" — and the
+  // suffix is appended once, here.
+  title: { default: "SkillForge", template: "%s · SkillForge" },
+  description: DESCRIPTION,
+  applicationName: "SkillForge",
+  openGraph: {
+    type: "website",
+    siteName: "SkillForge",
+    url: "/",
+    title: "SkillForge",
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SkillForge",
+    description: DESCRIPTION,
+    images: [OG_IMAGE.url],
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

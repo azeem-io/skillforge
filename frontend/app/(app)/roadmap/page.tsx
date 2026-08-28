@@ -18,7 +18,7 @@ import {
 // One student's mastery, resolved per request from their session.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Roadmap · SkillForge" };
+export const metadata: Metadata = { title: "Roadmap" };
 
 export default async function RoadmapPage() {
   const { roleSlug } = await requireTargetRole();

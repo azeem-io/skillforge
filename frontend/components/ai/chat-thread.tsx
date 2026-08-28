@@ -97,7 +97,16 @@ export function ChatThread({
   }, [messages]);
 
   return (
-    <div className={cn("space-y-5", compact ? "text-sm" : "")}>
+    // A transcript is exactly what `role="log"` describes, and without the
+    // live region an answer arriving after a long agent turn is announced to
+    // nobody — the only cue that it landed is visual.
+    <div
+      role="log"
+      aria-live="polite"
+      aria-busy={busy}
+      aria-label="Conversation with the career assistant"
+      className={cn("space-y-5", compact ? "text-sm" : "")}
+    >
       {messages.map((m) =>
         m.role === "user" ? (
           <div key={m.id} className="flex justify-end">

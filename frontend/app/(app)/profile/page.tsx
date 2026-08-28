@@ -32,7 +32,7 @@ type Taxonomy = {
   categories: { subcategories: { skills: TaxonomySkill[] }[] }[];
 };
 
-export const metadata: Metadata = { title: "Profile · SkillForge" };
+export const metadata: Metadata = { title: "Profile" };
 
 export default async function ProfilePage() {
   const me = await apiOrNull<{ profile: Profile }>("/api/profile/me");

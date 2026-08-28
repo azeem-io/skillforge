@@ -246,6 +246,9 @@ services:
       # app/api/ai/* proxies the wand and the assistant straight to ai-service;
       # without this it defaults to localhost and finds nothing in a container.
       AI_SERVICE_URL: http://ai-service:8084
+      # The public origin, for the absolute URLs in metadata, robots.txt and
+      # the sitemap. Same variable Caddy and BETTER_AUTH_URL are built from.
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/dashboard').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 15s

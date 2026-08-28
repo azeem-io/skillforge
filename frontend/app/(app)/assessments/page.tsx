@@ -26,7 +26,7 @@ type Attempt = {
   completedAt: string | null;
 };
 
-export const metadata: Metadata = { title: "Assessments · SkillForge" };
+export const metadata: Metadata = { title: "Assessments" };
 
 export default async function AssessmentsPage() {
   const me = await apiOrNull<{ profile: Profile }>("/api/profile/me");
