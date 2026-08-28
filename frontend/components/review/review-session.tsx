@@ -204,7 +204,8 @@ function ReviewSummary({ result }: { result: ReviewResult }) {
         <h1 className="text-xl font-semibold">Review done</h1>
         <p className="text-muted-foreground text-sm">
           {held} of {result.results.length} skills held. Each one is rescheduled
-          for when it is next likely to be slipping.
+          for when it is next likely to be slipping — open any of them for what
+          to read before it comes back.
         </p>
       </div>
 
@@ -220,7 +221,13 @@ function ReviewSummary({ result }: { result: ReviewResult }) {
               ) : (
                 <Check className="text-success size-4 shrink-0" />
               )}
-              <span className="truncate text-sm font-medium">{row.name}</span>
+              <Link
+                href={`/graph?skill=${encodeURIComponent(row.slug)}`}
+                className="hover:text-primary truncate text-sm font-medium hover:underline"
+                title={`Open ${row.name} in the graph`}
+              >
+                {row.name}
+              </Link>
               <span className="text-muted-foreground shrink-0 font-mono text-xs">
                 {row.correct}/{row.total}
               </span>

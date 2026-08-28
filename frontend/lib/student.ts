@@ -158,3 +158,24 @@ export function studentDetail(userId: string) {
 export function resourceLibrary() {
   return api<{ resources: Resource[] }>("/api/skills/resources");
 }
+
+/**
+ * The same library, keyed by the skill it hangs off, for the surfaces that
+ * name several skills at once — a roadmap phase, the graph. One call for the
+ * whole page rather than one per skill.
+ *
+ * Fails soft: a roadmap that renders without its reading list is worth far
+ * more than a page that 500s because the library was briefly unavailable.
+ */
+export async function resourcesBySkill(): Promise<Record<string, Resource[]>> {
+  try {
+    const { resources } = await resourceLibrary();
+    const bySlug: Record<string, Resource[]> = {};
+    for (const resource of resources) {
+      (bySlug[resource.skillSlug] ??= []).push(resource);
+    }
+    return bySlug;
+  } catch {
+    return {};
+  }
+}

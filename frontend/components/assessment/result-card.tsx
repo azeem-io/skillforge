@@ -72,7 +72,7 @@ export function ResultCard({
             </p>
             <ul className="space-y-1.5">
               {breakdown.map((entry) => (
-                <BreakdownRow key={entry.slug} entry={entry} />
+                <BreakdownRow key={entry.slug} entry={entry} linkSkill />
               ))}
             </ul>
           </div>
@@ -95,8 +95,18 @@ export function ResultCard({
  * Exported because the mentor view lists the same breakdown without the rest
  * of the card, and two renderings of "how well did this skill go" would drift
  * apart in what mastered looks like.
+ *
+ * `linkSkill` is opt-in for exactly that reason: the graph a link would open
+ * is the *viewer's* own, which is right for a student reading their own
+ * result and meaningless for a mentor reading someone else's.
  */
-export function BreakdownRow({ entry }: { entry: SkillBreakdown }) {
+export function BreakdownRow({
+  entry,
+  linkSkill = false,
+}: {
+  entry: SkillBreakdown;
+  linkSkill?: boolean;
+}) {
   const ratio = entry.total ? entry.correct / entry.total : 0;
   const mastery = masteryForRatio(ratio);
 
@@ -107,7 +117,17 @@ export function BreakdownRow({ entry }: { entry: SkillBreakdown }) {
           aria-hidden
           className={`size-2 shrink-0 rounded-full ${MASTERY_DOT[mastery]}`}
         />
-        <span className="truncate">{entry.name}</span>
+        {linkSkill ? (
+          <Link
+            href={`/graph?skill=${encodeURIComponent(entry.slug)}`}
+            className="hover:text-primary truncate hover:underline"
+            title={`Open ${entry.name} in the graph`}
+          >
+            {entry.name}
+          </Link>
+        ) : (
+          <span className="truncate">{entry.name}</span>
+        )}
       </span>
       <span className="flex shrink-0 items-center gap-2">
         <span className="text-muted-foreground font-mono">
