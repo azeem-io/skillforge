@@ -55,8 +55,8 @@ export default async function ResourcesPage() {
         </h1>
         <p className="text-muted-foreground text-sm">
           What students are pointed at. A resource hangs off one skill, so it
-          reaches them through that skill&apos;s detail panel and through any
-          roadmap phase that includes it.
+          reaches them wherever that skill is named — its panel in the graph
+          and in the tree, and every roadmap phase that includes it.
         </p>
       </div>
 

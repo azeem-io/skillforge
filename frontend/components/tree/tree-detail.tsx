@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  BookOpen,
-  ExternalLink,
-  FileCode2,
-  FileText,
-  GraduationCap,
-  Hammer,
-  Lock,
-  Video,
-} from "lucide-react";
+import { Lock } from "lucide-react";
 
+import { ResourceLinks } from "@/components/resources/resource-links";
 import { CATEGORY_TEXT } from "@/lib/category";
 import {
   MASTERY_CHIP,
@@ -23,15 +15,6 @@ import { cn } from "@/lib/utils";
 import type { TreeDatum } from "./types";
 
 const ORDER: Mastery[] = ["mastered", "progress", "gap", "locked"];
-
-const RESOURCE_ICON: Record<string, typeof BookOpen> = {
-  course: GraduationCap,
-  article: FileText,
-  video: Video,
-  book: BookOpen,
-  project: Hammer,
-  documentation: FileCode2,
-};
 
 function LevelDots({ level, required }: { level: number; required: number }) {
   const total = Math.max(required, level, 1);
@@ -287,44 +270,8 @@ export function TreeDetail({
       ) : null}
 
       {isSkill && node.resources?.length ? (
-        <Section title="Resources">
-          <ul className="space-y-1.5">
-            {node.resources.map((r) => {
-              const Icon = RESOURCE_ICON[r.type] ?? FileText;
-              const body = (
-                <>
-                  <Icon className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block leading-snug">{r.title}</span>
-                    {r.provider && (
-                      <span className="text-muted-foreground text-[11px]">
-                        {r.provider}
-                      </span>
-                    )}
-                  </span>
-                  {r.url && (
-                    <ExternalLink className="text-muted-foreground mt-0.5 size-3 shrink-0" />
-                  )}
-                </>
-              );
-              return (
-                <li key={r.title} className="text-xs">
-                  {r.url ? (
-                    <a
-                      href={r.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:bg-muted flex gap-2 rounded-md p-1.5 transition-colors"
-                    >
-                      {body}
-                    </a>
-                  ) : (
-                    <span className="flex gap-2 p-1.5">{body}</span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+        <Section title="Learn this">
+          <ResourceLinks resources={node.resources} />
         </Section>
       ) : null}
 
